@@ -7,6 +7,7 @@ services:
     depends_on:
       - db
   db:
+    container_name: db
     image: mariadb:latest
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
