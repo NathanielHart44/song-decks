@@ -1,0 +1,17 @@
+version: "3"
+services:
+  web:
+    build: ./django
+    ports:
+        - "8080:80"
+    depends_on:
+      - db
+  db:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: songdecks
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'

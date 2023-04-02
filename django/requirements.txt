@@ -1,0 +1,10 @@
+Django==3.2.5
+uwsgi==2.0.20
+django-environ==0.4.5
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers~=3.13.0
+drf-jwt~=1.19.2
+dj-rest-auth
+django-allauth
+mysqlclient
