@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -118,8 +119,8 @@ DATABASES = {
         'NAME': 'songdecks',
         'USER': 'root',
         'PASSWORD': env('MYSQL_PASSWORD'),
-        'HOST':env('DATABASE_HOST'),
-        'PORT':3306,
+        'HOST': env('DATABASE_HOST'),
+        'PORT': 3306,
     }
 }
 
