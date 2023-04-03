@@ -1,6 +1,6 @@
-Django==3.2.5
-uwsgi==2.0.20
-django-environ==0.4.5
+Django
+uwsgi
+django-environ
 djangorestframework
 djangorestframework-simplejwt
 django-cors-headers~=3.13.0

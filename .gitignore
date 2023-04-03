@@ -3,4 +3,4 @@ node_modules/
 __pycache__/
 .env
 *.py[cod]
-env/
+venv/
