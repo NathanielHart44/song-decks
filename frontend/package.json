@@ -19,10 +19,8 @@
     "react-hook-form": "^7.43.9",
     "react-router-dom": "^6.9.0",
     "react-scripts": "5.0.1",
-    "react-scroll": "^1.8.9",
     "react-swipeable-views": "^0.14.0",
     "react-swipeable-views-utils": "^0.14.0",
-    "react-use-scroll-snap": "^0.0.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
