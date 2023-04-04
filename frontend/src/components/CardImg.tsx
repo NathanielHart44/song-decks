@@ -10,7 +10,7 @@ type Props = {
 
 export default function CardImg({ faction, card_name }: Props) {
     return (
-        <Box>
+        <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
             <img
                 src={IMG_STORAGE + `${faction}/${card_name}.jpg`}
                 alt={card_name}

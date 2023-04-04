@@ -4,5 +4,5 @@ ASOIAF Decks is the unofficial website for the A Song of Ice and Fire LCG. It is
 
 In order to migrate, use the following command:
 ```
-docker compose run web python songdecks/manage.py migrate
+docker compose run web python3 /songdecks/manage.py migrate
 ```
