@@ -72,48 +72,11 @@ class PlayerCard(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     status = models.CharField(max_length=15, choices=[('in-deck', 'In Deck'), ('in-hand', 'In Hand'), ('in-play', 'In Play'), ('discarded', 'Discarded')])
     play_notes = models.TextField(null=True, blank=True)
-    played_at = models.DateTimeField(null=True, blank=True)
-    discarded_at = models.DateTimeField(null=True, blank=True)
+    drawn_this_round = models.BooleanField(default=False)
+    discarded_this_round = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.card_template.card_name} - {self.owner.user.username}'
-
-@receiver(pre_save, sender=Game)
-def update_card_template_stats(sender, instance, **kwargs):
-    if instance.pk:  # Ensure the game has been previously saved
-        original_instance = sender.objects.get(pk=instance.pk)
-
-        if original_instance.status != 'completed' and instance.status == 'completed':
-            # The game's status has changed to completed
-            player_cards = PlayerCard.objects.filter(game=instance)
-
-            for player_card in player_cards:
-                card_template = player_card.card_template
-                card_template.game_count += 1
-
-                if player_card.status == 'in-play':
-                    card_template.play_count += 1
-                elif player_card.status == 'discarded':
-                    card_template.discard_count += 1
-
-                card_template.save()
-
-@receiver(pre_save, sender=PlayerCard)
-def update_user_card_stats(sender, instance, **kwargs):
-    if instance.pk:
-        original_instance = sender.objects.get(pk=instance.pk)
-
-        if original_instance.status != instance.status:
-            user_card_stats, created = UserCardStats.objects.get_or_create(
-                user=instance.owner, card_template=instance.card_template
-            )
-
-            if instance.status == 'in-hand':
-                user_card_stats.times_drawn += 1
-            elif instance.status == 'discarded':
-                user_card_stats.times_discarded += 1
-
-            user_card_stats.save()
 
 class UserCardStats(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
