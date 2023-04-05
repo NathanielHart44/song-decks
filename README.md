@@ -6,3 +6,8 @@ In order to migrate, use the following command:
 ```
 docker compose run web python3 /songdecks/manage.py migrate
 ```
+
+To make migrations, use the following command while inside the `songdecks` directory that includes the `manage.py` file, and while inside the virtual environment:
+```
+python3 manage.py makemigrations
+```
