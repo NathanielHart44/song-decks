@@ -6,7 +6,7 @@ from rest_framework_simplejwt import views as jwt_views
 from songdecks.views import main as views
 
 urlpatterns = [
-    
+
     path('admin/', admin.site.urls),
     path('current_user/', views.current_user),
     path('register/', views.register),
@@ -16,6 +16,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('factions/', views.get_factions),
+    path('commanders/', views.get_commanders),
     path('get_commanders_of_faction/<int:faction_id>/', views.get_commanders_of_faction),
 
     # ----------------------------------------------------------------------

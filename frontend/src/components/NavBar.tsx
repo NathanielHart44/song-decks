@@ -8,7 +8,8 @@ import {
     MenuItem,
     Fade,
     Stack,
-    IconButton
+    IconButton,
+    useTheme
 } from '@mui/material';
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -23,17 +24,20 @@ import Logo from './Logo';
 export default function NavBar() {
 
     const { isMobile } = useContext(MetadataContext);
+    const theme = useTheme();
     
     return (
-        <HideOnScroll>
-            <AppBar>
+        // <HideOnScroll>
+            <AppBar sx={{
+                backgroundColor: theme.palette.grey.default_canvas,
+            }}>
                 <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
                     <Logo />
                     { !isMobile && <MenuButtons /> }
                     { isMobile && <PositionedMenu /> }
                 </Toolbar>
             </AppBar>
-        </HideOnScroll>
+        // </HideOnScroll>
     )
 };
 
@@ -103,9 +107,9 @@ function PositionedMenu() {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 TransitionComponent={Fade}
             >
-                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.game) }}>Play</MenuItem>
-                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Home</MenuItem>
-                <MenuItem color="inherit">Login</MenuItem>
+                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.game); handleClose() }}>Play</MenuItem>
+                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
+                {/* <MenuItem color="inherit">Login</MenuItem> */}
             </Menu>
         </div>
     );

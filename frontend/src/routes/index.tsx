@@ -8,6 +8,7 @@ import Login from 'src/pages/Login';
 import Register from 'src/pages/Register';
 import GuestGuard from 'src/guards/GuestGuard';
 import AuthGuard from 'src/guards/AuthGuard';
+import SelectDeck from 'src/pages/SelectDeck';
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ export default function Router() {
         { element: (<AuthGuard><Navigate to={PATH_AFTER_LOGIN} replace /></AuthGuard>), index: true },
         { path: 'home', element: (<AuthGuard><Home /></AuthGuard>) },
         { path: 'game', element: (<AuthGuard><Game /></AuthGuard>) },
+        { path: 'select-deck', element: (<AuthGuard><SelectDeck /></AuthGuard>) },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" replace /> },
       ],

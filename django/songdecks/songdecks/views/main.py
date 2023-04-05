@@ -59,6 +59,15 @@ def get_factions(request):
         return JsonResponse({"success": False, "response": str(e)})
     
 @api_view(['GET'])
+def get_commanders(request):
+    try:
+        commanders = Commander.objects.all()
+        serializer = CommanderSerializer(commanders, many=True)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+
+@api_view(['GET'])
 def get_commanders_of_faction(request, faction_id):
     try:
         commanders = Commander.objects.filter(faction=faction_id)
