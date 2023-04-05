@@ -2,15 +2,11 @@ from rest_framework.response import Response
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
+from django.http import JsonResponse
 from songdecks.serializers import UserSerializer
 from django.contrib.auth.models import User
+from songdecks.models import Profile, Faction, Commander, CardTemplate, Game, PlayerCard, UserCardStats
 from django.contrib.auth.hashers import make_password
-
-@api_view(['GET'])
-def current_user(request):
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -19,10 +15,10 @@ def register(request):
     request.user = User.objects.filter(username='admin').first()
     same_email_users = User.objects.filter(email=post_data['email'])
     if len(same_email_users) > 0:
-        return Response("EMAIL")
+        return JsonResponse({"success": False, "response": "That email is already in use."})
     same_username_users = User.objects.filter(username=post_data['username'])
     if len(same_username_users) > 0:
-        return Response("USERNAME")
+        return JsonResponse({"success": False, "response": "That username is already in use."})
     try:
         new_user = User.objects.create(
             username=post_data['username'],
@@ -35,6 +31,14 @@ def register(request):
         new_user.password = make_password((post_data['password']))
         new_user.save()
         serializer = UserSerializer(User.objects.filter(id=new_user.id).first())
-        return Response(serializer.data)
+        return JsonResponse({"success": True, "response": "Successfully created account!", "user": serializer.data})
     except Exception as e:
-        return Response(e)
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def current_user(request):
+    try:
+        serializer = UserSerializer(request.user)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
