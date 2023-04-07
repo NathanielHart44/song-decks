@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, IconButton, Stack, Typography, useTheme } from "@mui/material";
+import { Avatar, Box, Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -23,8 +23,6 @@ export default function SelectDeck() {
     const [allCommanders, setAllCommanders] = useState<Commander[]>();
     const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
-
-    const [isValidSubmit, setIsValidSubmit] = useState<boolean>(false);
 
     const getFactions = async () => {
         let token = localStorage.getItem('accessToken') ?? '';
@@ -60,86 +58,186 @@ export default function SelectDeck() {
         }
     }, [selectedFaction]);
 
-    useEffect(() => {
-        // set isValidSubmit to true if selectedFaction and selectedCommander are not null
-    }, [selectedFaction, selectedCommander]);
+    function handleFactionClick(faction: Faction) {
+        if (selectedFaction && (selectedFaction?.id === faction.id)) {
+            setSelectedFaction(null);
+            setSelectedCommander(null);
+        } else {
+            setSelectedFaction(faction);
+        }    
+    }
+
+    function handleCommanderClick(commander: Commander) {
+        if (selectedCommander && (selectedCommander?.id === commander.id)) {
+            setSelectedCommander(null);
+        } else {
+            setSelectedCommander(commander);
+        }
+    }
+
+    const gridContainerStyles: SxProps<Theme> = {
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        display: 'grid',
+        width: '100%',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))'
+    };
+
+    const gridItemStyles: SxProps<Theme> = {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+    };
 
     return (
         <Page title="Select Deck">
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Typography variant={'h2'}>Select Faction & Commander</Typography>
-                { factions && factions.map((faction) => (
-                    <IconButton
-                        key={faction.id}
-                        size={"small"}
-                        onClick={() => {
-                            if (selectedFaction?.id === faction.id) {
-                                setSelectedFaction(null);
-                                setSelectedCommander(null);
-                            } else {
-                                setSelectedFaction(faction);
-                            }
-                        }}
-                        disableFocusRipple
-                        disableRipple
-                        sx={{
-                            borderRadius: '50%',
-                            border: selectedFaction?.id === faction.id ? `4px solid ${theme.palette.primary.light}` : '4px solid transparent',
-                            // background: selectedFaction?.id === faction.id
-                            //     ? 'radial-gradient(circle at center, rgba(255, 255, 255, 1) 50%, transparent 70%)'
-                            //     : 'transparent',
-                            backgroundPosition: 'center',
-                            backgroundSize: '100% 100%',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundClip: 'content-box',
-                            '& img': {
-                                transition: 'transform 0.3s',
-                                transform: selectedFaction?.id === faction.id ? 'scale(1.1)' : 'scale(1)',
-                            },
-                        }}
-                    >
-                        <img src={faction.img_url} alt={faction.name} />
-                    </IconButton>
-                    ))
-                }
+                <Typography variant={'h3'}>Select Faction & Commander</Typography>
+                <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
+                    { selectedFaction ?
+                        <SelectableAvatar
+                            item={selectedFaction}
+                            altText={`SELECTED ${selectedFaction.name}`}
+                            isMobile={isMobile}
+                            handleClick={handleFactionClick}
+                        /> :
+                        <SelectableAvatar
+                            item={selectedFaction}
+                            altText={'DEFAULT FACTION'}
+                            defaultIcon={'/icons/throne.png'}
+                            isMobile={isMobile}
+                            handleClick={handleFactionClick}
+                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
+                        />
+                    }
+                    { selectedCommander ?
+                        <SelectableAvatar
+                            item={selectedCommander}
+                            altText={`SELECTED ${selectedCommander.name}`}
+                            isMobile={isMobile}
+                            handleClick={handleCommanderClick}
+                        /> :
+                        <SelectableAvatar
+                            item={selectedCommander}
+                            altText={'DEFAULT COMMANDER'}
+                            defaultIcon={'/icons/crown.svg'}
+                            isMobile={isMobile}
+                            handleClick={handleCommanderClick}
+                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
+                        />
+                    }
+                </Stack>
 
-                { selectedFaction && allCommanders && viewedCommanders && (
-                    viewedCommanders.map((commander) => (
-                        <IconButton
-                            key={commander.id}
-                            size={"small"}
-                            onClick={() => {
-                                if (selectedCommander?.id === commander.id) {
-                                    setSelectedCommander(null);
-                                } else {
-                                    setSelectedCommander(commander);
-                                }
-                            }}
-                            disableFocusRipple
-                            disableRipple
-                            sx={{
-                                borderRadius: '50%',
-                                border: selectedCommander?.id === commander.id ? `4px solid ${theme.palette.primary.light}` : '4px solid transparent',
-                                // background: selectedCommander?.id === commander.id
-                                //     ? 'radial-gradient(circle at center, rgba(255, 255, 255, 1) 50%, transparent 70%)'
-                                //     : 'transparent',
-                                backgroundPosition: 'center',
-                                backgroundSize: '100% 100%',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundClip: 'content-box',
-                                '& img': {
-                                    transition: 'transform 0.3s',
-                                    transform: selectedCommander?.id === commander.id ? 'scale(1.1)' : 'scale(1)',
-                                },
-                            }}
-                        >
-                            <img src={commander.img_url} alt={commander.name} />
-                        </IconButton>
-                    )
-                    ))
-                } 
+                {  factions && !selectedFaction && (
+                    <Grid
+                        container
+                        rowSpacing={2}
+                        columnSpacing={2}
+                        sx={gridContainerStyles}
+                    >
+                        {[...factions, ...factions, ...factions, ...factions, ...factions, ...factions,...factions].map((faction) => (
+                            <Grid item key={faction.id} sx={gridItemStyles}>
+                                <SelectableAvatar
+                                    key={faction.id}
+                                    item={faction}
+                                    altText={faction.name}
+                                    isMobile={isMobile}
+                                    handleClick={handleFactionClick}
+                                />
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+
+                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander && (
+                    <Grid
+                        container
+                        rowSpacing={2}
+                        columnSpacing={2}
+                        sx={gridContainerStyles}
+                    >
+                        {[...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders,...viewedCommanders].map((commander) => (
+                            <Grid item key={commander.id} sx={gridItemStyles}>
+                                <SelectableAvatar
+                                    key={commander.id}
+                                    item={commander}
+                                    altText={commander.name}
+                                    isMobile={isMobile}
+                                    handleClick={handleCommanderClick}
+                                />
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+
+                { selectedFaction && selectedCommander && (
+                    <Button
+                        variant={'contained'}
+                        color={'primary'}
+                        onClick={() => { console.log('confirm') }}
+                    >
+                        Confirm
+                    </Button>
+                )}
                 
             </Stack>
         </Page>
     );
 }
+
+// ----------------------------------------------------------------------
+
+type SelectableAvatarProps = {
+    altText: string;
+    handleClick: (arg0: any) => void;
+    item: any;
+    isMobile: boolean;
+    defaultIcon?: string;
+    sxOverrides?: SxProps<Theme>;
+};
+
+function SelectableAvatar({ altText, handleClick, item, isMobile, defaultIcon, sxOverrides }: SelectableAvatarProps) {
+
+    const avatar_size = isMobile ? 100 : 80;
+
+    const avatarStyles = {
+        width: avatar_size,
+        height: avatar_size,
+        ...!isMobile ? {
+            transition: 'transform 0.3s',
+            cursor: 'pointer',
+            '&:hover': { transform: 'scale(1.1)' },
+        } : {},
+        ...sxOverrides,
+    };
+
+    return (
+        <Box>
+            <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
+                {item ? (
+                    <Avatar
+                        alt={altText}
+                        src={item.img_url}
+                        variant={'rounded'}
+                        sx={avatarStyles}
+                        onClick={() => { handleClick(item) }}
+                    />
+                ) : (
+                    <Avatar
+                        alt={altText}
+                        variant={'rounded'}
+                        sx={avatarStyles}
+                        onClick={() => { handleClick(item) }}
+                    >
+                        <img src={defaultIcon} alt={altText} />
+                    </Avatar>
+                )}
+                <Typography variant={'caption'}>
+                    {(item && !altText.includes('SELECTED')) ? item.name : ''}
+                </Typography>
+            </Stack>
+        </Box>
+    );
+};
