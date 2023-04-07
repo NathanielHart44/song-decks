@@ -12,28 +12,24 @@ import SelectDeck from 'src/pages/SelectDeck';
 
 // ----------------------------------------------------------------------
 
+function withAuthGuard(element: JSX.Element) { return <AuthGuard>{element}</AuthGuard> };
+
 export default function Router() {
   return useRoutes([
     {
       path: 'auth',
       children: [
-        {
-          path: 'login',
-          element: (<GuestGuard><Login /></GuestGuard>),
-        },
-        {
-          path: 'register',
-          element: (<GuestGuard><Register /></GuestGuard>),
-        },
+        { path: 'login', element: (<GuestGuard><Login /></GuestGuard>) },
+        { path: 'register', element: (<GuestGuard><Register /></GuestGuard>) },
       ],
     },
     {
       path: '',
       children: [
-        { element: (<AuthGuard><Navigate to={PATH_AFTER_LOGIN} replace /></AuthGuard>), index: true },
-        { path: 'home', element: (<AuthGuard><Home /></AuthGuard>) },
-        { path: 'game', element: (<AuthGuard><Game /></AuthGuard>) },
-        { path: 'select-deck', element: (<AuthGuard><SelectDeck /></AuthGuard>) },
+        { element: withAuthGuard(<Navigate to={PATH_AFTER_LOGIN} replace />), index: true },
+        { path: 'home', element: withAuthGuard(<Home />) },
+        { path: 'game', element: withAuthGuard(<Game />) },
+        { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" replace /> },
       ],
