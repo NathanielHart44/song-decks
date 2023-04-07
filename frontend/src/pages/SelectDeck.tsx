@@ -3,10 +3,14 @@ import { Avatar, Box, Button, Grid, Stack, SxProps, Theme, Typography, useTheme 
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Commander, Faction } from "src/@types/types";
+import LoadingBackdrop from "src/components/LoadingBackdrop";
 import Page from "src/components/Page";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
+import { PATH_PAGE } from "src/routes/paths";
+import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
 
 // ----------------------------------------------------------------------
@@ -16,6 +20,9 @@ export default function SelectDeck() {
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
     const theme = useTheme();
+    const navigate = useNavigate();
+
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
 
     const [factions, setFactions] = useState<Faction[]>();
     const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
@@ -25,11 +32,13 @@ export default function SelectDeck() {
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
 
     const getFactions = async () => {
+        setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
         await axios.get(`${MAIN_API.base_url}factions/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 setFactions(response.data.response);
-            } else { enqueueSnackbar(response.data.message) };
+            } else { enqueueSnackbar(response.data.response) };
+            setAwaitingResponse(false);
         }).catch((error) => {
             console.error(error);
         })
@@ -40,7 +49,25 @@ export default function SelectDeck() {
         await axios.get(`${MAIN_API.base_url}commanders/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 setAllCommanders(response.data.response);
-            } else { enqueueSnackbar(response.data.message) };
+            } else { enqueueSnackbar(response.data.response) };
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    const beginGame = async () => {
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+        const factionId = selectedFaction?.id;
+        const commanderId = selectedCommander?.id;
+        await axios.get(`${MAIN_API.base_url}start_game/${factionId}/${commanderId}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                localStorage.setItem('CurrentCards', JSON.stringify(response.data.response));
+                delay(500).then(() => navigate(PATH_PAGE.game));
+            } else {
+                enqueueSnackbar(response.data.response);
+                setAwaitingResponse(false);
+            };
         }).catch((error) => {
             console.error(error);
         })
@@ -93,6 +120,7 @@ export default function SelectDeck() {
 
     return (
         <Page title="Select Deck">
+            { awaitingResponse && <LoadingBackdrop /> }
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 <Typography variant={'h3'}>Select Faction & Commander</Typography>
                 <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
@@ -173,11 +201,7 @@ export default function SelectDeck() {
                 )}
 
                 { selectedFaction && selectedCommander && (
-                    <Button
-                        variant={'contained'}
-                        color={'primary'}
-                        onClick={() => { console.log('confirm') }}
-                    >
+                    <Button variant={'contained'} color={'primary'} onClick={beginGame}>
                         Confirm
                     </Button>
                 )}

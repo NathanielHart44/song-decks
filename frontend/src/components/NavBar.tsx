@@ -2,8 +2,8 @@ import {
     AppBar,
     Toolbar,
     Button,
-    useScrollTrigger,
-    Slide,
+    // useScrollTrigger,
+    // Slide,
     Menu,
     MenuItem,
     Fade,
@@ -43,23 +43,23 @@ export default function NavBar() {
 
 // ----------------------------------------------------------------------
 
-interface Props {
-    window?: () => Window;
-    children: React.ReactElement;
-}
+// interface Props {
+//     window?: () => Window;
+//     children: React.ReactElement;
+// }
 
-function HideOnScroll(props: Props) {
-    const { children, window } = props;
-    const trigger = useScrollTrigger({
-        target: window ? window() : undefined,
-    });
+// function HideOnScroll(props: Props) {
+//     const { children, window } = props;
+//     const trigger = useScrollTrigger({
+//         target: window ? window() : undefined,
+//     });
 
-    return (
-        <Slide appear={false} direction="down" in={!trigger}>
-            {children}
-        </Slide>
-    );
-}
+//     return (
+//         <Slide appear={false} direction="down" in={!trigger}>
+//             {children}
+//         </Slide>
+//     );
+// }
 
 // ----------------------------------------------------------------------
 
