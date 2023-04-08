@@ -17,7 +17,7 @@ export default function EndButtons() {
             width={'100%'}
             sx={{
                 position: 'fixed',
-                bottom: 20,
+                bottom: 10,
                 left: 0,
                 zIndex: 100,
                 justifyContent: 'center'

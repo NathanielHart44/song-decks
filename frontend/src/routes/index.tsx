@@ -29,6 +29,7 @@ export default function Router() {
         { element: withAuthGuard(<Navigate to={PATH_AFTER_LOGIN} replace />), index: true },
         { path: 'home', element: withAuthGuard(<Home />) },
         { path: 'game', element: withAuthGuard(<Game />) },
+        { path: 'game/:gameID', element: withAuthGuard(<Game />) },
         { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" replace /> },

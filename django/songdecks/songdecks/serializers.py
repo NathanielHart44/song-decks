@@ -40,7 +40,7 @@ class GameSerializer(serializers.ModelSerializer):
 class PlayerCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerCard
-        fields = ('id', 'game', 'card_template', 'owner', 'status', 'play_notes', 'played_at', 'discarded_at')
+        fields = ('id', 'game', 'card_template', 'owner', 'status', 'play_notes', 'drawn_this_round', 'discarded_this_round')
         depth = 1
 
 class UserCardStatsSerializer(serializers.ModelSerializer):

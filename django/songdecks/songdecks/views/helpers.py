@@ -35,3 +35,7 @@ def handle_card_updates(game):
 
         card.discarded_this_round = False
         card.save()
+
+def get_profile_game_cards(game, profile):
+    game_cards = PlayerCard.objects.filter(game=game, owner=profile)
+    return game_cards

@@ -3,8 +3,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 // hooks
 import useAuth from '../hooks/useAuth';
 // components
-import LoadingScreen from '../components/LoadingScreen';
 import { PATH_AUTH } from 'src/routes/paths';
+import LoadingBackdrop from 'src/components/LoadingBackdrop';
 
 // ----------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const { pathname } = useLocation();
   const [requestedLocation, setRequestedLocation] = useState<string | null>(null);
 
-  if (!isInitialized) { return <LoadingScreen /> }
+  if (!isInitialized) { return <LoadingBackdrop /> }
 
   if (!isAuthenticated) {
     if (pathname !== requestedLocation) {

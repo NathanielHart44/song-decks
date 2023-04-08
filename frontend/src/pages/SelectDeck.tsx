@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Avatar, Box, Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
+import { SelectableAvatar } from "../components/SelectableAvatar";
 
 // ----------------------------------------------------------------------
 
@@ -62,8 +63,11 @@ export default function SelectDeck() {
         const commanderId = selectedCommander?.id;
         await axios.get(`${MAIN_API.base_url}start_game/${factionId}/${commanderId}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
-                localStorage.setItem('CurrentCards', JSON.stringify(response.data.response));
-                delay(500).then(() => navigate(PATH_PAGE.game));
+                const res = response.data.response;
+                delay(750).then(() => {
+                    setAwaitingResponse(false);
+                    navigate(PATH_PAGE.game + `/${res[0].game.id}`);
+                });
             } else {
                 enqueueSnackbar(response.data.response);
                 setAwaitingResponse(false);
@@ -166,9 +170,8 @@ export default function SelectDeck() {
                         sx={gridContainerStyles}
                     >
                         {[...factions, ...factions, ...factions, ...factions, ...factions, ...factions,...factions].map((faction) => (
-                            <Grid item key={faction.id} sx={gridItemStyles}>
+                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
                                 <SelectableAvatar
-                                    key={faction.id}
                                     item={faction}
                                     altText={faction.name}
                                     isMobile={isMobile}
@@ -187,9 +190,8 @@ export default function SelectDeck() {
                         sx={gridContainerStyles}
                     >
                         {[...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders,...viewedCommanders].map((commander) => (
-                            <Grid item key={commander.id} sx={gridItemStyles}>
+                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
                                 <SelectableAvatar
-                                    key={commander.id}
                                     item={commander}
                                     altText={commander.name}
                                     isMobile={isMobile}
@@ -201,67 +203,12 @@ export default function SelectDeck() {
                 )}
 
                 { selectedFaction && selectedCommander && (
-                    <Button variant={'contained'} color={'primary'} onClick={beginGame}>
+                    <Button variant={'contained'} color={'primary'} onClick={() => { processTokens(beginGame) }} disabled={awaitingResponse}>
                         Confirm
                     </Button>
                 )}
                 
             </Stack>
         </Page>
-    );
-}
-
-// ----------------------------------------------------------------------
-
-type SelectableAvatarProps = {
-    altText: string;
-    handleClick: (arg0: any) => void;
-    item: any;
-    isMobile: boolean;
-    defaultIcon?: string;
-    sxOverrides?: SxProps<Theme>;
-};
-
-function SelectableAvatar({ altText, handleClick, item, isMobile, defaultIcon, sxOverrides }: SelectableAvatarProps) {
-
-    const avatar_size = isMobile ? 100 : 80;
-
-    const avatarStyles = {
-        width: avatar_size,
-        height: avatar_size,
-        ...!isMobile ? {
-            transition: 'transform 0.3s',
-            cursor: 'pointer',
-            '&:hover': { transform: 'scale(1.1)' },
-        } : {},
-        ...sxOverrides,
-    };
-
-    return (
-        <Box>
-            <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
-                {item ? (
-                    <Avatar
-                        alt={altText}
-                        src={item.img_url}
-                        variant={'rounded'}
-                        sx={avatarStyles}
-                        onClick={() => { handleClick(item) }}
-                    />
-                ) : (
-                    <Avatar
-                        alt={altText}
-                        variant={'rounded'}
-                        sx={avatarStyles}
-                        onClick={() => { handleClick(item) }}
-                    >
-                        <img src={defaultIcon} alt={altText} />
-                    </Avatar>
-                )}
-                <Typography variant={'caption'}>
-                    {(item && !altText.includes('SELECTED')) ? item.name : ''}
-                </Typography>
-            </Stack>
-        </Box>
     );
 };

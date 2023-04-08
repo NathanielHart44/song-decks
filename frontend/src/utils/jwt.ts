@@ -65,18 +65,18 @@ const checkTokenStatus = () => {
   } else { return false };
 }
 
-const processTokens = async (functions: Function) => {
+const processTokens = async (functions: Function, arg1?: any, arg2?: any) => {
   let token = localStorage.getItem('accessToken') ?? '';
   let refreshToken = localStorage.getItem('refreshToken') ?? '';
 
   if (token && isValidToken(token)) {
-    await functions();
+    await functions(arg1, arg2);
   } else {
     reValidateToken(refreshToken).then(({ access, refresh }) => {
       const reprocessTokens = async () => {
         if (access && isValidToken(access) && refresh && isValidToken(refresh)) {
           localStorage.setItem('accessToken', access);
-          await functions();
+          await functions(arg1, arg2);
         } else {
           logout();
         }

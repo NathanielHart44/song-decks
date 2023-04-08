@@ -21,11 +21,7 @@ urlpatterns = [
 
     # ----------------------------------------------------------------------
 
-    path('draw_card/<int:game_id>/', views.draw_card),
-    path('place_card_in_deck/<int:game_id>/<int:card_id>/', views.place_card_in_deck),
-    path('discard_card/<int:game_id>/<int:card_id>/', views.discard_card),
-    path('play_card/<int:game_id>/<int:card_id>/', views.play_card),
-    path('update_play_notes/<int:game_id>/<int:card_id>/', views.update_play_notes),
+    path('handle_card_action/<str:action>/', views.handle_card_action),
     path('get_game_cards/<int:game_id>/', views.get_game_cards),
 
     # ----------------------------------------------------------------------

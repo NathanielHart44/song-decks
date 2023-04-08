@@ -64,3 +64,5 @@ export type UserCardStats = {
     times_drawn: number;
     times_discarded: number;
 };
+
+export type ACTION_TYPE =  'draw' | 'place_in_deck' | 'place_in_hand' | 'discard' | 'play' | 'leave_note' | 'update_play_notes' ;

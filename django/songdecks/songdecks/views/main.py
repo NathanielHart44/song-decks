@@ -1,15 +1,14 @@
 from django.db.models import Q
-from songdecks.views.helpers import handle_card_updates
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
-from songdecks.serializers import (ProfileSerializer,
+from songdecks.serializers import (
     FactionSerializer, CommanderSerializer,
-    CardTemplateSerializer, GameSerializer, PlayerCardSerializer,
-    UserCardStatsSerializer, UserSerializer)
+    PlayerCardSerializer, UserSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
+from songdecks.views.helpers import handle_card_updates, get_profile_game_cards
 
 # ----------------------------------------------------------------------
 # Game setup/general views
@@ -79,96 +78,86 @@ def get_commanders_of_faction(request, faction_id):
 # ----------------------------------------------------------------------
 # Card Actions
 
-@api_view(['GET'])
-def draw_card(request, game_id):
-    try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
-        deck_cards = PlayerCard.objects.filter(game=game, status='in-deck')
-        if len(deck_cards) == 0:
-            return JsonResponse({"success": False, "response": "No cards left in deck."})
-        selected_card = deck_cards.order_by('?').first()
-        selected_card.status = 'in-hand'
-        selected_card.drawn_this_round = True
-        selected_card.save()
-        serializer = PlayerCardSerializer(selected_card)
-        return JsonResponse({"success": True, "response": serializer.data})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-
-@api_view(['GET'])
-def place_card_in_deck(request, game_id, card_id):
-    try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
-        card = PlayerCard.objects.get(id=card_id, game=game, status__in=['in-hand', 'discarded'])
-        if len(card) == 0:
-            return JsonResponse({"success": False, "response": "Card not found."})
-        card.status = 'in-deck'
-        card.save()
-        serializer = PlayerCardSerializer(card)
-        return JsonResponse({"success": True, "response": serializer.data})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-
-@api_view(['GET'])
-def discard_card(request, game_id, card_id):
-    try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
-        card = PlayerCard.objects.get(id=card_id, game=game, status='in-hand')
-        if len(card) == 0:
-            return JsonResponse({"success": False, "response": "Card not found."})
-        card.status = 'discarded'
-        card.discarded_this_round = True
-        card.save()
-        serializer = PlayerCardSerializer(card)
-        return JsonResponse({"success": True, "response": serializer.data})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-    
-@api_view(['GET'])
-def play_card(request, game_id, card_id):
-    try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
-        card = PlayerCard.objects.get(id=card_id, game=game, status='in-hand')
-        if len(card) == 0:
-            return JsonResponse({"success": False, "response": "Card not found."})
-        card.status = 'in-play'
-        card.save()
-        serializer = PlayerCardSerializer(card)
-        return JsonResponse({"success": True, "response": serializer.data})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-    
 @api_view(['POST'])
-def update_play_notes(request, game_id, card_id):
+def handle_card_action(request, action):
     try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
-        card = PlayerCard.objects.get(id=card_id, game=game, status='in-play')
-        if len(card) == 0:
-            return JsonResponse({"success": False, "response": "Card not found."})
-        card.play_notes = request.data.get('play_notes', None)
-        card.save()
-        serializer = PlayerCardSerializer(card)
-        return JsonResponse({"success": True, "response": serializer.data})
+        game_id = request.data.get('game_id', None)
+        card_id = request.data.get('card_id', None)
+        play_notes = request.data.get('update_play_notes', None)
+        debug = {}
+        debug['original_play_notes'] = play_notes
+
+        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if game_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Game not found."})
+        game = game_search.first()
+        if game.status != 'in-progress':
+            return JsonResponse({"success": False, "response": "Game not alterable."})
+        
+        if action == 'draw':
+            deck_cards = PlayerCard.objects.filter(game=game, status='in-deck')
+            if deck_cards.count() == 0:
+                return JsonResponse({"success": False, "response": "No cards left in deck."})
+            selected_card = deck_cards.order_by('?').first()
+            selected_card.status = 'in-hand'
+            selected_card.drawn_this_round = True
+            selected_card.save()
+        else:
+            card = PlayerCard.objects.filter(id=card_id, game=game)
+            if card.count() == 0:
+                return JsonResponse({"success": False, "response": "Card not found."})
+            card = card.first()
+
+            if action == 'place_in_deck':
+                card.status = 'in-deck'
+                card.save()
+            elif action == 'place_in_hand':
+                card.status = 'in-hand'
+                card.save()
+            elif action == 'discard':
+                if card.status not in ['in-hand', 'in-play']:
+                    return JsonResponse({"success": False, "response": f"Card not valid to discard. - {card.status}"})
+                card.status = 'discarded'
+                card.discarded_this_round = True
+                card.save()
+            elif action == 'play':
+                if card.status != 'in-hand':
+                    return JsonResponse({"success": False, "response": f"Card not in hand. - {card.status}"})
+                card.status = 'in-play'
+                card.save()
+            elif action == 'update_play_notes':
+                if card.status != 'in-play':
+                    return JsonResponse({"success": False, "response": f"Card not in play. - {card.status}"})
+                debug['made_it_to_update_play_notes'] = True
+                card.play_notes = play_notes
+                card.save()
+                updated_card = PlayerCard.objects.filter(id=card_id, game=game).first()
+                debug['updated_card_play_notes'] = updated_card.play_notes
+            else:
+                return JsonResponse({"success": False, "response": "Invalid action."})
+
+        new_cards = get_profile_game_cards(game, request.user.profile)
+        serializer = PlayerCardSerializer(new_cards, many=True)
+        response = {
+            "success": True,
+            "response": serializer.data,
+            "debug": debug
+        }
+        if action == 'draw':
+            response["new_card"] = PlayerCardSerializer(selected_card).data
+        return JsonResponse(response)
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
 
 @api_view(['GET'])
 def get_game_cards(request, game_id):
     try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if len(game) == 0:
+        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if game_search.count() == 0:
             return JsonResponse({"success": False, "response": "Game not found."})
-        cards = PlayerCard.objects.filter(game=game)
+        game = game_search.first()
+
+        cards = get_profile_game_cards(game, request.user.profile)
         serializer = PlayerCardSerializer(cards, many=True)
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
@@ -219,10 +208,12 @@ def start_game(request, faction_id, commander_id):
 @api_view(['POST'])
 def end_round(request, game_id):
     try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
-        
+        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if game_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Game not found."})
+        game = game_search.first()
+        if game.status != 'in-progress':
+            return JsonResponse({"success": False, "response": "Game not alterable."})
         handle_card_updates(game)
 
         game.round += 1
@@ -237,9 +228,12 @@ def end_round(request, game_id):
 @api_view(['POST'])
 def end_game(request, game_id):
     try:
-        game = Game.objects.get(id=game_id, owner=request.user)
-        if game.status != 'in-progress' or len(game) == 0:
-            return JsonResponse({"success": False, "response": "Game not alterable or not found."})
+        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if game_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Game not found."})
+        game = game_search.first()
+        if game.status != 'in-progress':
+            return JsonResponse({"success": False, "response": "Game not alterable."})
 
         handle_card_updates(game)
 
