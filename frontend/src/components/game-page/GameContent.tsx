@@ -107,7 +107,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
             if (response?.data && response.data.success) {
                 setAllCards(response.data.response);
                 const new_card = response.data.new_card;
-                enqueueSnackbar("Drew: " + new_card.card_template.card_name, { autoHideDuration: 2000 });
+                enqueueSnackbar("Drew: " + new_card.card_template.card_name);
             } else { enqueueSnackbar(response.data.response) };
             setAwaitingResponse(false);
         }).catch((error) => {

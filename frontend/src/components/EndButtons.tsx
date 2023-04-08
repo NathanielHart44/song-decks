@@ -30,7 +30,7 @@ export default function EndButtons({ gameID }: ButtonProps) {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 if (type === 'end_game') {
-                    enqueueSnackbar(res, { autoHideDuration: 2000 });
+                    enqueueSnackbar(res);
                     delay(750).then(() => { navigate(PATH_PAGE.home) });
                 } else {
                     enqueueSnackbar('Round ended!');

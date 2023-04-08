@@ -58,7 +58,7 @@ export function ActionButtons({ category, selectedCard, currentCard, gameID, set
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setAllCards(res);
-                enqueueSnackbar(getSnackbarMessage(action), { autoHideDuration: 2000 });
+                enqueueSnackbar(getSnackbarMessage(action));
             } else { enqueueSnackbar(response.data.response); };
             setAwaitingResponse(false);
         }).catch((error) => {
