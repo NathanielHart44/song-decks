@@ -133,11 +133,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                     { inDeck.length > 0 &&
                         <div style={div_style} ref={sectionRef1}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '10%' }}>
-                                    <Typography variant={'body1'}>Deck</Typography>
-                                    <Divider flexItem orientation={'horizontal'} />
-                                    <Typography variant={'body1'}>{inDeck.length}</Typography>
-                                </Stack>
+                                <GroupingHeader title={'Deck'} count={inDeck.length} />
 
                                 <HSwipe
                                     key={inDeck.length}
@@ -157,11 +153,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                     { inHand.length > 0 &&
                         <div style={div_style} ref={sectionRef2}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '10%' }}>
-                                    <Typography variant={'body1'}>Hand</Typography>
-                                    <Divider flexItem orientation={'horizontal'} />
-                                    <Typography variant={'body1'}>{inHand.length}</Typography>
-                                </Stack>
+                                <GroupingHeader title={'Hand'} count={inHand.length} />
 
                                 <HSwipe
                                     key={inHand.length}
@@ -192,11 +184,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                     { inPlay.length > 0 &&
                         <div style={div_style} ref={sectionRef3}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '10%' }}>
-                                    <Typography variant={'body1'} sx={{ whiteSpace: 'nowrap' }}>In Play</Typography>
-                                    <Divider flexItem orientation={'horizontal'} />
-                                    <Typography variant={'body1'}>{inPlay.length}</Typography>
-                                </Stack>
+                                <GroupingHeader title={'In Play'} count={inPlay.length} />
 
                                 <HSwipe
                                     key={inPlay.length}
@@ -227,11 +215,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                     { inDiscard.length > 0 &&
                         <div style={div_style} ref={sectionRef4}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '10%' }}>
-                                    <Typography variant={'body1'}>Discard</Typography>
-                                    <Divider flexItem orientation={'horizontal'} />
-                                    <Typography variant={'body1'}>{inDiscard.length}</Typography>
-                                </Stack>
+                                <GroupingHeader title={'Discard'} count={inDiscard.length} />
 
                                 <HSwipe
                                     key={inDiscard.length}
@@ -262,7 +246,24 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                 </>
             }
 
-            <EndButtons />
+            <EndButtons gameID={gameID} />
         </>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type GroupingHeaderProps = {
+    title: string;
+    count: number;
+};
+
+function GroupingHeader({ title, count }: GroupingHeaderProps) {
+    return (
+        <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '10%' }}>
+            <Typography variant={'body1'} sx={{ whiteSpace: 'nowrap' }}>{title}</Typography>
+            <Divider flexItem orientation={'horizontal'} />
+            <Typography variant={'body1'}>{count}</Typography>
+        </Stack>
     );
 };

@@ -205,7 +205,7 @@ def start_game(request, faction_id, commander_id):
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
 
-@api_view(['POST'])
+@api_view(['GET'])
 def end_round(request, game_id):
     try:
         game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
@@ -216,7 +216,7 @@ def end_round(request, game_id):
             return JsonResponse({"success": False, "response": "Game not alterable."})
         handle_card_updates(game)
 
-        game.round += 1
+        # game.round += 1
         game.save()
 
         updated_cards = PlayerCard.objects.filter(game=game)
@@ -225,7 +225,7 @@ def end_round(request, game_id):
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
     
-@api_view(['POST'])
+@api_view(['GET'])
 def end_game(request, game_id):
     try:
         game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
@@ -238,7 +238,7 @@ def end_game(request, game_id):
         handle_card_updates(game)
 
         game.status = 'completed'
-        game.round += 1
+        # game.round += 1
         game.save()
         return JsonResponse({"success": True, "response": "Successfully ended game."})
     except Exception as e:

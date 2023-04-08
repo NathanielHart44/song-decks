@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
@@ -21,8 +21,13 @@ export function ActionButtons({ category, selectedCard, currentCard, gameID, set
     const { enqueueSnackbar } = useSnackbar();
     const [updatePlayNotes, setUpdatePlayNotes] = useState<string>(currentCard.play_notes ?? '');
     const [noteEdit, setNoteEdit] = useState<boolean>(false);
+    const [cardViewed, setCardViewed] = useState<boolean>(false);
 
-    const card_viewed = selectedCard && selectedCard.id === currentCard.id;
+    useEffect(() => {
+        if (selectedCard && (selectedCard.id === currentCard.id)) {
+            setCardViewed(true);
+        } else { setCardViewed(false) };
+    }, [selectedCard, currentCard]);
 
     function getSnackbarMessage(action: ACTION_TYPE) {
         switch (action) {
@@ -66,10 +71,10 @@ export function ActionButtons({ category, selectedCard, currentCard, gameID, set
             spacing={2}
             justifyContent={'center'}
             alignItems={'center'}
-            sx={{ width: '100%', opacity: card_viewed ? 1 : 0, transition: 'opacity 0.5s' }}
+            sx={{ width: '100%', opacity: cardViewed ? 1 : 0, transition: 'opacity 0.5s' }}
         >
             <ButtonStack
-                disabled={!card_viewed}
+                disabled={!cardViewed}
                 category={category}
                 handleCardAction={handleCardAction}
             />
@@ -88,7 +93,7 @@ export function ActionButtons({ category, selectedCard, currentCard, gameID, set
                         };
                     }}
                     sx={{
-                        opacity: (noteEdit || updatePlayNotes.length > 0) && card_viewed ? 1 : 0,
+                        opacity: (noteEdit || updatePlayNotes.length > 0) && cardViewed ? 1 : 0,
                         transition: 'opacity 0.5s',
                         ".MuiInputBase-input.Mui-disabled": {
                             WebkitTextFillColor: theme.palette.primary.lighter,
