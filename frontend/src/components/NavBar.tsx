@@ -67,7 +67,7 @@ function MenuButtons() {
     const navigate = useNavigate();
     return (
         <Stack direction={'row'} spacing={1}>
-            <Button color="inherit" onClick={() => { navigate(PATH_PAGE.game) }}>Play</Button>
+            <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Play</Button>
             <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Home</Button>
             <Button color="inherit">Login</Button>
         </Stack>
