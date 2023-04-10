@@ -4,12 +4,18 @@ from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework_simplejwt import views as jwt_views
 from songdecks.views import main as views
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
 
 urlpatterns = [
 
     path('admin/', admin.site.urls),
     path('current_user/', views.current_user),
-    path('register/', views.register),
+    path('register/', permission_classes([AllowAny])(views.register)),
+
+
+    # ----------------------------------------------------------------------
+
     path('token_obtain/', jwt_views.TokenObtainPairView.as_view()),
     path('token_refresh/', jwt_views.TokenRefreshView.as_view()),
 

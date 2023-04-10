@@ -64,7 +64,7 @@ export default function RegisterForm() {
             enqueueSnackbar('Created account!');
             delay(500).then(() => window.location.href = '/auth/login');
           } else {
-            setRegisterError({ error: JSON.stringify(res.data.error) });
+            enqueueSnackbar(res.data.response, { variant: "error" });
           }
         }
       }).catch((error) => {
@@ -110,7 +110,7 @@ export default function RegisterForm() {
           variant="outlined"
           size="small"
           fullWidth
-          onChange={(event) => { methods.setValue('username', event.target.value) }}
+          onChange={(event) => { methods.setValue('email', event.target.value) }}
           inputProps={{ pattern: "^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,}$/i" }}
         />
         <TextField
