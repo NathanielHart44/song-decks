@@ -80,7 +80,7 @@ baratheon_cards = [
     },
     {
         "name": "Oath Of Duty",
-        "img_url": "https://asoiaf-stats.com/Images/2021/40601.jpg",
+        "img_url": "https://asoiaf-stats.com/Images/2021/40607.jpg",
         "faction": Faction.objects.get(name="Baratheon"),
         "commander": None
     },    
