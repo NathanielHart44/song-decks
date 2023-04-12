@@ -16,8 +16,8 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
-import LoadingBackdrop from "./LoadingBackdrop";
-import Iconify from "./Iconify";
+import LoadingBackdrop from "../LoadingBackdrop";
+import Iconify from "../Iconify";
 
 // ----------------------------------------------------------------------
 

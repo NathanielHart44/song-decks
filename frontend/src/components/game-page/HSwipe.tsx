@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 
 // ----------------------------------------------------------------------
 
@@ -10,10 +10,11 @@ interface State {
 
 type Props = {
     cards: React.ReactNode[];
+    cardSwipeFunctions: (() => void)[];
     isMobile: boolean;
 };
 
-export default function HSwipe({ cards, isMobile }: Props) {
+export default function HSwipe({ cards, cardSwipeFunctions, isMobile }: Props) {
 
     const slidesReducer = (state: State, event: Action) => {
         function getIndexes(index: number) {
@@ -35,18 +36,30 @@ export default function HSwipe({ cards, isMobile }: Props) {
                 : cards.length === 2
                 ? [null, cards[newIndex], cards[nextIndex]]
                 : [null, cards[newIndex], null];
+            // cardSwipeFunctions[newIndex]();
             return { ...state, slideIndex: newIndex < cards.length ? newIndex : 0, visibleCards: newVisibleCards };
         }
         
-        if (event.type === "PREV") {
+        else if (event.type === "PREV") {
             const [previousIndex, newIndex, nextIndex] = getIndexes(state.slideIndex - 1);
             const newVisibleCards = cards.length > 2
                 ? [cards[previousIndex], cards[newIndex], cards[nextIndex]]
                 : cards.length === 2
                 ? [null, cards[newIndex], cards[nextIndex]]
                 : [null, cards[newIndex], null];
+            // cardSwipeFunctions[newIndex]();
             return { ...state, slideIndex: newIndex >= 0 ? newIndex : cards.length - 1, visibleCards: newVisibleCards };
-        }        
+        }
+
+        else if (event.type === "CARDS_CHANGED") {
+          const [previousIndex, newIndex, nextIndex] = getIndexes(state.slideIndex);
+          const newVisibleCards = cards.length > 2
+            ? [cards[previousIndex], cards[newIndex], cards[nextIndex]]
+            : cards.length === 2
+            ? [null, cards[newIndex], cards[nextIndex]]
+            : [null, cards[newIndex], null];
+          return { ...state, visibleCards: newVisibleCards };
+        }
         return state;
     };
 
@@ -58,6 +71,8 @@ export default function HSwipe({ cards, isMobile }: Props) {
             ? [null, cards[0], cards[1]]
             : [null, cards[0], null],
     };
+
+    useEffect(() => { dispatch({ type: "CARDS_CHANGED" }) }, [cards]);
 
   const [state, dispatch] = useReducer(slidesReducer, initialState);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -119,7 +134,7 @@ export default function HSwipe({ cards, isMobile }: Props) {
   );
 }
 
-type Action = { type: "NEXT" } | { type: "PREV" };
+type Action = { type: "NEXT" } | { type: "PREV" } | { type: "CARDS_CHANGED" };
 
 interface SlideProps {
     isMobile: boolean;
