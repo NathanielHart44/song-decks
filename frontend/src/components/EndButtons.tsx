@@ -17,6 +17,7 @@ import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "./LoadingBackdrop";
+import Iconify from "./Iconify";
 
 // ----------------------------------------------------------------------
 
@@ -97,7 +98,7 @@ export default function EndButtons({ gameID }: ButtonProps) {
             <SpeedDial
                 ariaLabel="End Functions"
                 sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                icon={<SpeedDialIcon />}
+                icon={open ? <SpeedDialIcon /> : <Iconify icon={'ic:round-exit-to-app'} width={'50%'} height={'50%'} />}
                 onClick={() => { setOpen(!open) }}
                 open={open}
             />
