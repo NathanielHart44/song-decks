@@ -1,5 +1,5 @@
 import CardImg from "src/components/CardImg";
-import { CSSProperties, RefObject, useEffect, useState } from "react";
+import { CSSProperties, RefObject, useContext, useEffect, useState } from "react";
 import HSwipe from "src/components/HSwipe";
 import EndButtons from "src/components/EndButtons";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,6 +11,7 @@ import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
 import { Divider, Stack, Typography } from "@mui/material";
 import { ActionButtons } from "./ActionButtons";
+import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
 
@@ -31,44 +32,10 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
 
-    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
-    const [allCards, setAllCards] = useState<PlayerCard[]>([]);
-    const [inDeck, setInDeck] = useState<PlayerCard[]>([]);
-    const [inHand, setInHand] = useState<PlayerCard[]>([]);
-    const [inPlay, setInPlay] = useState<PlayerCard[]>([]);
-    const [inDiscard, setInDiscard] = useState<PlayerCard[]>([]);
-    const [selectedCard, setSelectedCard] = useState<PlayerCard | null>(null);
+    const { setAllCards, inDeck, inHand, inPlay, inDiscard } = useContext(MetadataContext);
 
-    useEffect(() => {
-        if (allCards && allCards.length > 0) {
-            let in_deck: PlayerCard[] = [];
-            let in_hand: PlayerCard[] = [];
-            let in_play: PlayerCard[] = [];
-            let in_discard: PlayerCard[] = [];
-            allCards.forEach((card: PlayerCard) => {
-                switch (card.status) {
-                    case 'in-deck':
-                        in_deck.push(card);
-                        break;
-                    case 'in-hand':
-                        in_hand.push(card);
-                        break;
-                    case 'in-play':
-                        in_play.push(card);
-                        break;
-                    case 'discarded':
-                        in_discard.push(card);
-                        break;
-                    default:
-                        break;
-                }
-            });
-            setInDeck(in_deck);
-            setInHand(in_hand);
-            setInPlay(in_play);
-            setInDiscard(in_discard);
-        };
-    }, [allCards]);
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    const [selectedCard, setSelectedCard] = useState<PlayerCard | null>(null);
 
     const div_style: CSSProperties = {
         height: isMobile ? '100vh' : '100vh',
@@ -131,9 +98,9 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
             { !awaitingResponse &&
                 <>
                     { inDeck.length > 0 &&
-                        <div style={div_style} ref={sectionRef1}>
+                        <div style={div_style} ref={sectionRef1} id={"Deck"}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <GroupingHeader title={'Deck'} count={inDeck.length} />
+                                {/* <GroupingHeader title={'Deck'} count={inDeck.length} /> */}
 
                                 <HSwipe
                                     key={inDeck.length}
@@ -151,9 +118,9 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                         </div>
                     }
                     { inHand.length > 0 &&
-                        <div style={div_style} ref={sectionRef2}>
+                        <div style={div_style} ref={sectionRef2} id={"Hand"}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <GroupingHeader title={'Hand'} count={inHand.length} />
+                                {/* <GroupingHeader title={'Hand'} count={inHand.length} /> */}
 
                                 <HSwipe
                                     key={inHand.length}
@@ -182,9 +149,9 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                         </div>
                     }
                     { inPlay.length > 0 &&
-                        <div style={div_style} ref={sectionRef3}>
+                        <div style={div_style} ref={sectionRef3} id={"In Play"}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <GroupingHeader title={'In Play'} count={inPlay.length} />
+                                {/* <GroupingHeader title={'In Play'} count={inPlay.length} /> */}
 
                                 <HSwipe
                                     key={inPlay.length}
@@ -213,9 +180,9 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                         </div>
                     }
                     { inDiscard.length > 0 &&
-                        <div style={div_style} ref={sectionRef4}>
+                        <div style={div_style} ref={sectionRef4} id={"Discard"}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                <GroupingHeader title={'Discard'} count={inDiscard.length} />
+                                {/* <GroupingHeader title={'Discard'} count={inDiscard.length} /> */}
 
                                 <HSwipe
                                     key={inDiscard.length}
@@ -258,12 +225,13 @@ type GroupingHeaderProps = {
     count: number;
 };
 
-function GroupingHeader({ title, count }: GroupingHeaderProps) {
+export function GroupingHeader({ title, count }: GroupingHeaderProps) {
     return (
-        <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '10%' }}>
-            <Typography variant={'body1'} sx={{ whiteSpace: 'nowrap' }}>{title}</Typography>
-            <Divider flexItem orientation={'horizontal'} />
-            <Typography variant={'body1'}>{count}</Typography>
-        </Stack>
+        // <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '15%' }}>
+        //     <Typography variant={'body1'} sx={{ whiteSpace: 'nowrap' }}>{title}</Typography>
+        //     <Divider flexItem orientation={'horizontal'} />
+        //     <Typography variant={'body1'}>{count}</Typography>
+        // </Stack>
+        <Typography variant={'body1'}>{title} ({count})</Typography>
     );
 };
