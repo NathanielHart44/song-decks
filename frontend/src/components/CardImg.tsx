@@ -1,4 +1,5 @@
-import { Box, Stack, useTheme } from "@mui/material";
+import { Box, Stack, Typography, useTheme } from "@mui/material";
+import Iconify from "./Iconify";
 
 // ----------------------------------------------------------------------
 
@@ -6,10 +7,11 @@ type Props = {
     img_url: string;
     card_name: string;
     hide?: boolean;
+    has_text?: boolean;
     onClickFunc?: () => void;
 }
 
-export default function CardImg({ img_url, card_name, hide, onClickFunc }: Props) {
+export default function CardImg({ img_url, card_name, hide, has_text, onClickFunc }: Props) {
 
     const theme = useTheme();
 
@@ -31,7 +33,24 @@ export default function CardImg({ img_url, card_name, hide, onClickFunc }: Props
                         borderRadius: '6px',
                     }}
                 />
-                {hide && (
+                { has_text && (
+                    <Box
+                        position="absolute"
+                        top={-12}
+                        right={-6}
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                    >
+                        <Iconify
+                            icon={"eva:bookmark-fill"}
+                            width={44}
+                            height={44}
+                            color={theme.palette.primary.main}
+                        />
+                    </Box>
+                )}
+                { hide && (
                     <Box
                         position="absolute"
                         top={0}

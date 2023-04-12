@@ -133,6 +133,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                                                         : card.card_template.card_name
                                                     }
                                                     hide={section.name === "Deck"}
+                                                    has_text={card.play_notes?.length > 0 ? true : false}
                                                     onClickFunc={onClickFunc}
                                                 />
                                             );
