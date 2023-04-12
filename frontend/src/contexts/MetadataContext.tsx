@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useEffect, useLayoutEffect, useState } from "react";
+import { createContext, ReactNode, useEffect, useState } from "react";
 import { PlayerCard } from "src/@types/types";
 
 type Props = { children: ReactNode };
@@ -7,6 +7,9 @@ export const MetadataContext = createContext<{
     isMobile: boolean;
     allCards: PlayerCard[];
     setAllCards: (cards: PlayerCard[]) => void;
+    selectedCard: PlayerCard | null;
+    viewedCards: PlayerCard[];
+    setViewedCards: (cards: PlayerCard[]) => void;
     inDeck: PlayerCard[];
     setInDeck: (cards: PlayerCard[]) => void;
     deckCard: PlayerCard | null;
@@ -31,6 +34,9 @@ export const MetadataContext = createContext<{
     isMobile: true,
     allCards: [],
     setAllCards: () => {},
+    selectedCard: null,
+    viewedCards: [],
+    setViewedCards: () => {},
     inDeck: [],
     setInDeck: () => {},
     deckCard: null,
@@ -59,13 +65,8 @@ export default function MetadataProvider({ children }: Props) {
 
     const [allCards, setAllCards] = useState<PlayerCard[]>([]);
 
-    // useeffect that tracks allCards, and says when there is a change
-    useEffect(() => {
-        console.log("allCards changed", allCards);
-    }, [allCards]);
-
     const [viewedCards, setViewedCards] = useState<PlayerCard[]>([]);
-    const [selectedCard, setSelectedCard] = useState<PlayerCard>();
+    const [selectedCard, setSelectedCard] = useState<PlayerCard | null>(null);
 
     const [inDeck, setInDeck] = useState<PlayerCard[]>([]);
     const [deckCard, setDeckCard] = useState<PlayerCard | null>(null);
@@ -85,7 +86,7 @@ export default function MetadataProvider({ children }: Props) {
         if (typeof window !== 'undefined') {
             // console.log("getting section from local storage", section);
     
-            const waitForElement = (section: string, retries: number = 10) => {
+            const waitForElement = (section: string, retries: number = 30) => {
                 if (retries <= 0) return;
     
                 const allElements = document.getElementsByTagName("*");
@@ -166,12 +167,49 @@ export default function MetadataProvider({ children }: Props) {
         }
     }, [selectedSection, inDeck, inHand, inPlay, inDiscard]);
 
+    useEffect(() => {
+        if (selectedSection) {
+            const section_id = selectedSection.id;
+            if (section_id === 'Deck') {
+                // setSelectedCard(deckCard);
+                // only need to worry about this once we add flipping deck functionality
+            } else if (section_id === 'Hand') {
+                if (handCard) {
+                    console.log("setting selectedCard to handCard", handCard);
+                    setSelectedCard(handCard);
+                } else {
+                    console.log("setting selectedCard to handCard[0]", inHand[0]);
+                    setSelectedCard(inHand[0]);
+                }
+            } else if (section_id === 'In Play') {
+                if (playCard) {
+                    console.log("setting selectedCard to playCard", playCard);
+                    setSelectedCard(playCard);
+                } else {
+                    console.log("setting selectedCard to playCard[0]", inPlay[0]);
+                    setSelectedCard(inPlay[0]);
+                }
+            } else if (section_id === 'Discard') {
+                if (discardCard) {
+                    console.log("setting selectedCard to discardCard", discardCard);
+                    setSelectedCard(discardCard);
+                } else {
+                    console.log("setting selectedCard to discardCard[0]", inDiscard[0]);
+                    setSelectedCard(inDiscard[0]);
+                }
+            }
+        }
+    }, [selectedSection, deckCard, inDeck, handCard, inHand, playCard, inPlay, discardCard, inDiscard]);
+
     return (
         <MetadataContext.Provider
             value={{
                 isMobile,
                 allCards,
                 setAllCards,
+                selectedCard,
+                viewedCards,
+                setViewedCards,
                 inDeck,
                 setInDeck,
                 deckCard,

@@ -9,7 +9,7 @@ import { MAIN_API } from "src/config";
 import { PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
-import { Divider, Stack, Typography } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import { ActionButtons } from "./ActionButtons";
 import { MetadataContext } from "src/contexts/MetadataContext";
 
@@ -32,10 +32,16 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
 
-    const { setAllCards, inDeck, inHand, inPlay, inDiscard } = useContext(MetadataContext);
+    const { setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard, selectedCard } = useContext(MetadataContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
-    const [selectedCard, setSelectedCard] = useState<PlayerCard | null>(null);
+
+    const sections = [
+        { name: "Deck", cards: inDeck.length > 0 ? [inDeck[0]] : [], ref: sectionRef1 },
+        { name: "Hand", cards: inHand, ref: sectionRef2 },
+        { name: "In Play", cards: inPlay, ref: sectionRef3 },
+        { name: "Discard", cards: inDiscard, ref: sectionRef4 },
+    ];
 
     const div_style: CSSProperties = {
         height: isMobile ? '100vh' : '100vh',
@@ -87,8 +93,11 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
         else { enqueueSnackbar("No cards left in deck") };
     };
 
-    function handleSelectCard(card: PlayerCard) {
-        setSelectedCard(card);
+    function handleSelectCard(card: PlayerCard, section: string) {
+        if (section === "Deck") { return }
+        else if (section === "Hand") { setHandCard(card) }
+        else if (section === "In Play") { setPlayCard(card) }
+        else if (section === "Discard") { setDiscardCard(card) };
         if (card) { enqueueSnackbar("Selected: " + card.card_template.card_name) };
     };
 
@@ -96,121 +105,56 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
         <>
             { awaitingResponse && <LoadingBackdrop /> }
             { !awaitingResponse &&
-                <>
-                    { inDeck.length > 0 &&
-                        <div style={div_style} ref={sectionRef1} id={"Deck"}>
-                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                {/* <GroupingHeader title={'Deck'} count={inDeck.length} /> */}
+                (
+                    sections.map((section, index) => {
+                        if (section.cards.length === 0) return <></> ;
+                        return (
+                            <div style={div_style} ref={section.ref} id={section.name}>
+                                <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
+                                    {/* <GroupingHeader title={section.name} count={section.cards.length} /> */}
+                                    <HSwipe
+                                        key={section.name + 'H' + index}
+                                        isMobile={isMobile}
+                                        cards={section.cards.map((card: PlayerCard) => {
+                                            const is_selected = selectedCard?.id === card.id;
+                                            console.log(section.name, card.card_template.card_name, " is_selected: ", is_selected);
 
-                                <HSwipe
-                                    key={inDeck.length}
-                                    isMobile={isMobile}
-                                    cards={[
-                                        <CardImg
-                                            img_url={inDeck[0].card_template.img_url}
-                                            card_name={'CARD BACK'}
-                                            hide={true}
-                                            onClickFunc={processDrawCard}
+                                            const onClickFunc =
+                                            section.name === "Deck" ? processDrawCard : () => handleSelectCard(card, section.name);
+
+                                            if (!card || !card.card_template) { return <></> };
+                                            return (
+                                                <CardImg
+                                                    img_url={card.card_template.img_url}
+                                                    card_name={
+                                                    section.name === "Deck"
+                                                        ? "CARD BACK"
+                                                        : card.card_template.card_name
+                                                    }
+                                                    hide={section.name === "Deck"}
+                                                    onClickFunc={onClickFunc}
+                                                />
+                                            );
+                                        })}
+                                    />
+                                    { selectedCard && section.name !== "Deck" &&
+                                        <ActionButtons
+                                            category={
+                                                section.name === "In Play" ? "play" :
+                                                section.name.toLowerCase() as "hand" | "discard"
+                                            }
+                                            selected={true}
+                                            currentCard={selectedCard}
+                                            gameID={gameID}
+                                            setAllCards={setAllCards}
+                                            setAwaitingResponse={setAwaitingResponse}
                                         />
-                                    ]}
-                                />
-                            </Stack>
-                        </div>
-                    }
-                    { inHand.length > 0 &&
-                        <div style={div_style} ref={sectionRef2} id={"Hand"}>
-                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                {/* <GroupingHeader title={'Hand'} count={inHand.length} /> */}
-
-                                <HSwipe
-                                    key={inHand.length}
-                                    isMobile={isMobile}
-                                    cards={
-                                        inHand.map((card: PlayerCard) => {
-                                            return <CardImg
-                                                    img_url={card.card_template.img_url}
-                                                    card_name={card.card_template.card_name}
-                                                    onClickFunc={() => handleSelectCard(card)}
-                                                    buttonOptions={
-                                                        <ActionButtons
-                                                            category={'hand'}
-                                                            selectedCard={selectedCard}
-                                                            currentCard={card}
-                                                            gameID={gameID}
-                                                            setAllCards={setAllCards}
-                                                            setAwaitingResponse={setAwaitingResponse}
-                                                        />
-                                                    }
-                                                />
-                                        })
                                     }
-                                />
-                            </Stack>
-                        </div>
-                    }
-                    { inPlay.length > 0 &&
-                        <div style={div_style} ref={sectionRef3} id={"In Play"}>
-                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                {/* <GroupingHeader title={'In Play'} count={inPlay.length} /> */}
-
-                                <HSwipe
-                                    key={inPlay.length}
-                                    isMobile={isMobile}
-                                    cards={
-                                        inPlay.map((card: PlayerCard) => {
-                                            return <CardImg
-                                                    img_url={card.card_template.img_url}
-                                                    card_name={card.card_template.card_name}
-                                                    onClickFunc={() => handleSelectCard(card)}
-                                                    buttonOptions={
-                                                        <ActionButtons
-                                                            category={'play'}
-                                                            selectedCard={selectedCard}
-                                                            currentCard={card}
-                                                            gameID={gameID}
-                                                            setAllCards={setAllCards}
-                                                            setAwaitingResponse={setAwaitingResponse}
-                                                        />
-                                                    }
-                                                />
-                                        })
-                                    }
-                                />
-                            </Stack>
-                        </div>
-                    }
-                    { inDiscard.length > 0 &&
-                        <div style={div_style} ref={sectionRef4} id={"Discard"}>
-                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                {/* <GroupingHeader title={'Discard'} count={inDiscard.length} /> */}
-
-                                <HSwipe
-                                    key={inDiscard.length}
-                                    isMobile={isMobile}
-                                    cards={
-                                        inDiscard.map((card: PlayerCard) => {
-                                            return <CardImg
-                                                    img_url={card.card_template.img_url}
-                                                    card_name={card.card_template.card_name}
-                                                    onClickFunc={() => handleSelectCard(card)}
-                                                    buttonOptions={
-                                                        <ActionButtons
-                                                            category={'discard'}
-                                                            selectedCard={selectedCard}
-                                                            currentCard={card}
-                                                            gameID={gameID}
-                                                            setAllCards={setAllCards}
-                                                            setAwaitingResponse={setAwaitingResponse}
-                                                        />
-                                                    }
-                                            />
-                                        })
-                                    }
-                                />
-                            </Stack>
-                        </div>
-                    }
-                </>
+                                </Stack>
+                            </div>
+                        )
+                    })
+                )
             }
 
             <EndButtons gameID={gameID} />

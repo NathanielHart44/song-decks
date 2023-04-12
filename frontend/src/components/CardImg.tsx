@@ -7,10 +7,9 @@ type Props = {
     card_name: string;
     hide?: boolean;
     onClickFunc?: () => void;
-    buttonOptions?: JSX.Element;
 }
 
-export default function CardImg({ img_url, card_name, hide, onClickFunc, buttonOptions }: Props) {
+export default function CardImg({ img_url, card_name, hide, onClickFunc }: Props) {
 
     const theme = useTheme();
 
@@ -54,7 +53,6 @@ export default function CardImg({ img_url, card_name, hide, onClickFunc, buttonO
                         />
                     </Box>
                 )}
-                {buttonOptions}
             </Stack>
         </Box>
     )

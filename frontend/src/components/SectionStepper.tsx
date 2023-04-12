@@ -1,8 +1,8 @@
-import { MobileStepper, useTheme, Tabs, Tab, Stack, IconButton, Typography } from "@mui/material";
+import { MobileStepper, useTheme, Tabs, Tab, Stack, IconButton } from "@mui/material";
 import { useContext } from "react";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import Iconify from "./Iconify";
-import { PlayerCard } from "src/@types/types";
+import { PlayerCard, allSteps } from "src/@types/types";
 import { GroupingHeader } from "./game-page/GameContent";
 
 // ----------------------------------------------------------------------
@@ -10,7 +10,6 @@ import { GroupingHeader } from "./game-page/GameContent";
 export default function SectionStepper() {
 
     const { isMobile, inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection } = useContext(MetadataContext);
-    const allSteps = ['Deck', 'Hand', 'In Play', 'Discard'];
     const game_status = { inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection };
 
     return (
@@ -27,8 +26,8 @@ export default function SectionStepper() {
         >
             {
                 isMobile ?
-                <DotsMobileStepper allSteps={allSteps} game_status={game_status} /> :
-                <SectionTabs allSteps={allSteps} game_status={game_status} />
+                <DotsMobileStepper game_status={game_status} /> :
+                <SectionTabs game_status={game_status} />
             }
         </Stack>
     )
@@ -37,7 +36,6 @@ export default function SectionStepper() {
 // ----------------------------------------------------------------------
 
 type StepProps = {
-    allSteps: string[];
     game_status: {
         inDeck: PlayerCard[];
         inHand: PlayerCard[];
@@ -48,7 +46,7 @@ type StepProps = {
     };
 }
 
-function DotsMobileStepper({ allSteps, game_status }: StepProps) {
+function DotsMobileStepper({ game_status }: StepProps) {
     
     const theme = useTheme();
     const { inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection } = game_status;
@@ -136,7 +134,7 @@ function DotsMobileStepper({ allSteps, game_status }: StepProps) {
 
 // ----------------------------------------------------------------------
 
-function SectionTabs({ allSteps, game_status }: StepProps) {
+function SectionTabs({ game_status }: StepProps) {
 
     const { inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection } = game_status;
     const handleChange = (event: React.SyntheticEvent, newValue: string) => {

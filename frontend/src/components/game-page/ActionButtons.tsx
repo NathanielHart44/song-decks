@@ -1,33 +1,27 @@
-import { useEffect, useState } from "react";
+import { useState, useContext } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
 import { ACTION_TYPE, PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import { Button, Stack, TextField, useTheme } from "@mui/material";
+import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
 type ButtonProps = {
     category: 'hand' | 'play' | 'discard';
-    selectedCard: PlayerCard | null;
+    selected: boolean;
     currentCard: PlayerCard;
     gameID: string;
     setAllCards: (cards: PlayerCard[]) => void;
     setAwaitingResponse: (value: boolean) => void;
 };
-export function ActionButtons({ category, selectedCard, currentCard, gameID, setAllCards, setAwaitingResponse }: ButtonProps) {
+export function ActionButtons({ category, selected, currentCard, gameID, setAllCards, setAwaitingResponse }: ButtonProps) {
 
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
     const [updatePlayNotes, setUpdatePlayNotes] = useState<string>(currentCard.play_notes ?? '');
     const [noteEdit, setNoteEdit] = useState<boolean>(false);
-    const [cardViewed, setCardViewed] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (selectedCard && (selectedCard.id === currentCard.id)) {
-            setCardViewed(true);
-        } else { setCardViewed(false) };
-    }, [selectedCard, currentCard]);
 
     function getSnackbarMessage(action: ACTION_TYPE) {
         switch (action) {
@@ -71,10 +65,10 @@ export function ActionButtons({ category, selectedCard, currentCard, gameID, set
             spacing={2}
             justifyContent={'center'}
             alignItems={'center'}
-            sx={{ width: '100%', opacity: cardViewed ? 1 : 0, transition: 'opacity 0.5s' }}
+            sx={{ width: '100%', opacity: selected ? 1 : 0, transition: 'opacity 0.5s' }}
         >
             <ButtonStack
-                disabled={!cardViewed}
+                disabled={!selected}
                 category={category}
                 handleCardAction={handleCardAction}
             />
@@ -93,7 +87,7 @@ export function ActionButtons({ category, selectedCard, currentCard, gameID, set
                         };
                     }}
                     sx={{
-                        opacity: (noteEdit || updatePlayNotes.length > 0) && cardViewed ? 1 : 0,
+                        opacity: (noteEdit || updatePlayNotes.length > 0) && selected ? 1 : 0,
                         transition: 'opacity 0.5s',
                         ".MuiInputBase-input.Mui-disabled": {
                             WebkitTextFillColor: theme.palette.primary.lighter,
@@ -119,6 +113,8 @@ type ButtonConfig = {
     action: string;
 };
 function ButtonStack({ disabled, category, handleCardAction }: ButtonStackProps) {
+
+    const { isMobile } = useContext(MetadataContext);
 
     const getButtonConfigs = (category: 'hand' | 'play' | 'discard'): ButtonConfig[] => {
         switch (category) {
@@ -150,7 +146,14 @@ function ButtonStack({ disabled, category, handleCardAction }: ButtonStackProps)
     };
 
     return (
-        <Stack spacing={2} direction={'row'} justifyContent={'center'} alignItems={'center'} width={'100%'} height={'100%'}>
+        <Stack
+            spacing={2}
+            direction={'row'}
+            justifyContent={'center'}
+            alignItems={'center'}
+            height={'100%'}
+            width={isMobile ? '50%' : '25%'}
+        >
             {buttonConfigs.map((buttonConfig) => (
                 <Button
                     key={buttonConfig.action}
@@ -158,6 +161,7 @@ function ButtonStack({ disabled, category, handleCardAction }: ButtonStackProps)
                     onClick={(event) => handleClick(event, buttonConfig.action)}
                     disabled={disabled}
                     fullWidth
+                    sx={{ whiteSpace: 'nowrap' }}
                 >
                     {buttonConfig.label}
                 </Button>

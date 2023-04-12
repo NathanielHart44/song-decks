@@ -1,4 +1,12 @@
-import { Button, Stack } from "@mui/material"
+import {
+    Backdrop,
+    Button,
+    Slide,
+    SpeedDial,
+    SpeedDialIcon,
+    Stack,
+    useTheme
+} from "@mui/material"
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useState } from "react";
@@ -18,10 +26,12 @@ type ButtonProps = {
 
 export default function EndButtons({ gameID }: ButtonProps) {
 
+    const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
-    const [awaitingResponse, setAwaitingResponse] = useState(false);
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const navigate = useNavigate();
+    const [open, setOpen] = useState<boolean>(false);
 
     const endSegment = async (type: 'end_round' | 'end_game') => {
         setAwaitingResponse(true);
@@ -46,35 +56,51 @@ export default function EndButtons({ gameID }: ButtonProps) {
     };
 
     return (
-        <>
+        <div>
             { awaitingResponse && <LoadingBackdrop /> }
-            <Stack
-                direction={'row'}
-                spacing={2}
-                width={'100%'}
-                sx={{
-                    position: 'fixed',
-                    bottom: 10,
-                    left: 0,
-                    zIndex: 100,
-                    justifyContent: 'center'
-                }}
-            >
-                <Button
-                    variant="contained"
-                    onClick={() => { processTokens(endSegment, 'end_round') }}
-                    sx={{ width: isMobile ? '35%' : '25%' }}
+            <div>
+                <Backdrop
+                    open={open}
+                    sx={{ color: theme.palette.primary.main, zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                    onClick={() => { setOpen(false) }}
                 >
-                    End Round
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={() => { processTokens(endSegment, 'end_game') }}
-                    sx={{ width: isMobile ? '35%' : '25%' }}
-                >
-                    End Game
-                </Button>
-            </Stack>
-        </>
+                    <Slide direction="up" in={open} mountOnEnter unmountOnExit>
+                        <Stack
+                            direction={'row'}
+                            spacing={2}
+                            width={'100%'}
+                            sx={{
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={() => { processTokens(endSegment, 'end_round') }}
+                                sx={{ width: isMobile ? '35%' : '25%' }}
+                            >
+                                End Round
+                            </Button>
+                            <Button
+                                variant="contained"
+                                size="large"
+                                onClick={() => { processTokens(endSegment, 'end_game') }}
+                                sx={{ width: isMobile ? '35%' : '25%' }}
+                            >
+                                End Game
+                            </Button>
+                        </Stack>
+                    </Slide>
+                </Backdrop>
+            </div>
+            <SpeedDial
+                ariaLabel="End Functions"
+                sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                icon={<SpeedDialIcon />}
+                onClick={() => { setOpen(!open) }}
+                open={open}
+            />
+        </div>
     )
 }
