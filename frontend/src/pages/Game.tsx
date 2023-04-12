@@ -185,11 +185,16 @@ export default function Game() {
 
     return (
         <Page title="Play">
-            <Stack spacing={10} height={'100%'} width={'100%'} id={'container'} justifyContent={'center'} alignItems={'center'}
-            sx={{
-                touchAction: 'none',
-                border: scrollValid ? '8px solid green' : '8px solid red',
-            }}
+            <Stack
+                height={'100%'}
+                width={'100%'}
+                id={'container'}
+                justifyContent={'center'}
+                alignItems={'center'}
+                sx={{
+                    touchAction: 'none',
+                    // border: scrollValid ? '8px solid green' : '8px solid red',
+                }}
             >
                 <SectionStepper />
                 <GameContent

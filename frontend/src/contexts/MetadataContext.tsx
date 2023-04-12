@@ -138,10 +138,15 @@ export default function MetadataProvider({ children }: Props) {
                         break;
                 }
             });
+            // setSelectedCard(null);
             setInDeck(in_deck);
+            // setDeckCard(in_deck.length > 0 ? in_deck[0] : null);
             setInHand(in_hand);
+            // setHandCard(in_hand.length > 0 ? in_hand[0] : null);
             setInPlay(in_play);
+            // setPlayCard(in_play.length > 0 ? in_play[0] : null);
             setInDiscard(in_discard);
+            // setDiscardCard(in_discard.length > 0 ? in_discard[0] : null);
         };
     }, [allCards]);
 
@@ -175,26 +180,20 @@ export default function MetadataProvider({ children }: Props) {
                 // only need to worry about this once we add flipping deck functionality
             } else if (section_id === 'Hand') {
                 if (handCard) {
-                    console.log("setting selectedCard to handCard", handCard);
                     setSelectedCard(handCard);
                 } else {
-                    console.log("setting selectedCard to handCard[0]", inHand[0]);
                     setSelectedCard(inHand[0]);
                 }
             } else if (section_id === 'In Play') {
                 if (playCard) {
-                    console.log("setting selectedCard to playCard", playCard);
                     setSelectedCard(playCard);
                 } else {
-                    console.log("setting selectedCard to playCard[0]", inPlay[0]);
                     setSelectedCard(inPlay[0]);
                 }
             } else if (section_id === 'Discard') {
                 if (discardCard) {
-                    console.log("setting selectedCard to discardCard", discardCard);
                     setSelectedCard(discardCard);
                 } else {
-                    console.log("setting selectedCard to discardCard[0]", inDiscard[0]);
                     setSelectedCard(inDiscard[0]);
                 }
             }

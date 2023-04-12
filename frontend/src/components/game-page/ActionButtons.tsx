@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
@@ -22,6 +22,11 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
     const { enqueueSnackbar } = useSnackbar();
     const [updatePlayNotes, setUpdatePlayNotes] = useState<string>(currentCard.play_notes ?? '');
     const [noteEdit, setNoteEdit] = useState<boolean>(false);
+
+    useEffect(() => {
+        setNoteEdit(false);
+        setUpdatePlayNotes(currentCard.play_notes ?? '');
+    }, [currentCard]);
 
     function getSnackbarMessage(action: ACTION_TYPE) {
         switch (action) {

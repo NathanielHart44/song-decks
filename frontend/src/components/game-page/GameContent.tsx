@@ -1,8 +1,8 @@
 import CardImg from "src/components/CardImg";
 import { CSSProperties, RefObject, useContext, useEffect, useState } from "react";
-import HSwipe from "src/components/HSwipe";
-import EndButtons from "src/components/EndButtons";
-import { useNavigate, useParams } from "react-router-dom";
+import HSwipe from "src/components/game-page/HSwipe";
+import EndButtons from "src/components/game-page/EndButtons";
+import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
@@ -30,7 +30,6 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     const { gameID = '' } = useParams();
     const { sectionRef1, sectionRef2, sectionRef3, sectionRef4 } = sectionRefs;
     const { enqueueSnackbar } = useSnackbar();
-    const navigate = useNavigate();
 
     const { setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard, selectedCard } = useContext(MetadataContext);
 
@@ -44,7 +43,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     ];
 
     const div_style: CSSProperties = {
-        height: isMobile ? '100vh' : '100vh',
+        height: isMobile ? '110vh' : '110vh',
         width: '100%',
         display: 'flex',
         scrollSnapStop: 'always',
@@ -93,12 +92,13 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
         else { enqueueSnackbar("No cards left in deck") };
     };
 
-    function handleSelectCard(card: PlayerCard, section: string) {
+    function handleSelectCard(card: PlayerCard, section: string, hide_msg?: boolean) {
         if (section === "Deck") { return }
         else if (section === "Hand") { setHandCard(card) }
         else if (section === "In Play") { setPlayCard(card) }
         else if (section === "Discard") { setDiscardCard(card) };
-        if (card) { enqueueSnackbar("Selected: " + card.card_template.card_name) };
+        if (hide_msg) { return }
+        else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
     };
 
     return (
@@ -107,20 +107,21 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
             { !awaitingResponse &&
                 (
                     sections.map((section, index) => {
-                        if (section.cards.length === 0) return <></> ;
                         return (
-                            <div style={div_style} ref={section.ref} id={section.name}>
+                            <div key={section.name + 'S' + index} style={div_style} ref={section.ref} id={section.name}>
                                 <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
-                                    {/* <GroupingHeader title={section.name} count={section.cards.length} /> */}
                                     <HSwipe
                                         key={section.name + 'H' + index}
                                         isMobile={isMobile}
+                                        cardSwipeFunctions={section.cards.map((card: PlayerCard) => {
+                                            const onClickFunc =
+                                                (section.name === "Deck") ? processDrawCard : () => handleSelectCard(card, section.name);
+                                            return onClickFunc;
+                                        })}
                                         cards={section.cards.map((card: PlayerCard) => {
-                                            const is_selected = selectedCard?.id === card.id;
-                                            console.log(section.name, card.card_template.card_name, " is_selected: ", is_selected);
 
                                             const onClickFunc =
-                                            section.name === "Deck" ? processDrawCard : () => handleSelectCard(card, section.name);
+                                            (section.name === "Deck") ? processDrawCard : () => handleSelectCard(card, section.name);
 
                                             if (!card || !card.card_template) { return <></> };
                                             return (
@@ -143,7 +144,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                                                 section.name === "In Play" ? "play" :
                                                 section.name.toLowerCase() as "hand" | "discard"
                                             }
-                                            selected={true}
+                                            selected={section.cards.length === 0 ? false : true}
                                             currentCard={selectedCard}
                                             gameID={gameID}
                                             setAllCards={setAllCards}
@@ -171,11 +172,6 @@ type GroupingHeaderProps = {
 
 export function GroupingHeader({ title, count }: GroupingHeaderProps) {
     return (
-        // <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '15%' }}>
-        //     <Typography variant={'body1'} sx={{ whiteSpace: 'nowrap' }}>{title}</Typography>
-        //     <Divider flexItem orientation={'horizontal'} />
-        //     <Typography variant={'body1'}>{count}</Typography>
-        // </Stack>
         <Typography variant={'body1'}>{title} ({count})</Typography>
     );
 };
