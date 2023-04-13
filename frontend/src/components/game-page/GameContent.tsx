@@ -98,7 +98,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
         else if (section === "In Play") { setPlayCard(card) }
         else if (section === "Discard") { setDiscardCard(card) };
         if (hide_msg) { return }
-        else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
+        // else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
     };
 
     return (
