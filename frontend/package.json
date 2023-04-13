@@ -27,10 +27,14 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "GENERATE_SOURCEMAP=false react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint --ext .ts,.tsx ./src",
+    "lint:fix": "eslint --fix --ext .ts,.tsx ./src",
+    "build:js": "react-scripts build js",
+    "build:css": "react-scripts build css",
+    "build:html": "react-scripts build html"
   },
   "eslintConfig": {
     "extends": [
