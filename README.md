@@ -24,7 +24,7 @@ sudo apt-get install mysql-server
 ```
 docker compose up --build
 ```
-  - If this fails the first time, just hit *ctrl C* and build again.
+  - If this fails the first time, just hit <kbd>Ctrl</kbd>+<kbd>C</kbd> and build again.
 4. Migrate
 5. While in the same directory as `manage.py`, run:
 ```
