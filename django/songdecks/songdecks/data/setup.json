@@ -1,0 +1,176 @@
+[
+    {
+        "faction": "Baratheon",
+        "img_url": "https://asoiaf-stats.com/Images/General/Baratheon.png",
+        "cards": [
+            {
+                "name": "Baratheon Justice",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40601.jpg"
+            },
+            {
+                "name": "Stag's Wit",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40602.jpg"
+            },
+            {
+                "name": "Ours Is The Fury!",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40603.jpg"
+            },
+            {
+                "name": "Sustained Assault",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40604.jpg"
+            },
+            {
+                "name": "Baratheon Conviction",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40605.jpg"
+            },
+            {
+                "name": "Final Strike",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40606.jpg"
+            },
+            {
+                "name": "Oath Of Duty",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40607.jpg"
+            }
+        ],
+        "commanders": [
+            {
+                "name": "Stannis Baratheon - The One True King",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20605p.jpg",
+                "cards": [
+                    {
+                        "name": "In R'hllor's Name",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40626.jpg"
+                    },
+                    {
+                        "name": "Test Of Faith",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40627.jpg"
+                    },
+                    {
+                        "name": "Azor Ahai!",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40628.jpg"
+                    }
+                ]
+            },
+            {
+                "name": "Renly Baratheon - Lord Paramount",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20611p.jpg",
+                "cards": [
+                    {
+                        "name": "Inexplicable Return",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40608.jpg"
+                    },
+                    {
+                        "name": "Hidden Affairs",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40609.jpg"
+                    },
+                    {
+                        "name": "In His Brothers' Shadows",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40610.jpg"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "faction": "Targaryen",
+        "img_url": "https://asoiaf-stats.com/Images/General/Targaryen.png",
+        "cards": [
+            {
+                "name": "Overrun",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40701.jpg"
+            },
+            {
+                "name": "Sudden Retreat",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40702.jpg"
+            },
+            {
+                "name": "Swift Reposition",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40703.jpg"
+            },
+            {
+                "name": "Fire And Blood",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40704.jpg"
+            },
+            {
+                "name": "Field Control",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40705.jpg"
+            },
+            {
+                "name": "Unstoppable Advance",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40706.jpg"
+            },
+            {
+                "name": "Blood Of The Dragon",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40707.jpg"
+            }
+        ],
+        "commanders": [
+            {
+                "name": "Daenerys Targaryen - Mother of Dragons",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20714p.jpg",
+                "cards": [
+                    {
+                        "name": "Dracarys!",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40728.jpg"
+                    },
+                    {
+                        "name": "Dragon's Flight",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40729.jpg"
+                    },
+                    {
+                        "name": "Promise Of Fire",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40730.jpg"
+                    },
+                    {
+                        "name": "Fire Made Flesh",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40731.jpg"
+                    }
+                ]
+            },
+            {
+                "name": "Khal Drogo - The Great Khal",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20701p.jpg",
+                "cards": [
+                    {
+                        "name": "Addrivat",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40708.jpg"
+                    },
+                    {
+                        "name": "Ride-By Attack",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40709.jpg"
+                    },
+                    {
+                        "name": "Assault Orders",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40710.jpg"
+                    },
+                    {
+                        "name": "Lead By Example",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40711.jpg"
+                    }
+                ]
+            },
+            {
+                "name": "Daenerys Targaryen - Queen of Meereen",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20715p.jpg",
+                "cards": [
+                    {
+                        "name": "Targaryen Supremacy",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40732.jpg"
+                    },
+                    {
+                        "name": "Counterplot",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40733.jpg"
+                    },
+                    {
+                        "name": "Subjugation Of Power",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40734.jpg"
+                    },
+                    {
+                        "name": "Remorseless Examples",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40735.jpg"
+                    }
+                ]
+            }
+        ]
+    }
+]
