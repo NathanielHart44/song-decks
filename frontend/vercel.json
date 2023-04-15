@@ -1,7 +1,4 @@
 {
     "version": 2,
-    "framework": {
-      "slug": "create-react-app"
-    }
-  }
-  
+    "framework": {}
+}
