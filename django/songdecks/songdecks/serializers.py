@@ -5,7 +5,7 @@ from songdecks.models import Profile, Faction, Commander, CardTemplate, Game, Pl
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

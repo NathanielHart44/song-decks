@@ -1,10 +1,12 @@
 export type User = {
     id: number;
+    username: string;
+    profile: Profile;
     first_name: string;
     last_name: string;
     email: string;
-    username: string;
-};
+    user_type: string;
+}
 
 export type Profile = {
     id: number;

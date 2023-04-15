@@ -3,6 +3,8 @@ import MainStyle from './components/MainStyle';
 import NavBar from './components/NavBar';
 import NotistackProvider from './components/NotistackProvider';
 import ThemeLocalization from './components/ThemeLocalization';
+import HotJar from './components/user-tracking/HotJar';
+import Pendo from './components/user-tracking/Pendo';
 import MetadataProvider from './contexts/MetadataContext';
 import Router from './routes';
 import ThemeProvider from './theme';
@@ -15,6 +17,8 @@ function App() {
       <ThemeLocalization>
         <MetadataProvider>
           <NotistackProvider>
+            <Pendo />
+            <HotJar />
             <NavBar />
             <MainStyle>
               <Router />

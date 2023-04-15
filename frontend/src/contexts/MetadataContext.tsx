@@ -1,10 +1,15 @@
+import axios from "axios";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { PlayerCard } from "src/@types/types";
+import { PlayerCard, User } from "src/@types/types";
+import { MAIN_API } from "src/config";
+import useAuth from "src/hooks/useAuth";
+import { processTokens } from "src/utils/jwt";
 
 type Props = { children: ReactNode };
 
 export const MetadataContext = createContext<{
     isMobile: boolean;
+    currentUser: User | undefined;
     allCards: PlayerCard[];
     setAllCards: (cards: PlayerCard[]) => void;
     selectedCard: PlayerCard | null;
@@ -32,6 +37,7 @@ export const MetadataContext = createContext<{
 }>
 ({
     isMobile: true,
+    currentUser: undefined,
     allCards: [],
     setAllCards: () => {},
     selectedCard: null,
@@ -63,6 +69,13 @@ export default function MetadataProvider({ children }: Props) {
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 
+    const { isAuthenticated } = useAuth();
+
+    let user = undefined;
+    const local_user = localStorage.getItem('currentUser') ?? '';
+    if (local_user !== 'undefined' && local_user !== '') { user = JSON.parse(local_user) };
+    const [currentUser, setCurrentUser] = useState<User>(user);
+
     const [allCards, setAllCards] = useState<PlayerCard[]>([]);
 
     const [viewedCards, setViewedCards] = useState<PlayerCard[]>([]);
@@ -81,6 +94,18 @@ export default function MetadataProvider({ children }: Props) {
     const [discardCard, setDiscardCard] = useState<PlayerCard | null>(null);
 
     const [selectedSection, setSelectedSection] = useState<HTMLDivElement | null>(null);
+
+    const getCurrentUser = async () => {
+        let token = localStorage.getItem('accessToken') ?? '';
+        await axios.get(`${MAIN_API.base_url}current_user/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            setCurrentUser(response.data);
+            localStorage.setItem('currentUser', JSON.stringify(response.data));
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    useEffect(() => { processTokens(getCurrentUser) }, [isAuthenticated]);
 
     function loadSelectedSection(section_id: string | null) {
         if (typeof window !== 'undefined') {
@@ -204,6 +229,7 @@ export default function MetadataProvider({ children }: Props) {
         <MetadataContext.Provider
             value={{
                 isMobile,
+                currentUser,
                 allCards,
                 setAllCards,
                 selectedCard,
