@@ -7,7 +7,8 @@ import { PATH_PAGE } from './routes/paths';
 export const HOST_API = process.env.REACT_APP_HOST_API_KEY || '';
 
 export const MAIN_API = {
-  base_url: "http://localhost:8080/"
+  // base_url: "http://localhost:8080/",
+  base_url: "ec2-3-22-171-27.us-east-2.compute.amazonaws.com/",
 };
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
