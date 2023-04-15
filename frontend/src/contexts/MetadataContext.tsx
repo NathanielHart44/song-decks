@@ -3,7 +3,7 @@ import { createContext, ReactNode, useEffect, useState } from "react";
 import { PlayerCard, User } from "src/@types/types";
 import { MAIN_API } from "src/config";
 import useAuth from "src/hooks/useAuth";
-import { processTokens } from "src/utils/jwt";
+import { isValidToken, processTokens } from "src/utils/jwt";
 
 type Props = { children: ReactNode };
 
@@ -105,7 +105,9 @@ export default function MetadataProvider({ children }: Props) {
         })
     };
 
-    useEffect(() => { processTokens(getCurrentUser) }, [isAuthenticated]);
+    useEffect(() => {
+        if (checkTokenStatus()) { processTokens(getCurrentUser) };
+    }, [isAuthenticated]);
 
     function loadSelectedSection(section_id: string | null) {
         if (typeof window !== 'undefined') {
@@ -259,4 +261,16 @@ export default function MetadataProvider({ children }: Props) {
             {children}
         </MetadataContext.Provider>
     );
+}
+
+// ----------------------------------------------------------------------
+
+const checkTokenStatus = () => {
+    let token = localStorage.getItem('accessToken') ?? '';
+    let refreshToken = localStorage.getItem('refreshToken') ?? '';
+    if (token && isValidToken(token)) {
+        return true;
+    } else if (refreshToken && isValidToken(refreshToken)) {
+        return true;
+    } else { return false };
 }

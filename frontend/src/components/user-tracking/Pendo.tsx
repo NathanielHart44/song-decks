@@ -24,7 +24,7 @@ export default function Pendo() {
                 email: '` + currentUser?.email + `',         // Recommended if using Pendo Feedback, or NPS Email
                 full_name: '` + currentUser?.first_name + ' ' + currentUser?.last_name + `',   // Recommended if using Pendo Feedback
                 username: '` + currentUser?.username + `',
-                profile_id: '` + currentUser?.profile.id + `'
+                profile_id: '` + currentUser?.profile?.id + `'
                 // role:         // Optional
                 // You can add any additional visitor level key-values here,
                 // as long as it's not one of the above reserved names.

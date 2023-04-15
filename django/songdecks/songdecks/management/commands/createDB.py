@@ -41,3 +41,12 @@ class Command(BaseCommand):
                             'discard_count': 0,
                         }
                     )
+        all_templates = CardTemplate.objects.all()
+        for template in all_templates:
+            duplicates = CardTemplate.objects.filter(
+                card_name=template.card_name,
+                faction=template.faction,
+                commander=template.commander,
+            )
+            if len(duplicates) > 1:
+                duplicates[1:].delete()

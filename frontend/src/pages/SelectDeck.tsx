@@ -169,7 +169,7 @@ export default function SelectDeck() {
                         columnSpacing={2}
                         sx={gridContainerStyles}
                     >
-                        {[...factions, ...factions, ...factions, ...factions, ...factions, ...factions,...factions].map((faction) => (
+                        {factions.map((faction) => (
                             <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
                                 <SelectableAvatar
                                     item={faction}
@@ -189,7 +189,7 @@ export default function SelectDeck() {
                         columnSpacing={2}
                         sx={gridContainerStyles}
                     >
-                        {[...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders, ...viewedCommanders,...viewedCommanders].map((commander) => (
+                        {viewedCommanders.map((commander) => (
                             <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
                                 <SelectableAvatar
                                     item={commander}
