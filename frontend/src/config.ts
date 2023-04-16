@@ -9,7 +9,7 @@ export const HOST_API = '';
 
 export const MAIN_API = {
   // base_url: "http://localhost:8080/",
-  base_url: "ec2-3-22-171-27.us-east-2.compute.amazonaws.com/",
+  base_url: "http://ec2-3-22-171-27.us-east-2.compute.amazonaws.com/",
 };
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
