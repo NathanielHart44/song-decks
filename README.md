@@ -28,5 +28,5 @@ docker compose up --build
 4. Migrate
 5. While in the same directory as `manage.py`, run:
 ```
-docker compose run web python3 manage.py createsuperuser
+docker compose run web python3 /songdecks/manage.py createsuperuser
 ```
