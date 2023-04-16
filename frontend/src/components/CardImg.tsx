@@ -1,4 +1,4 @@
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Stack, useTheme } from "@mui/material";
 import Iconify from "./Iconify";
 
 // ----------------------------------------------------------------------
