@@ -119,7 +119,7 @@ export default function Game() {
             const deltaX = event.touches[0].clientX - startX;
             const deltaY = event.touches[0].clientY - startY;
             const angle = Math.abs(Math.atan2(deltaY, deltaX) * 180 / Math.PI);
-            if (angle < 80 || angle > 100) { startY = null };
+            if (angle < 60 || angle > 150) { startY = null; return };
           
             isScrolling = true;
             setTimeout(() => { isScrolling = false }, scroll_disable_length);
@@ -181,6 +181,7 @@ export default function Game() {
                 }
             }
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scrollValid, sectionRef1, sectionRef2, sectionRef3, sectionRef4, isMobile, selectedSection]);
 
     return (

@@ -172,5 +172,77 @@
                 ]
             }
         ]
+    },
+    {
+        "faction": "Greyjoy",
+        "img_url": "https://asoiaf-stats.com/Images/General/Greyjoy.png",
+        "cards": [
+            {
+                "name": "We Do Not Sow",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40801.jpg"
+            },
+            {
+                "name": "What Is Dead May Never Die",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40802.jpg"
+            },
+            {
+                "name": "The Kraken's Wrath",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40803.jpg"
+            },
+            {
+                "name": "The Iron Price",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40804.jpg"
+            },
+            {
+                "name": "Finger Dance",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40805.jpg"
+            },
+            {
+                "name": "Raiding Call",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40806.jpg"
+            },
+            {
+                "name": "Bless With Stone, Bless With Steel",
+                "img_url": "https://asoiaf-stats.com/Images/2021/40807.jpg"
+            }
+        ],
+        "commanders": [
+            {
+                "name": "Asha Greyjoy - The Kraken's Daughter",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20801p.jpg",
+                "cards": [
+                    {
+                        "name": "Ironborn Mettle",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40808.jpg"
+                    },
+                    {
+                        "name": "Raider Bravery",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40809.jpg"
+                    },
+                    {
+                        "name": "War Cry",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40810.jpg"
+                    }
+                ]
+            },
+            {
+                "name": "Euron Greyjoy - Lord Reaper Of Pyke",
+                "img_url": "https://asoiaf-stats.com/Images/2021/20802p.jpg",
+                "cards": [
+                    {
+                        "name": "Devious Methods",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40820.jpg"
+                    },
+                    {
+                        "name": "Cunning Ploy",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40821.jpg"
+                    },
+                    {
+                        "name": "Mind Games",
+                        "img_url": "https://asoiaf-stats.com/Images/2021/40822.jpg"
+                    }
+                ]
+            }
+        ]
     }
 ]

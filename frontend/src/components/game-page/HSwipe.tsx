@@ -9,12 +9,11 @@ interface State {
 }
 
 type Props = {
-    cards: React.ReactNode[];
-    cardSwipeFunctions: (() => void)[];
     isMobile: boolean;
+    cards: React.ReactNode[];
 };
 
-export default function HSwipe({ cards, cardSwipeFunctions, isMobile }: Props) {
+export default function HSwipe({ isMobile, cards }: Props) {
 
     const slidesReducer = (state: State, event: Action) => {
         function getIndexes(index: number) {
@@ -108,9 +107,9 @@ export default function HSwipe({ cards, cardSwipeFunctions, isMobile }: Props) {
         padding: 0,
         overflow: "hidden",
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      // onTouchStart={handleTouchStart}
+      // onTouchMove={handleTouchMove}
+      // onTouchEnd={handleTouchEnd}
     >
       {(state.visibleCards).map((card, i) => {
         let offset = i - 1;

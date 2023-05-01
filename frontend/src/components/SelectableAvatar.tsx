@@ -26,7 +26,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, default
 
     return (
         <Box>
-            <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
+            <Stack spacing={1} display={'flex'} justifyContent={'center'} alignItems={'center'}>
                 {item ? (
                     <Avatar
                         alt={altText}
@@ -44,7 +44,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, default
                         <img src={defaultIcon} alt={altText} />
                     </Avatar>
                 )}
-                <Typography variant={'caption'}>
+                <Typography variant={'caption'} align={'center'}>
                     {(item && !altText.includes('SELECTED')) ? item.name : ''}
                 </Typography>
             </Stack>

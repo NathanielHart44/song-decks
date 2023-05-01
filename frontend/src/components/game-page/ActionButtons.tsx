@@ -4,7 +4,7 @@ import axios from "axios";
 import { MAIN_API } from "src/config";
 import { ACTION_TYPE, PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
-import { Button, Stack, TextField, useTheme } from "@mui/material";
+import { Backdrop, Button, Slide, Stack, TextField, useTheme } from "@mui/material";
 import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
@@ -21,12 +21,19 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
     const [updatePlayNotes, setUpdatePlayNotes] = useState<string>(currentCard.play_notes ?? '');
+    const [noteOpen, setNoteOpen] = useState<boolean>(false);
     const [noteEdit, setNoteEdit] = useState<boolean>(false);
 
     useEffect(() => {
         setNoteEdit(false);
+        setNoteOpen(false);
         setUpdatePlayNotes(currentCard.play_notes ?? '');
     }, [currentCard]);
+
+    // useEffect(() => {
+    //     setNoteEdit(false);
+    //     setUpdatePlayNotes(currentCard.play_notes ?? '');
+    // }, [updatePlayNotes]);
 
     function getSnackbarMessage(action: ACTION_TYPE) {
         switch (action) {
@@ -44,7 +51,7 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
     };
 
     const handleCardAction = async (action: ACTION_TYPE) => {
-        if (action === 'leave_note') { setNoteEdit(true); return };
+        if (action === 'leave_note') { setNoteOpen(true); return };
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
 
@@ -78,30 +85,30 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
                 handleCardAction={handleCardAction}
             />
             { category === 'play' &&
-                <TextField
-                    size={'small'}
-                    variant="outlined"
-                    type="string"
-                    fullWidth
-                    value={updatePlayNotes}
-                    onChange={(event) => setUpdatePlayNotes(event.target.value)}
-                    onBlur={(event) => {
-                        event.stopPropagation();
-                        if (updatePlayNotes !== currentCard.play_notes) {
-                            processTokens(handleCardAction, 'update_play_notes');
-                        };
-                    }}
-                    sx={{
-                        opacity: (noteEdit || updatePlayNotes.length > 0) && selected ? 1 : 0,
-                        transition: 'opacity 0.5s',
-                        ".MuiInputBase-input.Mui-disabled": {
-                            WebkitTextFillColor: theme.palette.primary.lighter,
-                            color: theme.palette.primary.lighter
-                          }
-                    }}
-                    multiline
-                    disabled={!noteEdit}
-                />
+                <Backdrop
+                    open={noteOpen}
+                    sx={{ color: theme.palette.primary.main, zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                    onClick={() => { setNoteOpen(false) }}
+                >
+                    <Slide direction="up" in={noteOpen} mountOnEnter unmountOnExit>
+                        <TextField
+                            size={'medium'}
+                            variant="outlined"
+                            type="string"
+                            fullWidth
+                            value={updatePlayNotes}
+                            onClick={(event) => { event.stopPropagation() }}
+                            onChange={(event) => setUpdatePlayNotes(event.target.value)}
+                            onBlur={(event) => {
+                                event.stopPropagation();
+                                if (updatePlayNotes !== currentCard.play_notes) {
+                                    processTokens(handleCardAction, 'update_play_notes');
+                                };
+                            }}
+                            multiline
+                        />
+                    </Slide>
+                </Backdrop>
             }
         </Stack>
     );

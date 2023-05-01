@@ -43,7 +43,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     ];
 
     const div_style: CSSProperties = {
-        height: isMobile ? '110vh' : '110vh',
+        height: isMobile ? '100vh' : '110vh',
         width: '100%',
         display: 'flex',
         scrollSnapStop: 'always',
@@ -109,15 +109,11 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                     sections.map((section, index) => {
                         return (
                             <div key={section.name + 'S' + index} style={div_style} ref={section.ref} id={section.name}>
-                                <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
+                                <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%', height: '100%' }}>
+                                    <div style={{ width: '100%' }}>
                                     <HSwipe
                                         key={section.name + 'H' + index}
                                         isMobile={isMobile}
-                                        cardSwipeFunctions={section.cards.map((card: PlayerCard) => {
-                                            const onClickFunc =
-                                                (section.name === "Deck") ? processDrawCard : () => handleSelectCard(card, section.name);
-                                            return onClickFunc;
-                                        })}
                                         cards={section.cards.map((card: PlayerCard) => {
 
                                             const onClickFunc =
@@ -139,6 +135,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                                             );
                                         })}
                                     />
+                                    </div>
                                     { selectedCard && section.name !== "Deck" &&
                                         <ActionButtons
                                             category={
