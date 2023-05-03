@@ -36,4 +36,9 @@ urlpatterns = [
     path('end_round/<int:game_id>/', views.end_round),
     path('end_game/<int:game_id>/', views.end_game),
 
+    # ----------------------------------------------------------------------
+
+    path('get_recent_games/', views.get_recent_games),
+    path('get_player_stats/', views.get_player_stats),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

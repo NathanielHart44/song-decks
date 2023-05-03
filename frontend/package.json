@@ -25,6 +25,7 @@
     "react-scripts": "5.0.1",
     "react-swipeable-views": "^0.14.0",
     "react-swipeable-views-utils": "^0.14.0",
+    "victory": "^36.6.10",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

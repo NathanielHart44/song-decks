@@ -4,7 +4,8 @@ from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
 from songdecks.serializers import (
     FactionSerializer, CommanderSerializer,
-    PlayerCardSerializer, UserSerializer)
+    PlayerCardSerializer, UserSerializer, UserCardStatsSerializer,
+    GameSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
@@ -241,5 +242,26 @@ def end_game(request, game_id):
         # game.round += 1
         game.save()
         return JsonResponse({"success": True, "response": "Successfully ended game."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def get_recent_games(request):
+    try:
+        games = Game.objects.filter(owner=request.user.profile).order_by('-id')
+        serializer = GameSerializer(games, many=True)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def get_player_stats(request):
+    try:
+        user_profile = Profile.objects.get(user=request.user)
+        user_card_stats = UserCardStats.objects.filter(user=user_profile)
+        user_card_stats = user_card_stats.order_by('-times_included', '-times_drawn')
+        user_card_stats = user_card_stats[:5]
+        serializer = UserCardStatsSerializer(user_card_stats, many=True)
+        return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
