@@ -1,16 +1,14 @@
-import { IconButton, Stack, Typography, keyframes, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Box, IconButton, Stack, Typography, keyframes, useTheme } from "@mui/material";
+import { useContext, useEffect, useState } from "react";
 import { UserCardStats } from "src/@types/types";
 import {
     VictoryBar,
     VictoryStack,
     VictoryLabel,
     VictoryLegend,
-    VictoryGroup,
-    VictoryContainer,
-    VictoryAnimation
 } from 'victory';
 import Iconify from "./Iconify";
+import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
 
@@ -20,6 +18,7 @@ type CardStats = { id: number; card_name: string; times_included: number; times_
 export function PlayerStats({ stats }: PlayerStatsProps) {
 
     const theme = useTheme();
+    const { isMobile } = useContext(MetadataContext);
 
     function getPulse() {
         return keyframes({
@@ -39,7 +38,6 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
     };
 
     const display_amt = 2;
-    const bar_width = 25;
     const formatted_stats: CardStats[] = stats.map((stat) => {
         return {
             id: stat.card_template.id,
@@ -47,6 +45,9 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
             times_included: stat.times_included,
             times_drawn: stat.times_drawn,
             times_discarded: stat.times_discarded,
+            // times_included: stat.times_included + Math.ceil(Math.random() * 10) + 1,
+            // times_drawn: stat.times_drawn + Math.ceil(Math.random() * 10) + 1,
+            // times_discarded: stat.times_discarded + Math.ceil(Math.random() * 10) + 1,
         };
     });
 
@@ -54,17 +55,17 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     useEffect(() => {
-        const initialDisplayedStats = formatted_stats.slice(0, display_amt).map((stat) => ({
-            ...stat,
-            x: -100
-        }));
+        const initialDisplayedStats = formatted_stats.slice(0, display_amt);
         setDisplayedStats(initialDisplayedStats);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stats]);
 
     const handleClick = () => {
-        setCurrentPage(currentPage + 1);
-        setDisplayedStats(formatted_stats.slice(0, (currentPage + 1) * display_amt));
+        setCurrentPage((prevPage) => {
+            const newPage = prevPage + 1;
+            setDisplayedStats(formatted_stats.slice(0, newPage * display_amt));
+            return newPage;
+        });
     };
 
     const showLoadMoreButton = (currentPage * display_amt) < stats.length;
@@ -81,72 +82,27 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
             <VictoryLegend
                 orientation={"horizontal"}
                 data={legendData}
-                gutter={{ left: 40, right: 20 }}
+                gutter={{ left: isMobile ? 40 : 70, right: 20 }}
                 height={20}
                 style={{
                     labels: {
                         fill: theme.palette.text.primary,
                         fontFamily: theme.typography.fontFamily,
+                        ...(!isMobile && { fontSize: 7 })
                     }
                 }}
             />
-            <VictoryGroup
-                height={displayedStats.length * 100}
-                containerComponent={
-                    <VictoryContainer
-                        style={{
-                            pointerEvents: "auto",
-                            userSelect: "auto",
-                            touchAction: "auto"
-                        }}
+
+            <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                { displayedStats.map((stat) => (
+                    <VStack
+                        key={stat.id}
+                        isMobile={isMobile}
+                        stat={stat}
                     />
-                }
-            >
-                <VictoryStack>
-                    <VictoryBar
-                        horizontal
-                        data={displayedStats}
-                        barWidth={bar_width}
-                        x={"card_name"}
-                        y={"times_discarded"}
-                        labels={({ datum }) => datum.card_name}
-                        cornerRadius={{ bottomLeft: 3, bottomRight: 3 }}
-                        style={{
-                            data: { fill: theme.palette.primary.darker },
-                            labels: {
-                                fill: theme.palette.text.primary,
-                                fontFamily: theme.typography.fontFamily,
-                            }
-                        }}
-                        labelComponent={ <VictoryLabel dy={-24} /> }
-                    />
-                    <VictoryBar
-                        horizontal
-                        data={displayedStats}
-                        barWidth={bar_width}
-                        x={"card_name"}
-                        y={"times_drawn"}
-                        cornerRadius={{
-                            bottomLeft: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
-                            bottomRight: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
-                        }}
-                        style={{
-                            data: { fill: theme.palette.primary.light },
-                        }}
-                    />
-                    <VictoryBar
-                        horizontal
-                        data={displayedStats}
-                        barWidth={bar_width}
-                        x={"card_name"}
-                        y={"times_included"}
-                        cornerRadius={{ topLeft: 3, topRight: 3 }}
-                        style={{
-                            data: { fill: theme.palette.primary.main },
-                        }}
-                    />
-                </VictoryStack>
-            </VictoryGroup>
+                ))}
+            </Stack>
+
             { showLoadMoreButton &&
                 <IconButton
                     size="large"
@@ -164,4 +120,82 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
             }
         </Stack>
     );
+};
+
+// ----------------------------------------------------------------------
+
+type CardStatsProps = {
+    isMobile: boolean;
+    stat: CardStats;
+};
+
+function VStack({ isMobile, stat }: CardStatsProps) {
+
+    const theme = useTheme();
+    const animation_duration = 1000;
+    const bar_width = 25;
+
+    function getFadeIn () {
+        return keyframes({
+            '0%': {
+                opacity: 0,
+            },
+            '100%': {
+                opacity: 1,
+            },
+        });
+    };
+
+    return (
+        <Box sx={{ width: '100%', animation: `${getFadeIn()} 2s` }}>
+            <VictoryStack height={70}>
+                <VictoryBar
+                    horizontal
+                    data={[stat]}
+                    barWidth={bar_width}
+                    x={"card_name"}
+                    y={"times_discarded"}
+                    labels={({ datum }) => datum.card_name}
+                    cornerRadius={{ bottomLeft: 3, bottomRight: 3 }}
+                    style={{
+                        data: { fill: theme.palette.primary.darker },
+                        labels: {
+                            fill: theme.palette.text.primary,
+                            fontFamily: theme.typography.fontFamily,
+                            ...(!isMobile && { fontSize: 7 })
+                        }
+                    }}
+                    labelComponent={ <VictoryLabel dy={-24} /> }
+                    animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
+                />
+                <VictoryBar
+                    horizontal
+                    data={[stat]}
+                    barWidth={bar_width}
+                    x={"card_name"}
+                    y={"times_drawn"}
+                    cornerRadius={{
+                        bottomLeft: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
+                        bottomRight: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
+                    }}
+                    style={{
+                        data: { fill: theme.palette.primary.light },
+                    }}
+                    animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
+                />
+                <VictoryBar
+                    horizontal
+                    data={[stat]}
+                    barWidth={bar_width}
+                    x={"card_name"}
+                    y={"times_included"}
+                    cornerRadius={{ topLeft: 3, topRight: 3 }}
+                    style={{
+                        data: { fill: theme.palette.primary.main },
+                    }}
+                    animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
+                />
+            </VictoryStack>
+        </Box>
+    )
 };

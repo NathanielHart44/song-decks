@@ -62,6 +62,7 @@ class Game(models.Model):
     status = models.CharField(max_length=15, choices=[('in-progress', 'In Progress'), ('completed', 'Completed'), ('abandoned', 'Abandoned')])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # round = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.owner.user.username} - {self.commander.name}'
