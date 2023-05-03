@@ -79,19 +79,33 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
     return (
         <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
             <Typography variant={'h6'}>Card Stats</Typography>
-            <VictoryLegend
-                orientation={"horizontal"}
-                data={legendData}
-                gutter={{ left: isMobile ? 40 : 70, right: 20 }}
-                height={20}
-                style={{
-                    labels: {
-                        fill: theme.palette.text.primary,
-                        fontFamily: theme.typography.fontFamily,
-                        ...(!isMobile && { fontSize: 7 })
-                    }
-                }}
-            />
+            <Box position="relative" width={'100%'} height={'100%'}>
+                <Box
+                    position="absolute"
+                    width="100%"
+                    height="100%"
+                    sx={{
+                        zIndex: 1,
+                        pointerEvents: "auto",
+                        userSelect: "auto",
+                        touchAction: "auto",
+                        background: "transparent",
+                    }}
+                />
+                <VictoryLegend
+                    orientation={"horizontal"}
+                    data={legendData}
+                    gutter={{ left: isMobile ? 40 : 70, right: 20 }}
+                    height={20}
+                    style={{
+                        labels: {
+                            fill: theme.palette.text.primary,
+                            fontFamily: theme.typography.fontFamily,
+                            ...(!isMobile && { fontSize: 7 })
+                        }
+                    }}
+                />
+            </Box>
 
             <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 { displayedStats.map((stat) => (
@@ -148,54 +162,68 @@ function VStack({ isMobile, stat }: CardStatsProps) {
 
     return (
         <Box sx={{ width: '100%', animation: `${getFadeIn()} 2s` }}>
-            <VictoryStack height={70}>
-                <VictoryBar
-                    horizontal
-                    data={[stat]}
-                    barWidth={bar_width}
-                    x={"card_name"}
-                    y={"times_discarded"}
-                    labels={({ datum }) => datum.card_name}
-                    cornerRadius={{ bottomLeft: 3, bottomRight: 3 }}
-                    style={{
-                        data: { fill: theme.palette.primary.darker },
-                        labels: {
-                            fill: theme.palette.text.primary,
-                            fontFamily: theme.typography.fontFamily,
-                            ...(!isMobile && { fontSize: 7 })
-                        }
+            <Box position="relative">
+                <Box
+                    position="absolute"
+                    width="100%"
+                    height="100%"
+                    sx={{
+                        zIndex: 1,
+                        pointerEvents: "auto",
+                        userSelect: "auto",
+                        touchAction: "auto",
+                        background: "transparent",
                     }}
-                    labelComponent={ <VictoryLabel dy={-24} /> }
-                    animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
                 />
-                <VictoryBar
-                    horizontal
-                    data={[stat]}
-                    barWidth={bar_width}
-                    x={"card_name"}
-                    y={"times_drawn"}
-                    cornerRadius={{
-                        bottomLeft: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
-                        bottomRight: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
-                    }}
-                    style={{
-                        data: { fill: theme.palette.primary.light },
-                    }}
-                    animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
-                />
-                <VictoryBar
-                    horizontal
-                    data={[stat]}
-                    barWidth={bar_width}
-                    x={"card_name"}
-                    y={"times_included"}
-                    cornerRadius={{ topLeft: 3, topRight: 3 }}
-                    style={{
-                        data: { fill: theme.palette.primary.main },
-                    }}
-                    animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
-                />
-            </VictoryStack>
+                <VictoryStack height={70}>
+                    <VictoryBar
+                        horizontal
+                        data={[stat]}
+                        barWidth={bar_width}
+                        x={"card_name"}
+                        y={"times_discarded"}
+                        labels={({ datum }) => datum.card_name}
+                        cornerRadius={{ bottomLeft: 3, bottomRight: 3 }}
+                        style={{
+                            data: { fill: theme.palette.primary.darker },
+                            labels: {
+                                fill: theme.palette.text.primary,
+                                fontFamily: theme.typography.fontFamily,
+                                ...(!isMobile && { fontSize: 7 })
+                            }
+                        }}
+                        labelComponent={ <VictoryLabel dy={-24} /> }
+                        animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
+                    />
+                    <VictoryBar
+                        horizontal
+                        data={[stat]}
+                        barWidth={bar_width}
+                        x={"card_name"}
+                        y={"times_drawn"}
+                        cornerRadius={{
+                            bottomLeft: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
+                            bottomRight: ({ datum }) => (datum.times_discarded === 0 ? 3 : 0),
+                        }}
+                        style={{
+                            data: { fill: theme.palette.primary.light },
+                        }}
+                        animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
+                    />
+                    <VictoryBar
+                        horizontal
+                        data={[stat]}
+                        barWidth={bar_width}
+                        x={"card_name"}
+                        y={"times_included"}
+                        cornerRadius={{ topLeft: 3, topRight: 3 }}
+                        style={{
+                            data: { fill: theme.palette.primary.main },
+                        }}
+                        animate={{ onLoad: { duration: animation_duration }, onEnter: { duration: animation_duration } }}
+                    />
+                </VictoryStack>
+            </Box>
         </Box>
     )
 };
