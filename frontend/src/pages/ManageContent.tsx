@@ -185,13 +185,16 @@ export default function ManageContent() {
                     alignItems={'center'}
                     width={'100%'}
                     key={
-                        (commanderCards && commanderCards.length > 0) ? commanderCards[0].card_name :
-                        ((factionCards && factionCards.length > 0) ? factionCards[0].card_name : 'no cards')
+                        selectedFaction ?
+                            selectedCommander ?
+                                `${selectedCommander.name}-${selectedCommander.id}-${selectedFaction.id}` :
+                                `${selectedFaction.name}-${selectedFaction.id}` :
+                            'default'
                     }
                     sx={{ animation: `${getFadeIn()} 2s` }}
                 >
                     <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Typography variant={'h3'}>Manage Factions, Commanders, & Cards</Typography>
+                        <Typography variant={'h3'}>Manage Content</Typography>
                         <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
                             { selectedFaction ?
                                 <Stack>

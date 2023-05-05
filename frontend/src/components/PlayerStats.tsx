@@ -37,7 +37,7 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
         });
     };
 
-    const display_amt = 2;
+    const display_amt = 3;
     const formatted_stats: CardStats[] = stats.map((stat) => {
         return {
             id: stat.card_template.id,
