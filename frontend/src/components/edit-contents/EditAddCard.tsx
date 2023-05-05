@@ -60,6 +60,20 @@ export default function EditAddCard({ card, factions, commanders, editOpen, setE
         setEditOpen(false);
     }
 
+    const deleteCard = async () => {
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+
+        await axios.get(`${MAIN_API.base_url}/delete_card/${card && card.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                const res = response.data.response;
+                setEditOpen(false);
+                enqueueSnackbar(res);
+            } else { enqueueSnackbar(response.data.response); };
+            setAwaitingResponse(false);
+        });
+    };
+
     const submitForm = async () => {
         if (!cardName || !imgURL || !faction) {
             enqueueSnackbar('Please fill out all fields', { variant: 'error' });
@@ -188,7 +202,7 @@ export default function EditAddCard({ card, factions, commanders, editOpen, setE
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { enqueueSnackbar('Delete card') }}
+                                    onClick={() => { processTokens(deleteCard) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
                                 >

@@ -353,3 +353,15 @@ def add_edit_card(request, card_id=None):
         return JsonResponse({"success": True, "response": message})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def delete_card(request, card_id):
+    try:
+        card_search = CardTemplate.objects.filter(id=card_id)
+        if card_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Card not found."})
+        card = card_search.first()
+        card.delete()
+        return JsonResponse({"success": True, "response": "Successfully deleted card."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})

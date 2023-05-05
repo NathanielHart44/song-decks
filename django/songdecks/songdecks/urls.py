@@ -48,5 +48,6 @@ urlpatterns = [
     # path('add_commander/', views.add_commander),
     path('add_edit_card/', views.add_edit_card),
     path('add_edit_card/<int:card_id>/', views.add_edit_card),
+    path('delete_card/<int:card_id>/', views.delete_card),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
