@@ -26,6 +26,13 @@ export type Commander = {
     faction: Faction;
 };
 
+export type FakeCommander = {
+    id: number;
+    name: string;
+    img_url: string;
+    faction: Faction | null;
+};
+
 export type Game = {
     id: number;
     owner: Profile;

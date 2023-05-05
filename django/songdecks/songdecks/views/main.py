@@ -276,36 +276,7 @@ def get_player_stats(request):
         return JsonResponse({"success": False, "response": str(e)})
 
 # ----------------------------------------------------------------------
-# Add Content
-
-@api_view(['POST'])
-def add_faction(request):
-    # TODO: add faction cards
-    try:
-        post_data = request.data
-        new_faction = Faction.objects.create(
-            name=post_data['name'],
-            img_url=post_data['img_url']
-        )
-        serializer = FactionSerializer(new_faction)
-        return JsonResponse({"success": True, "response": serializer.data})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-    
-@api_view(['POST'])
-def add_commander(request):
-    # TODO: add commander cards
-    try:
-        post_data = request.data
-        new_commander = Commander.objects.create(
-            name=post_data['name'],
-            img_url=post_data['img_url'],
-            faction=Faction.objects.get(id=post_data['faction_id'])
-        )
-        serializer = CommanderSerializer(new_commander)
-        return JsonResponse({"success": True, "response": serializer.data})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+# Card Content
     
 @api_view(['POST'])
 def add_edit_card(request, card_id=None):
@@ -350,7 +321,7 @@ def add_edit_card(request, card_id=None):
 
         new_card = CardTemplate.objects.filter(id=main_card.id).first()
         message = f"Successfully created: {new_card.card_name}" if card_id is None else f"Successfully edited: {new_card.card_name}"
-        return JsonResponse({"success": True, "response": message})
+        return JsonResponse({"success": True, "response": message, "card": CardTemplateSerializer(new_card).data})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
     
@@ -363,5 +334,101 @@ def delete_card(request, card_id):
         card = card_search.first()
         card.delete()
         return JsonResponse({"success": True, "response": "Successfully deleted card."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+
+# ----------------------------------------------------------------------
+# Faction Content
+
+@api_view(['POST'])
+def add_edit_faction(request, faction_id=None):
+    try:
+        info = {
+            'name': request.data.get('name', None),
+            'img_url': request.data.get('img_url', None),
+        }
+        for key in info:
+            if info[key] is None:
+                return JsonResponse({"success": False, "response": f"Missing {key}."})
+        if faction_id is None:
+            faction = Faction.objects.create(
+                name=info['name'],
+                img_url=info['img_url'],
+            )
+        else:
+            faction = Faction.objects.filter(id=faction_id)
+            if faction.count() == 0:
+                return JsonResponse({"success": False, "response": "Faction not found."})
+            faction = faction.first()
+            faction.name = info['name']
+            faction.img_url = info['img_url']
+            faction.save()
+
+        new_faction = Faction.objects.filter(id=faction.id).first()
+        message = f"Successfully created: {new_faction.name}" if faction_id is None else f"Successfully edited: {new_faction.name}"
+        return JsonResponse({"success": True, "response": message, "faction": FactionSerializer(new_faction).data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def delete_faction(request, faction_id):
+    try:
+        faction_search = Faction.objects.filter(id=faction_id)
+        if faction_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Faction not found."})
+        faction = faction_search.first()
+        faction.delete()
+        return JsonResponse({"success": True, "response": "Successfully deleted faction."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+# ----------------------------------------------------------------------
+# Commander Content
+
+@api_view(['POST'])
+def add_edit_commander(request, commander_id=None):
+    try:
+        info = {
+            'name': request.data.get('name', None),
+            'img_url': request.data.get('img_url', None),
+            'faction_id': request.data.get('faction_id', None),
+        }
+        for key in info:
+            if info[key] is None:
+                return JsonResponse({"success": False, "response": f"Missing {key}."})
+        faction_search = Faction.objects.filter(id=info['faction_id'])
+        if faction_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Faction not found."})
+        if commander_id is None:
+            commander = Commander.objects.create(
+                name=info['name'],
+                img_url=info['img_url'],
+                faction=faction_search.first(),
+            )
+        else:
+            commander = Commander.objects.filter(id=commander_id)
+            if commander.count() == 0:
+                return JsonResponse({"success": False, "response": "Commander not found."})
+            commander = commander.first()
+            commander.name = info['name']
+            commander.img_url = info['img_url']
+            commander.faction = faction_search.first()
+            commander.save()
+
+        new_commander = Commander.objects.filter(id=commander.id).first()
+        message = f"Successfully created: {new_commander.name}" if commander_id is None else f"Successfully edited: {new_commander.name}"
+        return JsonResponse({"success": True, "response": message, "commander": CommanderSerializer(new_commander).data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def delete_commander(request, commander_id):
+    try:
+        commander_search = Commander.objects.filter(id=commander_id)
+        if commander_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Commander not found."})
+        commander = commander_search.first()
+        commander.delete()
+        return JsonResponse({"success": True, "response": "Successfully deleted commander."})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})

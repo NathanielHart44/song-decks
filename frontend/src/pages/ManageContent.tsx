@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
     Box,
+    Button,
     Card,
     Divider,
     Grid,
@@ -20,6 +21,8 @@ import LoadingBackdrop from "src/components/LoadingBackdrop";
 import Page from "src/components/Page";
 import { SelectableAvatar } from "src/components/SelectableAvatar";
 import EditAddCard from "src/components/edit-contents/EditAddCard";
+import EditAddCommander from "src/components/edit-contents/EditAddCommander";
+import EditAddFaction from "src/components/edit-contents/EditAddFaction";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
@@ -42,6 +45,8 @@ export default function ManageContent() {
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
     const [commanderCards, setCommanderCards] = useState<CardTemplate[] | null>(null);
 
+    const [addNewFaction, setAddNewFaction] = useState<boolean>(false);
+    const [addNewCommander, setAddNewCommander] = useState<boolean>(false);
     const [addNewCard, setAddNewCard] = useState<boolean>(false);
 
     const getFactions = async () => {
@@ -109,6 +114,17 @@ export default function ManageContent() {
     }, [selectedFaction]);
 
     useEffect(() => {
+        if (selectedFaction && allCommanders) {
+            const filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
+            if (!filteredCommanders?.find((commander) => commander.id === selectedCommander?.id)) {
+                setSelectedCommander(null);
+                setCommanderCards(null);
+            }
+            setViewedCommanders(filteredCommanders);
+        }
+    }, [allCommanders, selectedCommander]);
+
+    useEffect(() => {
         if (selectedFaction && selectedCommander) { processTokens(getCommanderCards) };
     }, [selectedCommander]);
 
@@ -162,148 +178,188 @@ export default function ManageContent() {
     return (
         <Page title="Manage">
             { awaitingResponse && <LoadingBackdrop /> }
-            <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Typography variant={'h3'}>Manage Factions, Commanders, & Cards</Typography>
-                <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
-                    { selectedFaction ?
-                        <SelectableAvatar
-                            item={selectedFaction}
-                            altText={`SELECTED ${selectedFaction.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick}
-                        /> :
-                        <SelectableAvatar
-                            item={selectedFaction}
-                            altText={'DEFAULT FACTION'}
-                            defaultIcon={'/icons/throne.png'}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                        />
-                    }
-                    { selectedCommander ?
-                        <SelectableAvatar
-                            item={selectedCommander}
-                            altText={`SELECTED ${selectedCommander.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                        /> :
-                        <SelectableAvatar
-                            item={selectedCommander}
-                            altText={'DEFAULT COMMANDER'}
-                            defaultIcon={'/icons/crown.svg'}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                        />
-                    }
-                </Stack>
-
-                {  factions && !selectedFaction && (
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {factions.map((faction) => (
-                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={faction}
-                                    altText={faction.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleFactionClick}
-                                />
-                            </Grid>
-                        ))}
-                        <Grid item sx={gridItemStyles}>
-                            <AddNew
-                                type={'faction'}
-                                isMobile={isMobile}
-                                handleClick={(arg) => { enqueueSnackbar(arg) }}
-                            />
-                        </Grid>
-                    </Grid>
-                )}
-
-                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander && (
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {viewedCommanders.map((commander) => (
-                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={commander}
-                                    altText={commander.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleCommanderClick}
-                                />
-                            </Grid>
-                        ))}
-                        <Grid item sx={gridItemStyles}>
-                            <AddNew
-                                type={'commander'}
-                                isMobile={isMobile}
-                                handleClick={(arg) => { enqueueSnackbar(arg) }}
-                            />
-                        </Grid>
-                    </Grid>
-                )}
-            </Stack>
-
-            <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Box width={'75%'} sx={{ py: 4 }}>
-                    <Divider flexItem />
-                </Box>
-            </Stack>
-
             { !awaitingResponse &&
                 <Stack
-                    width={'100%'}
+                    spacing={3}
                     justifyContent={'center'}
                     alignItems={'center'}
+                    width={'100%'}
                     key={
                         (commanderCards && commanderCards.length > 0) ? commanderCards[0].card_name :
                         ((factionCards && factionCards.length > 0) ? factionCards[0].card_name : 'no cards')
                     }
                     sx={{ animation: `${getFadeIn()} 2s` }}
                 >
-                    { !commanderCards && factionCards && factionCards.length > 0 && factions && (
-                        <CardOptions
-                            isMobile={isMobile}
-                            cards={factionCards}
-                            factions={factions}
-                            commanders={allCommanders ?? []}
-                            handleClick={() => { setAddNewCard(true) }}
-                        />
-                    )}
-                    { commanderCards && commanderCards.length > 0 && factions && (
-                        <CardOptions
-                            isMobile={isMobile}
-                            cards={commanderCards}
-                            factions={factions}
-                            commanders={allCommanders ?? []}
-                            handleClick={() => { setAddNewCard(true) }}
-                        />
-                    )}
-                    { factions && allCommanders &&
-                        <EditAddCard
-                            card={{
-                                id: -1,
-                                card_name: '',
-                                img_url: '',
-                                faction: selectedFaction ? selectedFaction : null,
-                                commander: selectedCommander ? selectedCommander : null,
-                            }}
-                            factions={factions}
-                            commanders={allCommanders}
-                            editOpen={addNewCard}
-                            setEditOpen={setAddNewCard}
-                        />
-                    }
+                    <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        <Typography variant={'h3'}>Manage Factions, Commanders, & Cards</Typography>
+                        <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
+                            { selectedFaction ?
+                                <Stack>
+                                    <SelectableAvatar
+                                        item={selectedFaction}
+                                        altText={`SELECTED ${selectedFaction.name}`}
+                                        isMobile={isMobile}
+                                        handleClick={handleFactionClick}
+                                    />
+                                    <Button size={'small'} onClick={() => { setAddNewFaction(true) }}>Edit</Button>
+                                </Stack> :
+                                <SelectableAvatar
+                                    item={selectedFaction}
+                                    altText={'DEFAULT FACTION'}
+                                    defaultIcon={'/icons/throne.png'}
+                                    isMobile={isMobile}
+                                    handleClick={handleFactionClick}
+                                    sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
+                                />
+                            }
+                            { selectedCommander ?
+                                <Stack>
+                                    <SelectableAvatar
+                                        item={selectedCommander}
+                                        altText={`SELECTED ${selectedCommander.name}`}
+                                        isMobile={isMobile}
+                                        handleClick={handleCommanderClick}
+                                    />
+                                    <Button size={'small'} onClick={() => { setAddNewCommander(true) }}>Edit</Button>
+                                </Stack> :
+                                <SelectableAvatar
+                                    item={selectedCommander}
+                                    altText={'DEFAULT COMMANDER'}
+                                    defaultIcon={'/icons/crown.svg'}
+                                    isMobile={isMobile}
+                                    handleClick={handleCommanderClick}
+                                    sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
+                                />
+                            }
+                        </Stack>
+
+                        { factions && !selectedFaction && (
+                            <Grid
+                                container
+                                rowSpacing={2}
+                                columnSpacing={2}
+                                sx={gridContainerStyles}
+                            >
+                                { factions.map((faction) => (
+                                    <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
+                                        <SelectableAvatar
+                                            item={faction}
+                                            altText={faction.name}
+                                            isMobile={isMobile}
+                                            handleClick={handleFactionClick}
+                                        />
+                                    </Grid>
+                                ))}
+                                <Grid item sx={gridItemStyles}>
+                                    <AddNew
+                                        type={'faction'}
+                                        isMobile={isMobile}
+                                        handleClick={() => { setAddNewFaction(true) }}
+                                    />
+                                </Grid>
+                            </Grid>
+                        )}
+                        { factions &&
+                            <EditAddFaction
+                                faction={selectedFaction ? selectedFaction : null}
+                                factions={factions}
+                                editOpen={addNewFaction}
+                                setEditOpen={setAddNewFaction}
+                                setFactions={setFactions}
+                            />
+                        }
+
+                        { selectedFaction && allCommanders && viewedCommanders && !selectedCommander && (
+                            <Grid
+                                container
+                                rowSpacing={2}
+                                columnSpacing={2}
+                                sx={gridContainerStyles}
+                            >
+                                {viewedCommanders.map((commander) => (
+                                    <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
+                                        <SelectableAvatar
+                                            item={commander}
+                                            altText={commander.name}
+                                            isMobile={isMobile}
+                                            handleClick={handleCommanderClick}
+                                        />
+                                    </Grid>
+                                ))}
+                                <Grid item sx={gridItemStyles}>
+                                    <AddNew
+                                        type={'commander'}
+                                        isMobile={isMobile}
+                                        handleClick={() => { setAddNewCommander(true) }}
+                                    />
+                                </Grid>
+                            </Grid>
+                        )}
+                        { factions && selectedFaction && allCommanders &&
+                            <EditAddCommander
+                                commander={
+                                    selectedCommander ? selectedCommander :
+                                    {
+                                        id: -1,
+                                        name: '',
+                                        img_url: '',
+                                        faction: selectedFaction,
+                                    }
+                                }
+                                editOpen={addNewCommander}
+                                setEditOpen={setAddNewCommander}
+                                commanders={allCommanders}
+                                setCommanders={setAllCommanders}
+                                factions={factions}
+                            />
+                        }
+                    </Stack>
+
+                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        <Box width={'75%'} sx={{ py: 4 }}>
+                            <Divider flexItem />
+                        </Box>
+                    </Stack>
+
+                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        { !commanderCards && factionCards && factions && (
+                            <CardOptions
+                                isMobile={isMobile}
+                                cards={factionCards}
+                                factions={factions}
+                                commanders={allCommanders ?? []}
+                                handleClick={() => { setAddNewCard(true) }}
+                                setCards={setFactionCards}
+                            />
+                        )}
+                        { commanderCards && factions && (
+                            <CardOptions
+                                isMobile={isMobile}
+                                cards={commanderCards}
+                                factions={factions}
+                                commanders={allCommanders ?? []}
+                                handleClick={() => { setAddNewCard(true) }}
+                                setCards={setCommanderCards}
+                            />
+                        )}
+                        { factions && allCommanders &&
+                            <EditAddCard
+                                card={{
+                                    id: -1,
+                                    card_name: '',
+                                    img_url: '',
+                                    faction: selectedFaction ? selectedFaction : null,
+                                    commander: selectedCommander ? selectedCommander : null,
+                                }}
+                                cards={commanderCards ? commanderCards : factionCards ? factionCards : []}
+                                factions={factions}
+                                commanders={allCommanders}
+                                editOpen={addNewCard}
+                                setEditOpen={setAddNewCard}
+                                setCards={commanderCards ? setCommanderCards : setFactionCards}
+                            />
+                        }
+                    </Stack>
                 </Stack>
             }
         </Page>
@@ -315,11 +371,13 @@ export default function ManageContent() {
 type CardDisplayProps = {
     isMobile: boolean;
     card: CardTemplate;
+    cards: CardTemplate[];
     factions: Faction[];
     commanders: Commander[];
+    setCards: (arg0: CardTemplate[]) => void;
 };
 
-function CardDisplay({ isMobile, card, factions, commanders }: CardDisplayProps) {
+function CardDisplay({ isMobile, card, cards, factions, commanders, setCards }: CardDisplayProps) {
 
     const [editOpen, setEditOpen] = useState<boolean>(false);
 
@@ -345,10 +403,12 @@ function CardDisplay({ isMobile, card, factions, commanders }: CardDisplayProps)
             </Box>
             <EditAddCard
                 card={card}
+                cards={cards}
                 factions={factions}
                 commanders={commanders}
                 editOpen={editOpen}
                 setEditOpen={setEditOpen}
+                setCards={setCards}
             />
         </>
     );
@@ -400,9 +460,10 @@ type CardOptionsProps = {
     factions: Faction[];
     commanders: Commander[];
     handleClick: (arg0: any) => void;
+    setCards: (arg0: CardTemplate[]) => void;
 };
 
-function CardOptions({ isMobile, cards, factions, commanders, handleClick }: CardOptionsProps) {
+function CardOptions({ isMobile, cards, factions, commanders, handleClick, setCards }: CardOptionsProps) {
 
     const gridContainerStyles: SxProps<Theme> = {
         justifyContent: 'space-around',
@@ -429,7 +490,14 @@ function CardOptions({ isMobile, cards, factions, commanders, handleClick }: Car
         >
             {cards.map((card) => (
                 <Grid item key={card.id + 'card'} sx={gridItemStyles}>
-                    <CardDisplay isMobile={isMobile} card={card} factions={factions} commanders={commanders} />
+                    <CardDisplay
+                        isMobile={isMobile}
+                        card={card}
+                        cards={cards}
+                        factions={factions}
+                        commanders={commanders}
+                        setCards={setCards}
+                    />
                 </Grid>
             ))}
             <Grid item sx={gridItemStyles}>

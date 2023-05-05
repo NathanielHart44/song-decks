@@ -13,7 +13,6 @@ urlpatterns = [
     path('current_user/', views.current_user),
     path('register/', permission_classes([AllowAny])(views.register)),
 
-
     # ----------------------------------------------------------------------
 
     path('token_obtain/', jwt_views.TokenObtainPairView.as_view()),
@@ -44,10 +43,22 @@ urlpatterns = [
 
     # ----------------------------------------------------------------------
 
-    # path('add_faction/', views.add_faction),
-    # path('add_commander/', views.add_commander),
     path('add_edit_card/', views.add_edit_card),
     path('add_edit_card/<int:card_id>/', views.add_edit_card),
     path('delete_card/<int:card_id>/', views.delete_card),
+
+    # ----------------------------------------------------------------------
+
+    path('add_edit_commander/', views.add_edit_commander),
+    path('add_edit_commander/<int:commander_id>/', views.add_edit_commander),
+    path('delete_commander/<int:commander_id>/', views.delete_commander),
+
+    # ----------------------------------------------------------------------
+
+    path('add_edit_faction/', views.add_edit_faction),
+    path('add_edit_faction/<int:faction_id>/', views.add_edit_faction),
+    path('delete_faction/<int:faction_id>/', views.delete_faction),
+
+    # ----------------------------------------------------------------------s
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

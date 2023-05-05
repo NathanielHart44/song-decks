@@ -8,7 +8,7 @@ import {
 } from "@mui/material"
 import { useSnackbar } from "notistack";
 import { useContext, useState } from "react";
-import { CardTemplate, Commander, Faction, FakeCardTemplate } from "src/@types/types";
+import { Commander, Faction, FakeCommander } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import LoadingBackdrop from "../LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
@@ -18,29 +18,27 @@ import { MAIN_API } from "src/config";
 // ----------------------------------------------------------------------
 
 type EditAddCardProps = {
-    card: CardTemplate | FakeCardTemplate;
-    cards: CardTemplate[];
-    factions: Faction[];
+    commander: Commander | FakeCommander;
     commanders: Commander[];
+    factions: Faction[];
     editOpen: boolean;
     setEditOpen: (arg0: boolean) => void;
-    setCards: (arg0: CardTemplate[]) => void;
+    setCommanders: (arg0: Commander[]) => void;
 };
 
-export default function EditAddCard({ card, cards, factions, commanders, editOpen, setEditOpen, setCards }: EditAddCardProps) {
+export default function EditAddCommander({ commander, commanders, factions, editOpen, setEditOpen, setCommanders }: EditAddCardProps) {
 
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
-    const [cardName, setCardName] = useState<string>(card.card_name);
-    const [imgURL, setImgURL] = useState<string>(card.img_url);
-    const [faction, setFaction] = useState<Faction | null>(card.faction);
-    const [commander, setCommander] = useState<Commander | null>(card.commander);
+    const [commanderName, setCommanderName] = useState<string>(commander.name);
+    const [imgURL, setImgURL] = useState<string>(commander.img_url);
+    const [faction, setFaction] = useState<Faction | null>(commander.faction);
 
-    const handleCardNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCardName(event.target.value);
+    const handleCommanderNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCommanderName(event.target.value);
     };
 
     const handleImgURLChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,28 +46,26 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
     };
 
     function closeScreen() {
-        if (card) {
-            setCardName(card.card_name);
-            setImgURL(card.img_url);
-            setFaction(card.faction);
-            setCommander(card.commander);
+        if (commander) {
+            setCommanderName(commander.name);
+            setImgURL(commander.img_url);
+            setFaction(commander.faction);
         } else {
-            setCardName('');
+            setCommanderName('');
             setImgURL('');
             setFaction(null);
-            setCommander(null);
         };
         setEditOpen(false);
     }
 
-    const deleteCard = async () => {
+    const deleteCommander = async () => {
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
 
-        await axios.get(`${MAIN_API.base_url}/delete_card/${card && card.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        await axios.get(`${MAIN_API.base_url}/delete_commander/${commander && commander.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
-                setCards(cards.filter((c) => c.id !== card?.id));
+                setCommanders(commanders.filter((c) => c.id !== commander?.id));
                 setEditOpen(false);
                 enqueueSnackbar(res);
             } else { enqueueSnackbar(response.data.response); };
@@ -78,7 +74,7 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
     };
 
     const submitForm = async () => {
-        if (!cardName || !imgURL || !faction) {
+        if (!commanderName || !imgURL || !faction) {
             enqueueSnackbar('Please fill out all fields', { variant: 'error' });
             return;
         };
@@ -86,21 +82,21 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
         let token = localStorage.getItem('accessToken') ?? '';
 
         const formData = new FormData();
-        formData.append('card_name', cardName);
+        formData.append('name', commanderName);
         formData.append('img_url', imgURL);
         formData.append('faction_id', (faction.id).toString());
-        if (commander) { formData.append('commander_id', (commander.id).toString()) };
+        if (commander.id !== -1) { formData.append('commander_id', (commander.id).toString()) };
 
-        const url = (card.id !== -1) ? `${MAIN_API.base_url}/add_edit_card/${card.id}/` : `${MAIN_API.base_url}/add_edit_card/`;
+        const url = (commander.id !== -1) ? `${MAIN_API.base_url}/add_edit_commander/${commander.id}/` : `${MAIN_API.base_url}/add_edit_commander/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
-                const new_card = response.data.card;
-                if (card) {
-                    setCards(cards.map((c) => c.id === card.id ? new_card : c));
+                const new_commander = response.data.commander;
+                if (commander.id !== -1) {
+                    setCommanders(commanders.map((c) => c.id === commander.id ? new_commander : c));
                 } else {
-                    setCards([...cards, new_card]);
-                }
+                    setCommanders([...commanders, new_commander]);
+                };
                 setEditOpen(false);
                 enqueueSnackbar(res);
             } else { enqueueSnackbar(response.data.response); };
@@ -154,33 +150,12 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
                                 ))}
                             </TextField>
                             <TextField
-                                select
-                                fullWidth
-                                value={commander ? commander.id : ''}
-                                onChange={(event) => {
-                                    const commander_id = event.target.value;
-                                    const commander = commanders.find((commander) => commander.id === parseInt(commander_id));
-                                    if (commander) { setCommander(commander) };
-                                }}
-                                SelectProps={{ native: true }}
-                                variant="outlined"
-                                sx={{ labelWidth: "text".length * 9 }}
-                                label="Commander"
-                            >
-                                <option value={''}></option>
-                                {commanders.map((commander) => (
-                                    <option key={commander.id} value={commander.id}>
-                                        {commander.name}
-                                    </option>
-                                ))}
-                            </TextField>
-                            <TextField
                                 variant="outlined"
                                 fullWidth
-                                value={cardName}
+                                value={commanderName}
                                 sx={{ labelWidth: "text".length * 9 }}
-                                onChange={handleCardNameChange}
-                                label={"Card Name"}
+                                onChange={handleCommanderNameChange}
+                                label={"Commander Name"}
                             />
                             <TextField
                                 variant="outlined"
@@ -205,17 +180,17 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
                                     size="large"
                                     onClick={() => { processTokens(submitForm) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
-                                    disabled={!cardName || !imgURL || !faction || awaitingResponse}
+                                    disabled={!commanderName || !imgURL || !faction || awaitingResponse}
                                 >
                                     Confirm
                                 </Button>
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(deleteCard) }}
+                                    onClick={() => { processTokens(deleteCommander) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
-                                    disabled={!card || awaitingResponse}
+                                    disabled={!commander || awaitingResponse}
                                 >
                                     Delete
                                 </Button>
