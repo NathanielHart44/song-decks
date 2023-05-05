@@ -58,7 +58,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
 
-        await axios.get(`${MAIN_API.base_url}/delete_faction/${faction && faction.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        await axios.get(`${MAIN_API.base_url}delete_faction/${faction && faction.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setFactions(factions.filter((f) => f.id !== faction?.id));
@@ -81,7 +81,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
         formData.append('name', factionName);
         formData.append('img_url', imgURL);
 
-        const url = faction ? `${MAIN_API.base_url}/add_edit_faction/${faction.id}/` : `${MAIN_API.base_url}/add_edit_faction/`;
+        const url = faction ? `${MAIN_API.base_url}add_edit_faction/${faction.id}/` : `${MAIN_API.base_url}add_edit_faction/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;

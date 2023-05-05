@@ -2,7 +2,6 @@
 import {
     Box,
     Button,
-    Card,
     Divider,
     Grid,
     Stack,
@@ -16,7 +15,6 @@ import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { Commander, Faction, CardTemplate } from "src/@types/types";
-import Iconify from "src/components/Iconify";
 import LoadingBackdrop from "src/components/LoadingBackdrop";
 import Page from "src/components/Page";
 import { SelectableAvatar } from "src/components/SelectableAvatar";
@@ -26,6 +24,8 @@ import EditAddFaction from "src/components/edit-contents/EditAddFaction";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
+import { AddNew } from "../components/edit-contents/AddNew";
+import { CardOptions } from "../components/edit-contents/CardOptions";
 
 // ----------------------------------------------------------------------
 
@@ -279,7 +279,7 @@ export default function ManageContent() {
                                 columnSpacing={2}
                                 sx={gridContainerStyles}
                             >
-                                {viewedCommanders.map((commander) => (
+                                { viewedCommanders.map((commander) => (
                                     <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
                                         <SelectableAvatar
                                             item={commander}
@@ -367,149 +367,4 @@ export default function ManageContent() {
             }
         </Page>
     );
-};
-
-// ----------------------------------------------------------------------
-
-type CardDisplayProps = {
-    isMobile: boolean;
-    card: CardTemplate;
-    cards: CardTemplate[];
-    factions: Faction[];
-    commanders: Commander[];
-    setCards: (arg0: CardTemplate[]) => void;
-};
-
-function CardDisplay({ isMobile, card, cards, factions, commanders, setCards }: CardDisplayProps) {
-
-    const [editOpen, setEditOpen] = useState<boolean>(false);
-
-    return (
-        <>
-            <Box
-                onClick={() => { setEditOpen(true) }}
-                sx={{
-                    height: '100%',
-                    width: '200px',
-                    ...!isMobile ? {
-                        transition: 'transform 0.3s',
-                        cursor: 'pointer',
-                        '&:hover': { transform: 'scale(1.075)' },
-                    } : {},
-                }}
-            >
-                <img
-                    src={card.img_url}
-                    alt={card.card_name}
-                    style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-            </Box>
-            <EditAddCard
-                card={card}
-                cards={cards}
-                factions={factions}
-                commanders={commanders}
-                editOpen={editOpen}
-                setEditOpen={setEditOpen}
-                setCards={setCards}
-            />
-        </>
-    );
-};
-
-// ----------------------------------------------------------------------
-
-type AddNewProps = {
-    isMobile: boolean;
-    handleClick: (arg0: any) => void;
-    type: 'faction' | 'commander' | 'card';
-};
-
-function AddNew({ isMobile, handleClick, type }: AddNewProps) {
-
-    const theme = useTheme();
-
-    return (
-        <Card
-            sx={{
-                width: isMobile ? 100 : 80,
-                height: isMobile ? 100 : 80,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                ...!isMobile ? {
-                    transition: 'transform 0.3s',
-                    cursor: 'pointer',
-                    '&:hover': { transform: 'scale(1.1)' },
-                } : {},
-            }}
-            onClick={() => { handleClick(`Clicked add new ${type}`); }}
-        >
-            <Iconify
-                icon={'eva:plus-outline'}
-                color={theme.palette.primary.main}
-                width={isMobile ? 50 : 40}
-                height={isMobile ? 50 : 40}
-            />
-        </Card>
-    )
-};
-
-// ----------------------------------------------------------------------
-
-type CardOptionsProps = {
-    isMobile: boolean;
-    cards: CardTemplate[];
-    factions: Faction[];
-    commanders: Commander[];
-    handleClick: (arg0: any) => void;
-    setCards: (arg0: CardTemplate[]) => void;
-};
-
-function CardOptions({ isMobile, cards, factions, commanders, handleClick, setCards }: CardOptionsProps) {
-
-    const gridContainerStyles: SxProps<Theme> = {
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        display: 'grid',
-        width: '100%',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'
-    };
-
-    const gridItemStyles: SxProps<Theme> = {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        height: '100%',
-    };
-
-    return (
-        <Grid
-            container
-            rowSpacing={2}
-            columnSpacing={2}
-            sx={gridContainerStyles}
-        >
-            {cards.map((card) => (
-                <Grid item key={card.id + 'card'} sx={gridItemStyles}>
-                    <CardDisplay
-                        isMobile={isMobile}
-                        card={card}
-                        cards={cards}
-                        factions={factions}
-                        commanders={commanders}
-                        setCards={setCards}
-                    />
-                </Grid>
-            ))}
-            <Grid item sx={gridItemStyles}>
-                <AddNew
-                    type={'card'}
-                    isMobile={isMobile}
-                    handleClick={(arg) => { handleClick(arg) }}
-                />
-            </Grid>
-        </Grid>
-    )
 };

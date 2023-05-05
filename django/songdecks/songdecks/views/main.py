@@ -288,6 +288,8 @@ def add_edit_card(request, card_id=None):
             'commander_id': request.data.get('commander_id', None),
         }
         for key in info:
+            if not card_id and key == 'commander_id':
+                continue
             if info[key] is None:
                 return JsonResponse({"success": False, "response": f"Missing {key}."})
         faction_search = Faction.objects.filter(id=info['faction_id'])

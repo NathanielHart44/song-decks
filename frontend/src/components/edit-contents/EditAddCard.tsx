@@ -66,7 +66,7 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
 
-        await axios.get(`${MAIN_API.base_url}/delete_card/${card && card.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        await axios.get(`${MAIN_API.base_url}delete_card/${card && card.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setCards(cards.filter((c) => c.id !== card?.id));
@@ -91,7 +91,7 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
         formData.append('faction_id', (faction.id).toString());
         if (commander) { formData.append('commander_id', (commander.id).toString()) };
 
-        const url = (card.id !== -1) ? `${MAIN_API.base_url}/add_edit_card/${card.id}/` : `${MAIN_API.base_url}/add_edit_card/`;
+        const url = (card.id !== -1) ? `${MAIN_API.base_url}add_edit_card/${card.id}/` : `${MAIN_API.base_url}add_edit_card/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
@@ -215,7 +215,7 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
                                     onClick={() => { processTokens(deleteCard) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
-                                    disabled={!card || awaitingResponse}
+                                    disabled={card.id === -1 || awaitingResponse}
                                 >
                                     Delete
                                 </Button>

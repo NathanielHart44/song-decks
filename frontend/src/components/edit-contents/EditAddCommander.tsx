@@ -62,7 +62,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
 
-        await axios.get(`${MAIN_API.base_url}/delete_commander/${commander && commander.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        await axios.get(`${MAIN_API.base_url}delete_commander/${commander && commander.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setCommanders(commanders.filter((c) => c.id !== commander?.id));
@@ -87,7 +87,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
         formData.append('faction_id', (faction.id).toString());
         if (commander.id !== -1) { formData.append('commander_id', (commander.id).toString()) };
 
-        const url = (commander.id !== -1) ? `${MAIN_API.base_url}/add_edit_commander/${commander.id}/` : `${MAIN_API.base_url}/add_edit_commander/`;
+        const url = (commander.id !== -1) ? `${MAIN_API.base_url}add_edit_commander/${commander.id}/` : `${MAIN_API.base_url}add_edit_commander/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
@@ -190,7 +190,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                     onClick={() => { processTokens(deleteCommander) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
-                                    disabled={!commander || awaitingResponse}
+                                    disabled={commander.id === -1 || awaitingResponse}
                                 >
                                     Delete
                                 </Button>

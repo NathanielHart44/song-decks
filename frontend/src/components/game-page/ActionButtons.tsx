@@ -60,7 +60,7 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
         formData.append('card_id', (currentCard.id).toString());
         if (action === 'update_play_notes') { formData.append('update_play_notes', updatePlayNotes); }
 
-        await axios.post(`${MAIN_API.base_url}/handle_card_action/${action}/`, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        await axios.post(`${MAIN_API.base_url}handle_card_action/${action}/`, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setAllCards(res);
