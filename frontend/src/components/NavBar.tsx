@@ -18,6 +18,7 @@ import { PATH_PAGE } from 'src/routes/paths';
 // components
 import Iconify from './Iconify';
 import Logo from './Logo';
+import { logout } from 'src/utils/jwt';
 
 // ----------------------------------------------------------------------
 
@@ -67,9 +68,9 @@ function MenuButtons() {
     const navigate = useNavigate();
     return (
         <Stack direction={'row'} spacing={1}>
-            <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Play</Button>
+            <Button color="inherit" onClick={() => { navigate(PATH_PAGE.manage) }}>Manage</Button>
             <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Home</Button>
-            <Button color="inherit">Login</Button>
+            <Button color="inherit" onClick={() => { logout() }}>Logout</Button>
         </Stack>
     )
 }
@@ -107,9 +108,9 @@ function PositionedMenu() {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 TransitionComponent={Fade}
             >
-                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.game); handleClose() }}>Play</MenuItem>
+                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem>
                 <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
-                {/* <MenuItem color="inherit">Login</MenuItem> */}
+                <MenuItem color="inherit" onClick={() => { logout() }}>Logout</MenuItem>
             </Menu>
         </div>
     );

@@ -1,0 +1,444 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import {
+    Box,
+    Card,
+    Divider,
+    Grid,
+    Stack,
+    SxProps,
+    Theme,
+    Typography,
+    keyframes,
+    useTheme
+} from "@mui/material";
+import axios from "axios";
+import { useSnackbar } from "notistack";
+import { useContext, useEffect, useState } from "react";
+import { Commander, Faction, CardTemplate } from "src/@types/types";
+import Iconify from "src/components/Iconify";
+import LoadingBackdrop from "src/components/LoadingBackdrop";
+import Page from "src/components/Page";
+import { SelectableAvatar } from "src/components/SelectableAvatar";
+import EditAddCard from "src/components/edit-contents/EditAddCard";
+import { MAIN_API } from "src/config";
+import { MetadataContext } from "src/contexts/MetadataContext";
+import { processTokens } from "src/utils/jwt";
+
+// ----------------------------------------------------------------------
+
+export default function ManageContent() {
+
+    const { enqueueSnackbar } = useSnackbar();
+    const { isMobile } = useContext(MetadataContext);
+    const theme = useTheme();
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+
+    const [factions, setFactions] = useState<Faction[]>();
+    const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
+    const [factionCards, setFactionCards] = useState<CardTemplate[] | null>(null);
+
+    const [allCommanders, setAllCommanders] = useState<Commander[]>();
+    const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
+    const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
+    const [commanderCards, setCommanderCards] = useState<CardTemplate[] | null>(null);
+
+    const [addNewCard, setAddNewCard] = useState<boolean>(false);
+
+    const getFactions = async () => {
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+        await axios.get(`${MAIN_API.base_url}factions/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                setFactions(response.data.response);
+            } else { enqueueSnackbar(response.data.response) };
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    const getFactionCards = async () => {
+        if (!selectedFaction) { return };
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+        await axios.get(`${MAIN_API.base_url}get_cards_of_faction/${selectedFaction.id}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                setFactionCards(response.data.response);
+            } else { enqueueSnackbar(response.data.response) };
+            setAwaitingResponse(false);
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    const getCommanders = async () => {
+        let token = localStorage.getItem('accessToken') ?? '';
+        await axios.get(`${MAIN_API.base_url}commanders/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                setAllCommanders(response.data.response);
+            } else { enqueueSnackbar(response.data.response) };
+            setAwaitingResponse(false);
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    const getCommanderCards = async () => {
+        if (!selectedCommander) { return };
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+        await axios.get(`${MAIN_API.base_url}get_cards_of_commander/${selectedCommander.id}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                setCommanderCards(response.data.response);
+            } else { enqueueSnackbar(response.data.response) };
+            setAwaitingResponse(false);
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    useEffect(() => { processTokens(getFactions) }, []);
+
+    useEffect(() => { if (factions) { processTokens(getCommanders) } }, [factions]);
+
+    useEffect(() => {
+        if (selectedFaction && allCommanders) {
+            const filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
+            setViewedCommanders(filteredCommanders);
+            processTokens(getFactionCards);
+        }
+    }, [selectedFaction]);
+
+    useEffect(() => {
+        if (selectedFaction && selectedCommander) { processTokens(getCommanderCards) };
+    }, [selectedCommander]);
+
+    function handleFactionClick(faction: Faction) {
+        if (selectedFaction && (selectedFaction?.id === faction.id)) {
+            setSelectedFaction(null);
+            setFactionCards(null);
+            setSelectedCommander(null);
+            setCommanderCards(null);
+        } else {
+            setSelectedFaction(faction);
+        }    
+    }
+
+    function handleCommanderClick(commander: Commander) {
+        if (selectedCommander && (selectedCommander?.id === commander.id)) {
+            setSelectedCommander(null);
+            setCommanderCards(null);
+        } else {
+            setSelectedCommander(commander);
+        }
+    }
+
+    const gridContainerStyles: SxProps<Theme> = {
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        display: 'grid',
+        width: '100%',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))'
+    };
+
+    const gridItemStyles: SxProps<Theme> = {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+    };
+
+    function getFadeIn () {
+        return keyframes({
+            '0%': {
+                opacity: 0,
+            },
+            '100%': {
+                opacity: 1,
+            },
+        });
+    };
+
+    return (
+        <Page title="Manage">
+            { awaitingResponse && <LoadingBackdrop /> }
+            <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Typography variant={'h3'}>Manage Factions, Commanders, & Cards</Typography>
+                <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
+                    { selectedFaction ?
+                        <SelectableAvatar
+                            item={selectedFaction}
+                            altText={`SELECTED ${selectedFaction.name}`}
+                            isMobile={isMobile}
+                            handleClick={handleFactionClick}
+                        /> :
+                        <SelectableAvatar
+                            item={selectedFaction}
+                            altText={'DEFAULT FACTION'}
+                            defaultIcon={'/icons/throne.png'}
+                            isMobile={isMobile}
+                            handleClick={handleFactionClick}
+                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
+                        />
+                    }
+                    { selectedCommander ?
+                        <SelectableAvatar
+                            item={selectedCommander}
+                            altText={`SELECTED ${selectedCommander.name}`}
+                            isMobile={isMobile}
+                            handleClick={handleCommanderClick}
+                        /> :
+                        <SelectableAvatar
+                            item={selectedCommander}
+                            altText={'DEFAULT COMMANDER'}
+                            defaultIcon={'/icons/crown.svg'}
+                            isMobile={isMobile}
+                            handleClick={handleCommanderClick}
+                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
+                        />
+                    }
+                </Stack>
+
+                {  factions && !selectedFaction && (
+                    <Grid
+                        container
+                        rowSpacing={2}
+                        columnSpacing={2}
+                        sx={gridContainerStyles}
+                    >
+                        {factions.map((faction) => (
+                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
+                                <SelectableAvatar
+                                    item={faction}
+                                    altText={faction.name}
+                                    isMobile={isMobile}
+                                    handleClick={handleFactionClick}
+                                />
+                            </Grid>
+                        ))}
+                        <Grid item sx={gridItemStyles}>
+                            <AddNew
+                                type={'faction'}
+                                isMobile={isMobile}
+                                handleClick={(arg) => { enqueueSnackbar(arg) }}
+                            />
+                        </Grid>
+                    </Grid>
+                )}
+
+                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander && (
+                    <Grid
+                        container
+                        rowSpacing={2}
+                        columnSpacing={2}
+                        sx={gridContainerStyles}
+                    >
+                        {viewedCommanders.map((commander) => (
+                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
+                                <SelectableAvatar
+                                    item={commander}
+                                    altText={commander.name}
+                                    isMobile={isMobile}
+                                    handleClick={handleCommanderClick}
+                                />
+                            </Grid>
+                        ))}
+                        <Grid item sx={gridItemStyles}>
+                            <AddNew
+                                type={'commander'}
+                                isMobile={isMobile}
+                                handleClick={(arg) => { enqueueSnackbar(arg) }}
+                            />
+                        </Grid>
+                    </Grid>
+                )}
+            </Stack>
+
+            <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Box width={'75%'} sx={{ py: 4 }}>
+                    <Divider flexItem />
+                </Box>
+            </Stack>
+
+            { !awaitingResponse &&
+                <Stack
+                    width={'100%'}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                    key={
+                        (commanderCards && commanderCards.length > 0) ? commanderCards[0].card_name :
+                        ((factionCards && factionCards.length > 0) ? factionCards[0].card_name : 'no cards')
+                    }
+                    sx={{ animation: `${getFadeIn()} 2s` }}
+                >
+                    { !commanderCards && factionCards && factionCards.length > 0 && factions && (
+                        <CardOptions
+                            isMobile={isMobile}
+                            cards={factionCards}
+                            factions={factions}
+                            commanders={allCommanders ?? []}
+                            handleClick={() => { setAddNewCard(true) }}
+                        />
+                    )}
+                    { commanderCards && commanderCards.length > 0 && factions && (
+                        <CardOptions
+                            isMobile={isMobile}
+                            cards={commanderCards}
+                            factions={factions}
+                            commanders={allCommanders ?? []}
+                            handleClick={() => { setAddNewCard(true) }}
+                        />
+                    )}
+                    { factions && allCommanders &&
+                        <EditAddCard
+                            card={{
+                                id: -1,
+                                card_name: '',
+                                img_url: '',
+                                faction: selectedFaction ? selectedFaction : null,
+                                commander: selectedCommander ? selectedCommander : null,
+                            }}
+                            factions={factions}
+                            commanders={allCommanders}
+                            editOpen={addNewCard}
+                            setEditOpen={setAddNewCard}
+                        />
+                    }
+                </Stack>
+            }
+        </Page>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type CardDisplayProps = {
+    isMobile: boolean;
+    card: CardTemplate;
+    factions: Faction[];
+    commanders: Commander[];
+};
+
+function CardDisplay({ isMobile, card, factions, commanders }: CardDisplayProps) {
+
+    const [editOpen, setEditOpen] = useState<boolean>(false);
+
+    return (
+        <>
+            <Box
+                onClick={() => { setEditOpen(true) }}
+                sx={{
+                    height: '100%',
+                    width: '200px',
+                    ...!isMobile ? {
+                        transition: 'transform 0.3s',
+                        cursor: 'pointer',
+                        '&:hover': { transform: 'scale(1.075)' },
+                    } : {},
+                }}
+            >
+                <img
+                    src={card.img_url}
+                    alt={card.card_name}
+                    style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+            </Box>
+            <EditAddCard
+                card={card}
+                factions={factions}
+                commanders={commanders}
+                editOpen={editOpen}
+                setEditOpen={setEditOpen}
+            />
+        </>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type AddNewProps = {
+    isMobile: boolean;
+    handleClick: (arg0: any) => void;
+    type: 'faction' | 'commander' | 'card';
+};
+
+function AddNew({ isMobile, handleClick, type }: AddNewProps) {
+
+    const theme = useTheme();
+
+    return (
+        <Card
+            sx={{
+                width: isMobile ? 100 : 80,
+                height: isMobile ? 100 : 80,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                ...!isMobile ? {
+                    transition: 'transform 0.3s',
+                    cursor: 'pointer',
+                    '&:hover': { transform: 'scale(1.1)' },
+                } : {},
+            }}
+            onClick={() => { handleClick(`Clicked add new ${type}`); }}
+        >
+            <Iconify
+                icon={'eva:plus-outline'}
+                color={theme.palette.primary.main}
+                width={isMobile ? 50 : 40}
+                height={isMobile ? 50 : 40}
+            />
+        </Card>
+    )
+};
+
+// ----------------------------------------------------------------------
+
+type CardOptionsProps = {
+    isMobile: boolean;
+    cards: CardTemplate[];
+    factions: Faction[];
+    commanders: Commander[];
+    handleClick: (arg0: any) => void;
+};
+
+function CardOptions({ isMobile, cards, factions, commanders, handleClick }: CardOptionsProps) {
+
+    const gridContainerStyles: SxProps<Theme> = {
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        display: 'grid',
+        width: '100%',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'
+    };
+
+    const gridItemStyles: SxProps<Theme> = {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+    };
+
+    return (
+        <Grid
+            container
+            rowSpacing={2}
+            columnSpacing={2}
+            sx={gridContainerStyles}
+        >
+            {cards.map((card) => (
+                <Grid item key={card.id + 'card'} sx={gridItemStyles}>
+                    <CardDisplay isMobile={isMobile} card={card} factions={factions} commanders={commanders} />
+                </Grid>
+            ))}
+            <Grid item sx={gridItemStyles}>
+                <AddNew
+                    type={'card'}
+                    isMobile={isMobile}
+                    handleClick={(arg) => { handleClick(arg) }}
+                />
+            </Grid>
+        </Grid>
+    )
+};

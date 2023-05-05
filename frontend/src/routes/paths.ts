@@ -19,6 +19,7 @@ export const PATH_AUTH = {
 export const PATH_PAGE = {
   home: '/home',
   game: '/game',
+  manage: '/manage',
   select_deck: '/select-deck',
   page404: '/404',
 };

@@ -47,6 +47,14 @@ export type CardTemplate = {
     discard_count: number;
 };
 
+export type FakeCardTemplate = {
+    id: number;
+    card_name: string;
+    img_url: string;
+    faction: Faction | null;
+    commander: Commander | null;
+};
+
 export type PlayerCard = {
     id: number;
     game: Game;

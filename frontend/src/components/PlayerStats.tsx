@@ -45,9 +45,6 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
             times_included: stat.times_included,
             times_drawn: stat.times_drawn,
             times_discarded: stat.times_discarded,
-            // times_included: stat.times_included + Math.ceil(Math.random() * 10) + 1,
-            // times_drawn: stat.times_drawn + Math.ceil(Math.random() * 10) + 1,
-            // times_discarded: stat.times_discarded + Math.ceil(Math.random() * 10) + 1,
         };
     });
 

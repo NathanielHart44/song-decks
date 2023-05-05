@@ -23,7 +23,8 @@ urlpatterns = [
 
     path('factions/', views.get_factions),
     path('commanders/', views.get_commanders),
-    path('get_commanders_of_faction/<int:faction_id>/', views.get_commanders_of_faction),
+    path('get_cards_of_faction/<int:faction_id>/', views.get_cards_of_faction),
+    path('get_cards_of_commander/<int:commander_id>/', views.get_cards_of_commander),
 
     # ----------------------------------------------------------------------
 
@@ -40,5 +41,12 @@ urlpatterns = [
 
     path('get_recent_games/', views.get_recent_games),
     path('get_player_stats/', views.get_player_stats),
+
+    # ----------------------------------------------------------------------
+
+    # path('add_faction/', views.add_faction),
+    # path('add_commander/', views.add_commander),
+    path('add_edit_card/', views.add_edit_card),
+    path('add_edit_card/<int:card_id>/', views.add_edit_card),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

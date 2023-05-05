@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from songdecks.serializers import (
     FactionSerializer, CommanderSerializer,
     PlayerCardSerializer, UserSerializer, UserCardStatsSerializer,
-    GameSerializer)
+    GameSerializer, CardTemplateSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
@@ -68,10 +68,19 @@ def get_commanders(request):
         return JsonResponse({"success": False, "response": str(e)})
 
 @api_view(['GET'])
-def get_commanders_of_faction(request, faction_id):
+def get_cards_of_commander(request, commander_id):
     try:
-        commanders = Commander.objects.filter(faction=faction_id)
-        serializer = CommanderSerializer(commanders, many=True)
+        cards = CardTemplate.objects.filter(commander__id=commander_id)
+        serializer = CardTemplateSerializer(cards, many=True)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def get_cards_of_faction(request, faction_id):
+    try:
+        cards = CardTemplate.objects.filter(faction__id=faction_id).exclude(commander__isnull=False)
+        serializer = CardTemplateSerializer(cards, many=True)
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
@@ -263,5 +272,84 @@ def get_player_stats(request):
         user_card_stats = user_card_stats[:5]
         serializer = UserCardStatsSerializer(user_card_stats, many=True)
         return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+
+# ----------------------------------------------------------------------
+# Add Content
+
+@api_view(['POST'])
+def add_faction(request):
+    # TODO: add faction cards
+    try:
+        post_data = request.data
+        new_faction = Faction.objects.create(
+            name=post_data['name'],
+            img_url=post_data['img_url']
+        )
+        serializer = FactionSerializer(new_faction)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['POST'])
+def add_commander(request):
+    # TODO: add commander cards
+    try:
+        post_data = request.data
+        new_commander = Commander.objects.create(
+            name=post_data['name'],
+            img_url=post_data['img_url'],
+            faction=Faction.objects.get(id=post_data['faction_id'])
+        )
+        serializer = CommanderSerializer(new_commander)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['POST'])
+def add_edit_card(request, card_id=None):
+    try:
+        info = {
+            'card_name': request.data.get('card_name', None),
+            'img_url': request.data.get('img_url', None),
+            'faction_id': request.data.get('faction_id', None),
+            'commander_id': request.data.get('commander_id', None),
+        }
+        for key in info:
+            if info[key] is None:
+                return JsonResponse({"success": False, "response": f"Missing {key}."})
+        faction_search = Faction.objects.filter(id=info['faction_id'])
+        if faction_search.count() == 0:
+            return JsonResponse({"success": False, "response": "Faction not found."})
+        commander_search = None
+        if info['commander_id'] is not None:
+            commander_search = Commander.objects.filter(id=info['commander_id'])
+            if commander_search.count() == 0:
+                return JsonResponse({"success": False, "response": "Commander not found."})
+        if card_id is None:
+            main_card = CardTemplate.objects.create(
+                card_name=info['card_name'],
+                img_url=info['img_url'],
+                faction=faction_search.first(),
+                commander=commander_search.first() if commander_search is not None else None,
+                game_count=0,
+                play_count=0,
+                discard_count=0
+            )
+        else:
+            main_card = CardTemplate.objects.filter(id=card_id)
+            if main_card.count() == 0:
+                return JsonResponse({"success": False, "response": "Card not found."})
+            card = main_card.first()
+            card.card_name = info['card_name']
+            card.img_url = info['img_url']
+            card.faction = faction_search.first()
+            card.commander = commander_search.first() if commander_search is not None else None,
+            card.save()
+
+        new_card = CardTemplate.objects.filter(id=main_card.id).first()
+        message = f"Successfully created: {new_card.card_name}" if card_id is None else f"Successfully edited: {new_card.card_name}"
+        return JsonResponse({"success": True, "response": message})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
