@@ -9,9 +9,10 @@ import { MAIN_API } from "src/config";
 import { PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
-import { Stack, Typography } from "@mui/material";
+import { Button, Stack, Typography } from "@mui/material";
 import { ActionButtons } from "./ActionButtons";
 import { GameContext } from "src/contexts/GameContext";
+import CardProbability from "./CardProbability";
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     const { setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard, selectedCard } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    const [viewProbability, setViewProbability] = useState<boolean>(false);
 
     const sections = [
         { name: "Deck", cards: inDeck.length > 0 ? [inDeck[0]] : [], ref: sectionRef1 },
@@ -105,36 +107,35 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
         <>
             { awaitingResponse && <LoadingBackdrop /> }
             { !awaitingResponse &&
-                (
-                    sections.map((section, index) => {
+                ( sections.map((section, index) => {
                         return (
                             <div key={section.name + 'S' + index} style={div_style} ref={section.ref} id={section.name}>
                                 <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%', height: '100%' }}>
                                     <div style={{ width: '100%' }}>
-                                    <HSwipe
-                                        key={section.name + 'H' + index}
-                                        isMobile={isMobile}
-                                        cards={section.cards.map((card: PlayerCard) => {
+                                        <HSwipe
+                                            key={section.name + 'H' + index}
+                                            isMobile={isMobile}
+                                            cards={section.cards.map((card: PlayerCard) => {
 
-                                            const onClickFunc =
-                                            (section.name === "Deck") ? processDrawCard : () => handleSelectCard(card, section.name);
+                                                const onClickFunc =
+                                                (section.name === "Deck") ? processDrawCard : () => handleSelectCard(card, section.name);
 
-                                            if (!card || !card.card_template) { return <></> };
-                                            return (
-                                                <CardImg
-                                                    img_url={card.card_template.img_url}
-                                                    card_name={
-                                                    section.name === "Deck"
-                                                        ? "CARD BACK"
-                                                        : card.card_template.card_name
-                                                    }
-                                                    hide={section.name === "Deck"}
-                                                    has_text={card.play_notes?.length > 0 ? true : false}
-                                                    onClickFunc={onClickFunc}
-                                                />
-                                            );
-                                        })}
-                                    />
+                                                if (!card || !card.card_template) { return <></> };
+                                                return (
+                                                    <CardImg
+                                                        img_url={card.card_template.img_url}
+                                                        card_name={
+                                                        section.name === "Deck"
+                                                            ? "CARD BACK"
+                                                            : card.card_template.card_name
+                                                        }
+                                                        hide={section.name === "Deck"}
+                                                        has_text={card.play_notes?.length > 0 ? true : false}
+                                                        onClickFunc={onClickFunc}
+                                                    />
+                                                );
+                                            })}
+                                        />
                                     </div>
                                     { selectedCard && section.name !== "Deck" &&
                                         <ActionButtons
@@ -148,6 +149,22 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
                                             setAllCards={setAllCards}
                                             setAwaitingResponse={setAwaitingResponse}
                                         />
+                                    }
+                                    { section.name === "Deck" &&
+                                        <>
+                                            <CardProbability
+                                                gameID={gameID}
+                                                deck_count={inDeck.length}
+                                                open={viewProbability}
+                                                setOpen={setViewProbability}
+                                            />
+                                            <Button
+                                                variant={'contained'}
+                                                onClick={() => setViewProbability(!viewProbability)}
+                                            >
+                                                {viewProbability ? "Hide" : "View"} Probability
+                                            </Button>
+                                        </>
                                     }
                                 </Stack>
                             </div>
