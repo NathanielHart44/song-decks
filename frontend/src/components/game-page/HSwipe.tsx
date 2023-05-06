@@ -1,5 +1,7 @@
 import { Box } from "@mui/material";
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
+import { DefaultCardImg } from "../CardImg";
+import { useSnackbar } from "notistack";
 
 // ----------------------------------------------------------------------
 
@@ -74,26 +76,6 @@ export default function HSwipe({ isMobile, cards }: Props) {
     useEffect(() => { dispatch({ type: "CARDS_CHANGED" }) }, [cards]);
 
   const [state, dispatch] = useReducer(slidesReducer, initialState);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-
-  const handleTouchStart = (event: React.TouchEvent) => { setTouchStartX(event.touches[0].clientX) };
-
-  const handleTouchMove = (event: React.TouchEvent) => {
-    if (!touchStartX) return;
-
-    const touchEndX = event.touches[0].clientX;
-    const threshold = 100;
-
-    if (touchEndX - touchStartX > threshold) {
-      setTouchStartX(null);
-      dispatch({ type: "PREV" });
-    } else if (touchStartX - touchEndX > threshold) {
-      setTouchStartX(null);
-      dispatch({ type: "NEXT" });
-    }
-  };
-
-  const handleTouchEnd = () => { setTouchStartX(null) };
 
   return (
     <Box
@@ -107,9 +89,6 @@ export default function HSwipe({ isMobile, cards }: Props) {
         padding: 0,
         overflow: "hidden",
       }}
-      // onTouchStart={handleTouchStart}
-      // onTouchMove={handleTouchMove}
-      // onTouchEnd={handleTouchEnd}
     >
       {(state.visibleCards).map((card, i) => {
         let offset = i - 1;
@@ -144,72 +123,107 @@ interface SlideProps {
 }
 
 function Slide({ isMobile, currentIndex, cards, offset, onClick }: SlideProps) {
-    const active = offset === 0 ? true : null;
+
+  const { enqueueSnackbar } = useSnackbar();
+  const active = offset === 0 ? true : null;
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [rotation, setRotation] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isCardClicked, setIsCardClicked] = useState(true);
+  const [showCardBack, setShowCardBack] = useState(false);
+
+  const handleTouchStart = (event: React.TouchEvent) => {
+    setTouchStartX(event.touches[0].clientX);
+    setIsDragging(true);
+    setIsCardClicked(true);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent) => {
+    if (!touchStartX || !active) return;
   
-    return (
-        <Box
-          data-active={active}
-          onClick={onClick}
-          sx={{
-            zIndex: offset === 0 ? 1 : 0,
-            gridArea: "1 / -1",
-            transformStyle: "preserve-3d",
-            "--offset": offset,
-            "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
-          }}
-        >
+    const touchEndX = event.touches[0].clientX;
+    const rotationDegree = (touchEndX - touchStartX) * 0.5;
+  
+    if (Math.abs(rotationDegree) > 5) {
+      setRotation(rotationDegree);
+      setIsCardClicked(false);
+      setShowCardBack(rotationDegree < -90 || rotationDegree > 90);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStartX(null);
+    setIsDragging(false);
+    const remainingRotation = Math.abs(rotation) - 90;
+    const timeoutDuration = (remainingRotation / 90) * 500;
+    setRotation(0);
+    if (cardRef.current) {
+      cardRef.current.style.transition = "transform 0.5s ease-in-out";
+    }
+    setTimeout(() => {
+      setShowCardBack(false);
+    }, timeoutDuration);
+  };
+
+  useEffect(() => {
+    if (cardRef.current) {
+      if (isDragging) {
+        cardRef.current.style.transition = "none";
+      }
+      cardRef.current.style.transform = `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(${rotation}deg)`;
+    }
+  }, [rotation, isDragging]);
+  
+
+  return (
+    <Box
+      data-active={active}
+      onClick={() => { (isCardClicked && onClick) && onClick() }}
+      sx={{
+        zIndex: offset === 0 ? 1 : 0,
+        gridArea: "1 / -1",
+        transformStyle: "preserve-3d",
+        "--offset": offset,
+        "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
+      }}
+    >
+      <Box
+        ref={cardRef}
+        onTouchStart={event => currentIndex === 1 && handleTouchStart(event)}
+        onTouchMove={event => currentIndex === 1 && handleTouchMove(event)}
+        onTouchEnd={event => currentIndex === 1 && handleTouchEnd()}        
+        sx={{
+          ...!isMobile && {
+            width: offset === 0 ? "20vw" : "16vw",
+          },
+          ...isMobile && {
+            width: offset === 0 ? "70vw" : "50vw",
+          },
+          height: "100%",
+          transition: "transform 0.5s ease-in-out, width 0.5s ease-in-out",
+          display: "grid",
+          transformStyle: "preserve-3d",
+          transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
+          overflow: "hidden",
+        }}
+      >
+        {cards[currentIndex]}
+        { currentIndex === 1 && showCardBack &&
           <Box
             sx={{
-                ...!isMobile && {
-                    width: offset === 0 ? "20vw" : "16vw",
-                },
-                ...isMobile && {
-                    width: offset === 0 ? "70vw" : "50vw",
-                },
-                height: "100%",
-                transition: "transform 0.5s ease-in-out, width 0.5s ease-in-out",
-                display: "grid",
-                transformStyle: "preserve-3d",
-                transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: 1,
             }}
           >
-            {cards[currentIndex]}
+            <DefaultCardImg />
           </Box>
-        </Box>
-      );
-  }
-
-  // function useTilt(active: boolean | null) {
-//     const ref = useRef<HTMLDivElement>(null);
-
-//     useEffect(() => {
-//         if (!ref.current) { return };
-
-//         const state = {
-//             rect: undefined as DOMRect | undefined,
-//             mouseX: undefined as number | undefined,
-//             mouseY: undefined as number | undefined
-//         };
-        
-//         let el = ref.current;
-        
-//         const handleMouseMove = (e: MouseEvent) => {
-//             if (!el) { return };
-//             if (!state.rect) { state.rect = el.getBoundingClientRect() };
-//             state.mouseX = e.clientX;
-//             state.mouseY = e.clientY;
-//             const px = (state.mouseX - state.rect.left) / state.rect.width;
-//             const py = (state.mouseY - state.rect.top) / state.rect.height;
-        
-//             el.style.setProperty("--px", String(px));
-//             el.style.setProperty("--py", String(py));
-//             console.log(px, py);
-//         };
-        
-//         el.addEventListener("mousemove", handleMouseMove);
-        
-//         return () => { el.removeEventListener("mousemove", handleMouseMove) };
-//     }, [active]);
-
-//     return ref;
-// }
+        }
+      </Box>
+    </Box>
+  );
+}

@@ -50,29 +50,37 @@ export default function CardImg({ img_url, card_name, hide, has_text, onClickFun
                         />
                     </Box>
                 )}
-                { hide && (
-                    <Box
-                        position="absolute"
-                        top={0}
-                        left={0}
-                        right={0}
-                        bottom={0}
-                        bgcolor={theme.palette.grey.default_canvas}
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        borderRadius="6px"
-                        sx={{
-                            border: `2px solid ${theme.palette.grey[900]}`,
-                        }}
-                    >
-                        <img
-                            src="/icons/crown.svg"
-                            alt="Overlay SVG"
-                        />
-                    </Box>
-                )}
+                { hide && ( DefaultCardImg() )}
             </Stack>
         </Box>
     )
 }
+
+// ----------------------------------------------------------------------
+
+export function DefaultCardImg() {
+
+    const theme = useTheme();
+
+    return (
+        <Box
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            bgcolor={theme.palette.grey.default_canvas}
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            borderRadius="6px"
+            sx={{
+                border: `2px solid ${theme.palette.grey[900]}`,
+            }}
+        >
+            <img
+                src="/icons/crown.svg"
+                alt="Overlay SVG" />
+        </Box>
+    );
+};
