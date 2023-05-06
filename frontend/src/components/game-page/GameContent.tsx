@@ -11,7 +11,7 @@ import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
 import { Stack, Typography } from "@mui/material";
 import { ActionButtons } from "./ActionButtons";
-import { MetadataContext } from "src/contexts/MetadataContext";
+import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     const { sectionRef1, sectionRef2, sectionRef3, sectionRef4 } = sectionRefs;
     const { enqueueSnackbar } = useSnackbar();
 
-    const { setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard, selectedCard } = useContext(MetadataContext);
+    const { setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard, selectedCard } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 

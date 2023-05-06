@@ -5,6 +5,7 @@ import NotistackProvider from './components/NotistackProvider';
 import ThemeLocalization from './components/ThemeLocalization';
 import HotJar from './components/user-tracking/HotJar';
 import Pendo from './components/user-tracking/Pendo';
+import GameProvider from './contexts/GameContext';
 import MetadataProvider from './contexts/MetadataContext';
 import Router from './routes';
 import ThemeProvider from './theme';
@@ -16,14 +17,16 @@ function App() {
     <ThemeProvider>
       <ThemeLocalization>
         <MetadataProvider>
-          <NotistackProvider>
-            <Pendo />
-            <HotJar />
-            <NavBar />
-            <MainStyle>
-              <Router />
-            </MainStyle>
-          </NotistackProvider>
+          <GameProvider>
+            <NotistackProvider>
+              <Pendo />
+              <HotJar />
+              <NavBar />
+              <MainStyle>
+                <Router />
+              </MainStyle>
+            </NotistackProvider>
+          </GameProvider>
         </MetadataProvider>
       </ThemeLocalization>
     </ThemeProvider>

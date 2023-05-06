@@ -1,15 +1,17 @@
 import { MobileStepper, useTheme, Tabs, Tab, Stack, IconButton } from "@mui/material";
 import { useContext } from "react";
-import { MetadataContext } from "src/contexts/MetadataContext";
 import Iconify from "./Iconify";
 import { PlayerCard, allSteps } from "src/@types/types";
 import { GroupingHeader } from "./game-page/GameContent";
+import { MetadataContext } from "src/contexts/MetadataContext";
+import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------
 
 export default function SectionStepper() {
 
-    const { isMobile, inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection } = useContext(MetadataContext);
+    const { isMobile } = useContext(MetadataContext);
+    const { inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection } = useContext(GameContext);
     const game_status = { inDeck, inHand, inPlay, inDiscard, selectedSection, loadSelectedSection };
 
     return (

@@ -4,11 +4,13 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import GameContent from "src/components/game-page/GameContent";
 import { Stack } from "@mui/material";
 import SectionStepper from "src/components/SectionStepper";
+import { GameContext } from "src/contexts/GameContext";
 // ----------------------------------------------------------------------
 
 export default function Game() {
 
-    const { isMobile, selectedSection, setSelectedSection } = useContext(MetadataContext);
+    const { isMobile } = useContext(MetadataContext);
+    const { selectedSection, setSelectedSection } = useContext(GameContext);
     const [scrollValid, setScrollValid] = useState<boolean>(true);
     const mountedRef = useRef(0);
     const scroll_disable_length = 750;
