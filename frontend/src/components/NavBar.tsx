@@ -27,6 +27,7 @@ export default function NavBar() {
 
     const { isMobile, currentUser } = useContext(MetadataContext);
     const theme = useTheme();
+    const is_login = window.location.href.indexOf("login") > -1;
     
     return (
         // <HideOnScroll>
@@ -35,7 +36,7 @@ export default function NavBar() {
             }}>
                 <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
                     <Logo />
-                    { currentUser &&
+                    { currentUser && !is_login &&
                         <>
                             { !isMobile && <MenuButtons currentUser={currentUser} /> }
                             { isMobile && <PositionedMenu currentUser={currentUser} /> }
