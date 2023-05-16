@@ -159,7 +159,7 @@ export default function ManageContent() {
     const gridItemStyles: SxProps<Theme> = {
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         width: '100%',
         height: '100%',
     };
@@ -195,7 +195,7 @@ export default function ManageContent() {
                 >
                     <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                         <Typography variant={'h3'}>Manage Content</Typography>
-                        <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
+                        <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'flex-start'}>
                             { selectedFaction ?
                                 <Stack>
                                     <SelectableAvatar
@@ -236,32 +236,34 @@ export default function ManageContent() {
                             }
                         </Stack>
 
-                        { factions && !selectedFaction && (
-                            <Grid
-                                container
-                                rowSpacing={2}
-                                columnSpacing={2}
-                                sx={gridContainerStyles}
-                            >
-                                { factions.map((faction) => (
-                                    <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                        <SelectableAvatar
-                                            item={faction}
-                                            altText={faction.name}
+                        { factions && !selectedFaction &&
+                            <Box sx={{ width: '100%' }}>
+                                <Grid
+                                    container
+                                    rowSpacing={2}
+                                    columnSpacing={2}
+                                    sx={gridContainerStyles}
+                                >
+                                    { factions.map((faction) => (
+                                        <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
+                                            <SelectableAvatar
+                                                item={faction}
+                                                altText={faction.name}
+                                                isMobile={isMobile}
+                                                handleClick={handleFactionClick}
+                                            />
+                                        </Grid>
+                                    ))}
+                                    <Grid item sx={gridItemStyles}>
+                                        <AddNew
+                                            type={'faction'}
                                             isMobile={isMobile}
-                                            handleClick={handleFactionClick}
+                                            handleClick={() => { setAddNewFaction(true) }}
                                         />
                                     </Grid>
-                                ))}
-                                <Grid item sx={gridItemStyles}>
-                                    <AddNew
-                                        type={'faction'}
-                                        isMobile={isMobile}
-                                        handleClick={() => { setAddNewFaction(true) }}
-                                    />
                                 </Grid>
-                            </Grid>
-                        )}
+                            </Box>
+                        }
                         { factions &&
                             <EditAddFaction
                                 faction={selectedFaction ? selectedFaction : null}
@@ -272,32 +274,34 @@ export default function ManageContent() {
                             />
                         }
 
-                        { selectedFaction && allCommanders && viewedCommanders && !selectedCommander && (
-                            <Grid
-                                container
-                                rowSpacing={2}
-                                columnSpacing={2}
-                                sx={gridContainerStyles}
-                            >
-                                { viewedCommanders.map((commander) => (
-                                    <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                        <SelectableAvatar
-                                            item={commander}
-                                            altText={commander.name}
+                        { selectedFaction && allCommanders && viewedCommanders && !selectedCommander &&
+                            <Box sx={{ width: '100%' }}>
+                                <Grid
+                                    container
+                                    rowSpacing={2}
+                                    columnSpacing={2}
+                                    sx={gridContainerStyles}
+                                >
+                                    { viewedCommanders.map((commander) => (
+                                        <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
+                                            <SelectableAvatar
+                                                item={commander}
+                                                altText={commander.name}
+                                                isMobile={isMobile}
+                                                handleClick={handleCommanderClick}
+                                            />
+                                        </Grid>
+                                    ))}
+                                    <Grid item sx={gridItemStyles}>
+                                        <AddNew
+                                            type={'commander'}
                                             isMobile={isMobile}
-                                            handleClick={handleCommanderClick}
+                                            handleClick={() => { setAddNewCommander(true) }}
                                         />
                                     </Grid>
-                                ))}
-                                <Grid item sx={gridItemStyles}>
-                                    <AddNew
-                                        type={'commander'}
-                                        isMobile={isMobile}
-                                        handleClick={() => { setAddNewCommander(true) }}
-                                    />
                                 </Grid>
-                            </Grid>
-                        )}
+                            </Box>
+                        }
                         { factions && selectedFaction && allCommanders &&
                             <EditAddCommander
                                 commander={

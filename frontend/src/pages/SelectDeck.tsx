@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Box, Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -117,7 +117,7 @@ export default function SelectDeck() {
     const gridItemStyles: SxProps<Theme> = {
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         width: '100%',
         height: '100%',
     };
@@ -162,45 +162,49 @@ export default function SelectDeck() {
                     }
                 </Stack>
 
-                {  factions && !selectedFaction && (
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {factions.map((faction) => (
-                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={faction}
-                                    altText={faction.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleFactionClick}
-                                />
-                            </Grid>
-                        ))}
-                    </Grid>
-                )}
+                {  factions && !selectedFaction &&
+                    <Box sx={{ width: '100%' }}>
+                        <Grid
+                            container
+                            rowSpacing={2}
+                            columnSpacing={2}
+                            sx={gridContainerStyles}
+                        >
+                            {factions.map((faction) => (
+                                <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
+                                    <SelectableAvatar
+                                        item={faction}
+                                        altText={faction.name}
+                                        isMobile={isMobile}
+                                        handleClick={handleFactionClick}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+                }
 
-                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander && (
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {viewedCommanders.map((commander) => (
-                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={commander}
-                                    altText={commander.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleCommanderClick}
-                                />
-                            </Grid>
-                        ))}
-                    </Grid>
-                )}
+                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander &&
+                    <Box sx={{ width: '100%' }}>
+                        <Grid
+                            container
+                            rowSpacing={2}
+                            columnSpacing={2}
+                            sx={gridContainerStyles}
+                        >
+                            {viewedCommanders.map((commander) => (
+                                <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
+                                    <SelectableAvatar
+                                        item={commander}
+                                        altText={commander.name}
+                                        isMobile={isMobile}
+                                        handleClick={handleCommanderClick}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Box>
+                }
 
                 { selectedFaction && selectedCommander && (
                     <Button variant={'contained'} color={'primary'} onClick={() => { processTokens(beginGame) }} disabled={awaitingResponse}>
