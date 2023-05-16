@@ -84,7 +84,11 @@ export default function SelectDeck() {
 
     useEffect(() => {
         if (selectedFaction && allCommanders) {
-            const filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
+            const neutralCommanders = allCommanders?.filter((commander) => commander.faction.neutral);
+            let filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
+            if (neutralCommanders) {
+                filteredCommanders = filteredCommanders?.concat(neutralCommanders);
+            }
             setViewedCommanders(filteredCommanders);
         }
     }, [selectedFaction]);

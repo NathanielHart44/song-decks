@@ -201,6 +201,10 @@ def start_game(request, faction_id, commander_id):
         faction_card_templates = CardTemplate.objects.filter(faction=faction_id).exclude(commander__isnull=False)
         combined_card_templates = commander_card_templates | faction_card_templates
 
+        for card_template in commander_card_templates:
+            if card_template.replaces:
+                combined_card_templates = combined_card_templates.exclude(id=card_template.replaces.id)
+
         all_cards = []
 
         for card_template in combined_card_templates:
@@ -237,7 +241,7 @@ def end_round(request, game_id):
             return JsonResponse({"success": False, "response": "Game not alterable."})
         handle_card_updates(game)
 
-        # game.round += 1
+        game.round += 1
         game.save()
 
         updated_cards = PlayerCard.objects.filter(game=game)
@@ -259,7 +263,6 @@ def end_game(request, game_id):
         handle_card_updates(game)
 
         game.status = 'completed'
-        # game.round += 1
         game.save()
         return JsonResponse({"success": True, "response": "Successfully ended game."})
     except Exception as e:
@@ -280,7 +283,6 @@ def get_player_stats(request):
         user_profile = Profile.objects.get(user=request.user)
         user_card_stats = UserCardStats.objects.filter(user=user_profile)
         user_card_stats = user_card_stats.order_by('-times_included', '-times_drawn')
-        user_card_stats = user_card_stats[:5]
         serializer = UserCardStatsSerializer(user_card_stats, many=True)
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
@@ -297,9 +299,12 @@ def add_edit_card(request, card_id=None):
             'img_url': request.data.get('img_url', None),
             'faction_id': request.data.get('faction_id', None),
             'commander_id': request.data.get('commander_id', None),
+            'replaces_id': request.data.get('replaces_id', None),
         }
         for key in info:
             if not card_id and key == 'commander_id':
+                continue
+            if not info['replaces_id'] and key == 'replaces_id':
                 continue
             if info[key] is None:
                 return JsonResponse({"success": False, "response": f"Missing {key}."})
@@ -311,12 +316,18 @@ def add_edit_card(request, card_id=None):
             commander_search = Commander.objects.filter(id=info['commander_id'])
             if commander_search.count() == 0:
                 return JsonResponse({"success": False, "response": "Commander not found."})
+        replaces_search = None
+        if info['replaces_id'] is not None:
+            replaces_search = CardTemplate.objects.filter(id=info['replaces_id'])
+            if replaces_search.count() == 0:
+                return JsonResponse({"success": False, "response": "Replacement card not found."})
         if card_id is None:
             main_card = CardTemplate.objects.create(
                 card_name=info['card_name'],
                 img_url=info['img_url'],
                 faction=faction_search.first(),
                 commander=commander_search.first() if commander_search is not None else None,
+                replaces=replaces_search.first() if replaces_search is not None else None,
                 game_count=0,
                 play_count=0,
                 discard_count=0
@@ -329,8 +340,12 @@ def add_edit_card(request, card_id=None):
             card.card_name = info['card_name']
             card.img_url = info['img_url']
             card.faction = faction_search.first()
-            card.commander = commander_search.first() if commander_search is not None else None,
+            if commander_search:
+                card.commander = commander_search.first()
+            if replaces_search:
+                card.replaces = replaces_search.first()
             card.save()
+            main_card = main_card.first()
 
         new_card = CardTemplate.objects.filter(id=main_card.id).first()
         message = f"Successfully created: {new_card.card_name}" if card_id is None else f"Successfully edited: {new_card.card_name}"
@@ -359,6 +374,7 @@ def add_edit_faction(request, faction_id=None):
         info = {
             'name': request.data.get('name', None),
             'img_url': request.data.get('img_url', None),
+            'neutral': bool(request.data.get('neutral', False))
         }
         for key in info:
             if info[key] is None:
@@ -367,6 +383,7 @@ def add_edit_faction(request, faction_id=None):
             faction = Faction.objects.create(
                 name=info['name'],
                 img_url=info['img_url'],
+                neutral=info['neutral']
             )
         else:
             faction = Faction.objects.filter(id=faction_id)
@@ -375,6 +392,7 @@ def add_edit_faction(request, faction_id=None):
             faction = faction.first()
             faction.name = info['name']
             faction.img_url = info['img_url']
+            faction.neutral = info['neutral']
             faction.save()
 
         new_faction = Faction.objects.filter(id=faction.id).first()

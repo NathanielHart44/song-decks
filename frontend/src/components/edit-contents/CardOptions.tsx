@@ -10,12 +10,13 @@ import { AddNew } from "./AddNew";
 type CardOptionsProps = {
     isMobile: boolean;
     cards: CardTemplate[];
+    defaultCards: CardTemplate[] | null;
     factions: Faction[];
     commanders: Commander[];
     handleClick: (arg0: any) => void;
     setCards: (arg0: CardTemplate[]) => void;
 };
-export function CardOptions({ isMobile, cards, factions, commanders, handleClick, setCards }: CardOptionsProps) {
+export function CardOptions({ isMobile, cards, defaultCards, factions, commanders, handleClick, setCards }: CardOptionsProps) {
 
     const gridContainerStyles: SxProps<Theme> = {
         justifyContent: 'space-around',
@@ -46,6 +47,7 @@ export function CardOptions({ isMobile, cards, factions, commanders, handleClick
                         isMobile={isMobile}
                         card={card}
                         cards={cards}
+                        defaultCards={defaultCards}
                         factions={factions}
                         commanders={commanders}
                         setCards={setCards} />

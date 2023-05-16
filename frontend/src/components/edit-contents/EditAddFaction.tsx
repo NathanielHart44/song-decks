@@ -1,9 +1,11 @@
 import {
     Backdrop,
     Button,
+    Checkbox,
     Slide,
     Stack,
     TextField,
+    Typography,
     useTheme
 } from "@mui/material"
 import { useSnackbar } from "notistack";
@@ -34,6 +36,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
 
     const [factionName, setFactionName] = useState<string>(faction ? faction.name : '');
     const [imgURL, setImgURL] = useState<string>(faction ? faction.img_url : '');
+    const [neutral, setNeutral] = useState<boolean>(faction ? faction.neutral : false);
 
     const handleFactionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFactionName(event.target.value);
@@ -80,6 +83,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
         const formData = new FormData();
         formData.append('name', factionName);
         formData.append('img_url', imgURL);
+        formData.append('neutral', neutral.toString());
 
         const url = faction ? `${MAIN_API.base_url}add_edit_faction/${faction.id}/` : `${MAIN_API.base_url}add_edit_faction/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
@@ -138,6 +142,14 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 onChange={handleImgURLChange}
                                 label={"Image URL"}
                             />
+                            <Stack direction={'row'} alignItems={'center'}>
+                                <Checkbox
+                                    checked={neutral}
+                                    onChange={(event) => { setNeutral(event.target.checked) }}
+                                    inputProps={{ 'aria-label': 'controlled' }}
+                                />
+                                <Typography variant={'body1'} sx={{ color: theme.palette.text.disabled }}>Neutral</Typography>
+                            </Stack>
 
                             <Stack
                                 direction={'row'}

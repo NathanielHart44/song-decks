@@ -20,6 +20,7 @@ import { MAIN_API } from "src/config";
 type EditAddCardProps = {
     card: CardTemplate | FakeCardTemplate;
     cards: CardTemplate[];
+    defaultCards: CardTemplate[] | null;
     factions: Faction[];
     commanders: Commander[];
     editOpen: boolean;
@@ -27,7 +28,7 @@ type EditAddCardProps = {
     setCards: (arg0: CardTemplate[]) => void;
 };
 
-export default function EditAddCard({ card, cards, factions, commanders, editOpen, setEditOpen, setCards }: EditAddCardProps) {
+export default function EditAddCard({ card, cards, defaultCards, factions, commanders, editOpen, setEditOpen, setCards }: EditAddCardProps) {
 
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
@@ -38,6 +39,7 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
     const [imgURL, setImgURL] = useState<string>(card.img_url);
     const [faction, setFaction] = useState<Faction | null>(card.faction);
     const [commander, setCommander] = useState<Commander | null>(card.commander);
+    const [replacement, setReplacement] = useState<CardTemplate | null>(card.replaces ? card.replaces : null);
 
     const handleCardNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCardName(event.target.value);
@@ -90,6 +92,7 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
         formData.append('img_url', imgURL);
         formData.append('faction_id', (faction.id).toString());
         if (commander) { formData.append('commander_id', (commander.id).toString()) };
+        if (replacement) { formData.append('replaces_id', (replacement.id).toString()) };
 
         const url = (card.id !== -1) ? `${MAIN_API.base_url}add_edit_card/${card.id}/` : `${MAIN_API.base_url}add_edit_card/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
@@ -190,6 +193,30 @@ export default function EditAddCard({ card, cards, factions, commanders, editOpe
                                 onChange={handleImgURLChange}
                                 label={"Image URL"}
                             />
+                            { defaultCards &&
+                                <TextField
+                                    select
+                                    fullWidth
+                                    value={replacement ? replacement.id : ''}
+                                    onChange={(event) => {
+                                        const card_id = event.target.value;
+                                        const replacement = defaultCards.find((card) => card.id === parseInt(card_id));
+                                        if (replacement) { setReplacement(replacement) }
+                                        else { setReplacement(null) };
+                                    }}
+                                    SelectProps={{ native: true }}
+                                    variant="outlined"
+                                    sx={{ labelWidth: "text".length * 9 }}
+                                    label="Replacement For"
+                                >
+                                    <option value={''}></option>
+                                    {defaultCards.map((card) => (
+                                        <option key={card.id} value={card.id}>
+                                            {card.card_name}
+                                        </option>
+                                    ))}
+                                </TextField>
+                            }
 
                             <Stack
                                 direction={'row'}

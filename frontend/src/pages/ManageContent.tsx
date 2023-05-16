@@ -333,6 +333,7 @@ export default function ManageContent() {
                             <CardOptions
                                 isMobile={isMobile}
                                 cards={factionCards}
+                                defaultCards={null}
                                 factions={factions}
                                 commanders={allCommanders ?? []}
                                 handleClick={() => { setAddNewCard(true) }}
@@ -343,6 +344,7 @@ export default function ManageContent() {
                             <CardOptions
                                 isMobile={isMobile}
                                 cards={commanderCards}
+                                defaultCards={factionCards ? factionCards : null}
                                 factions={factions}
                                 commanders={allCommanders ?? []}
                                 handleClick={() => { setAddNewCard(true) }}
@@ -357,8 +359,10 @@ export default function ManageContent() {
                                     img_url: '',
                                     faction: selectedFaction ? selectedFaction : null,
                                     commander: selectedCommander ? selectedCommander : null,
+                                    replaces: null,
                                 }}
                                 cards={commanderCards ? commanderCards : factionCards ? factionCards : []}
+                                defaultCards={commanderCards ? commanderCards : factionCards ? factionCards : []}
                                 factions={factions}
                                 commanders={allCommanders}
                                 editOpen={addNewCard}

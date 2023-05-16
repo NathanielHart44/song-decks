@@ -17,6 +17,7 @@ export type Faction = {
     id: number;
     name: string;
     img_url: string;
+    neutral: boolean;
 };
 
 export type Commander = {
@@ -41,6 +42,7 @@ export type Game = {
     status: 'in-progress' | 'completed' | 'abondoned';
     created_at: string;
     updated_at: string;
+    round: number;
 };
 
 export type CardTemplate = {
@@ -49,6 +51,7 @@ export type CardTemplate = {
     img_url: string;
     faction: Faction;
     commander: Commander | null;
+    replaces: CardTemplate | null;
     game_count: number;
     player_count: number;
     discard_count: number;
@@ -60,6 +63,7 @@ export type FakeCardTemplate = {
     img_url: string;
     faction: Faction | null;
     commander: Commander | null;
+    replaces: CardTemplate | null;
 };
 
 export type PlayerCard = {

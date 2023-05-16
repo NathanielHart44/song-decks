@@ -75,10 +75,10 @@ export function RecentGames({ isMobile, games }: RecentGameProps) {
                                     <TableCell component="th" scope="row" align="center">{game.commander.name}</TableCell> :
                                     <TableCell component="th" scope="row" align="center">{game.faction.name}</TableCell> }
                                 { !isMobile && <TableCell align="center">{game.commander.name}</TableCell> }
-                                { !isMobile && <TableCell align="center">{game.status}</TableCell> }
-                                <TableCell align="center">
+                                {/* <TableCell align="center">
                                     <Button variant="contained" disabled={true}>Resume Game</Button>
-                                </TableCell>
+                                </TableCell> */}
+                                <TableCell align="center">Round: {game.round}</TableCell>
                                 <TableCell align="center">
                                     <Button variant="contained" disabled={game.status === 'in-progress' ? false : true}>End Game</Button>
                                 </TableCell>

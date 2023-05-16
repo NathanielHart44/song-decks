@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.db.models import signals
 
 class Profile(models.Model):
@@ -31,6 +31,7 @@ def delete_user(sender, instance=None, **kwargs):
 class Faction(models.Model):
     name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
+    neutral = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -51,6 +52,7 @@ class CardTemplate(models.Model):
     game_count = models.PositiveIntegerField()
     play_count = models.PositiveIntegerField()
     discard_count = models.PositiveIntegerField()
+    replaces = models.ForeignKey('self', null=True, blank=True, on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return self.card_name
@@ -62,7 +64,7 @@ class Game(models.Model):
     status = models.CharField(max_length=15, choices=[('in-progress', 'In Progress'), ('completed', 'Completed'), ('abandoned', 'Abandoned')])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # round = models.PositiveIntegerField(null=True, blank=True)
+    round = models.PositiveIntegerField(null=False, blank=False, default=1)
 
     def __str__(self):
         return f'{self.owner.user.username} - {self.commander.name}'

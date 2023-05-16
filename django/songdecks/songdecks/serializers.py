@@ -16,7 +16,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class FactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Faction
-        fields = ('id', 'name', 'img_url')
+        fields = ('id', 'name', 'img_url', 'neutral')
         depth = 1
 
 class CommanderSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class CardTemplateSerializer(serializers.ModelSerializer):
 class GameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
-        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at')
+        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round')
         depth = 1
 
 class PlayerCardSerializer(serializers.ModelSerializer):

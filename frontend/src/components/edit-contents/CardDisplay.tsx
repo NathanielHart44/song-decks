@@ -9,11 +9,12 @@ type CardDisplayProps = {
     isMobile: boolean;
     card: CardTemplate;
     cards: CardTemplate[];
+    defaultCards: CardTemplate[] | null;
     factions: Faction[];
     commanders: Commander[];
     setCards: (arg0: CardTemplate[]) => void;
 };
-export function CardDisplay({ isMobile, card, cards, factions, commanders, setCards }: CardDisplayProps) {
+export function CardDisplay({ isMobile, card, cards, defaultCards, factions, commanders, setCards }: CardDisplayProps) {
 
     const [editOpen, setEditOpen] = useState<boolean>(false);
 
@@ -39,6 +40,7 @@ export function CardDisplay({ isMobile, card, cards, factions, commanders, setCa
             <EditAddCard
                 card={card}
                 cards={cards}
+                defaultCards={defaultCards}
                 factions={factions}
                 commanders={commanders}
                 editOpen={editOpen}
