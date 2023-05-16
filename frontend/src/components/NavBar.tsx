@@ -19,12 +19,13 @@ import { PATH_PAGE } from 'src/routes/paths';
 import Iconify from './Iconify';
 import Logo from './Logo';
 import { logout } from 'src/utils/jwt';
+import { User } from 'src/@types/types';
 
 // ----------------------------------------------------------------------
 
 export default function NavBar() {
 
-    const { isMobile } = useContext(MetadataContext);
+    const { isMobile, currentUser } = useContext(MetadataContext);
     const theme = useTheme();
     
     return (
@@ -34,8 +35,12 @@ export default function NavBar() {
             }}>
                 <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
                     <Logo />
-                    { !isMobile && <MenuButtons /> }
-                    { isMobile && <PositionedMenu /> }
+                    { currentUser &&
+                        <>
+                            { !isMobile && <MenuButtons currentUser={currentUser} /> }
+                            { isMobile && <PositionedMenu currentUser={currentUser} /> }
+                        </>
+                    }
                 </Toolbar>
             </AppBar>
         // </HideOnScroll>
@@ -64,11 +69,17 @@ export default function NavBar() {
 
 // ----------------------------------------------------------------------
 
-function MenuButtons() {
+type MenuButtonsProps = {
+    currentUser: User;
+};
+
+function MenuButtons({ currentUser }: MenuButtonsProps) {
+    const is_moderator = currentUser.moderator;
     const navigate = useNavigate();
     return (
         <Stack direction={'row'} spacing={1}>
-            <Button color="inherit" onClick={() => { navigate(PATH_PAGE.manage) }}>Manage</Button>
+            { is_moderator && <Button color="inherit" onClick={() => { navigate(PATH_PAGE.moderator) }}>Admin</Button> }
+            { is_moderator && <Button color="inherit" onClick={() => { navigate(PATH_PAGE.manage) }}>Manage</Button> }
             <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Home</Button>
             <Button color="inherit" onClick={() => { logout() }}>Logout</Button>
         </Stack>
@@ -77,7 +88,8 @@ function MenuButtons() {
 
 // ----------------------------------------------------------------------
 
-function PositionedMenu() {
+function PositionedMenu({ currentUser }: MenuButtonsProps) {
+    const is_moderator = currentUser.moderator;
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => { setAnchorEl(event.currentTarget) };
@@ -108,7 +120,8 @@ function PositionedMenu() {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 TransitionComponent={Fade}
             >
-                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem>
+                { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.moderator); handleClose() }}>Admin</MenuItem> }
+                { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem> }
                 <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
                 <MenuItem color="inherit" onClick={() => { logout() }}>Logout</MenuItem>
             </Menu>

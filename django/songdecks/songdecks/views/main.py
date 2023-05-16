@@ -463,3 +463,39 @@ def delete_commander(request, commander_id):
         return JsonResponse({"success": True, "response": "Successfully deleted commander."})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
+    
+# ----------------------------------------------------------------------
+# Moderator
+
+@api_view(['GET'])
+def get_all_users(request):
+    try:
+        profile = request.user.profile
+        if profile.moderator == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        users = User.objects.all()
+        users = users.exclude(username='admin')
+        info = {
+            "users": UserSerializer(users, many=True).data,
+            "total": users.count(),
+        }
+        return JsonResponse({"success": True, "response": info})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def toggle_moderator(request, username):
+    try:
+        profile = request.user.profile
+        if profile.moderator == False:
+            return JsonResponse({"success": False, "response": "You do not have permisdsion to perform this action."})
+        user_search = User.objects.filter(username=username)
+        if user_search.count() == 0:
+            return JsonResponse({"success": False, "response": "User not found."})
+        user = user_search.first()
+        user.profile.moderator = not user.profile.moderator
+        user.profile.save()
+        updated_profile_status = Profile.objects.filter(user=user).first().moderator
+        return JsonResponse({"success": True, "response": f"Successfully toggled moderator status to {updated_profile_status} for {user.username}."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})

@@ -31,8 +31,8 @@ export default function MetadataProvider({ children }: Props) {
     const getCurrentUser = async () => {
         let token = localStorage.getItem('accessToken') ?? '';
         await axios.get(`${MAIN_API.base_url}current_user/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            setCurrentUser(response.data);
-            localStorage.setItem('currentUser', JSON.stringify(response.data));
+            setCurrentUser(response.data.response);
+            localStorage.setItem('currentUser', JSON.stringify(response.data.response));
         }).catch((error) => {
             console.error(error);
         })

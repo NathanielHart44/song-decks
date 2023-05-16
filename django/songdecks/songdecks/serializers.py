@@ -3,9 +3,17 @@ from django.contrib.auth.models import User
 from songdecks.models import Profile, Faction, Commander, CardTemplate, Game, PlayerCard, UserCardStats
 
 class UserSerializer(serializers.ModelSerializer):
+    moderator = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile', 'moderator')
+
+    def get_moderator(self, obj):
+        try:
+            return obj.profile.moderator
+        except Profile.DoesNotExist or AttributeError:
+            return False
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:

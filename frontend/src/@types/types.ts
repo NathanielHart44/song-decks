@@ -6,6 +6,7 @@ export type User = {
     last_name: string;
     email: string;
     user_type: string;
+    moderator: boolean;
 }
 
 export type Profile = {

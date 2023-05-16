@@ -59,6 +59,11 @@ urlpatterns = [
     path('add_edit_faction/<int:faction_id>/', views.add_edit_faction),
     path('delete_faction/<int:faction_id>/', views.delete_faction),
 
-    # ----------------------------------------------------------------------s
+    # ----------------------------------------------------------------------
+
+    path('get_all_users/', views.get_all_users),
+    path('toggle_moderator/<str:username>/', views.toggle_moderator),
+
+    # ----------------------------------------------------------------------
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

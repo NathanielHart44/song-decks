@@ -10,10 +10,13 @@ import GuestGuard from 'src/guards/GuestGuard';
 import AuthGuard from 'src/guards/AuthGuard';
 import SelectDeck from 'src/pages/SelectDeck';
 import ManageContent from 'src/pages/ManageContent';
+import ModeratorGuard from 'src/guards/ModeratorGuard';
+import AdminPage from 'src/pages/AdminPage';
 
 // ----------------------------------------------------------------------
 
 function withAuthGuard(element: JSX.Element) { return <AuthGuard>{element}</AuthGuard> };
+function withModeratorGuard(element: JSX.Element) { return <ModeratorGuard>{element}</ModeratorGuard> };
 
 export default function Router() {
   return useRoutes([
@@ -30,7 +33,8 @@ export default function Router() {
         { element: withAuthGuard(<Navigate to={PATH_AFTER_LOGIN} replace />), index: true },
         { path: 'home', element: withAuthGuard(<Home />) },
         { path: 'game', element: withAuthGuard(<Game />) },
-        { path: 'manage', element: withAuthGuard(<ManageContent />) },
+        { path: 'manage', element: withModeratorGuard(<ManageContent />) },
+        { path: 'moderator', element: withModeratorGuard(<AdminPage />) },
         { path: 'game/:gameID', element: withAuthGuard(<Game />) },
         { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         { path: '404', element: <NotFound /> },
