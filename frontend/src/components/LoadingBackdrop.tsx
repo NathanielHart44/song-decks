@@ -12,7 +12,7 @@ export default function LoadingBackdrop() {
                 sx={{ color: theme.palette.primary.main, zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={true}
             >
-                <CircularProgress color="inherit" />
+                <CircularProgress />
             </Backdrop>
         </div>
     );

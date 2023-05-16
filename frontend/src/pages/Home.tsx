@@ -69,7 +69,7 @@ export default function Home() {
                 <Box width={'75%'}>
                     <Divider flexItem />
                 </Box>
-                { awaitingResponse && <CircularProgress color="inherit" /> }
+                { awaitingResponse && <CircularProgress /> }
                 { !awaitingResponse && playerStats &&
                     <>
                         <PlayerStats stats={playerStats} />

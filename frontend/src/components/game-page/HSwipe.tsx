@@ -192,7 +192,7 @@ function Slide({ isMobile, currentIndex, cards, offset, onClick }: SlideProps) {
         ref={cardRef}
         onTouchStart={event => currentIndex === 1 && handleTouchStart(event)}
         onTouchMove={event => currentIndex === 1 && handleTouchMove(event)}
-        onTouchEnd={event => currentIndex === 1 && handleTouchEnd()}        
+        onTouchEnd={event => currentIndex === 1 && handleTouchEnd()}
         sx={{
           ...!isMobile && {
             width: offset === 0 ? "20vw" : "16vw",
