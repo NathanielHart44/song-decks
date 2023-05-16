@@ -213,7 +213,12 @@ function VStack({ isMobile, stat }: CardStatsProps) {
                         barWidth={bar_width}
                         x={"card_name"}
                         y={"times_included"}
-                        cornerRadius={{ topLeft: 3, topRight: 3 }}
+                        cornerRadius={{
+                            topLeft: 3,
+                            topRight: 3,
+                            bottomLeft: ({ datum }) => ((datum.times_drawn === 0 && datum.times_discarded === 0) ? 3 : 0),
+                            bottomRight: ({ datum }) => ((datum.times_drawn === 0 && datum.times_discarded === 0) ? 3 : 0),
+                        }}
                         style={{
                             data: { fill: theme.palette.primary.main },
                         }}
