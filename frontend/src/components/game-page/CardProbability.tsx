@@ -1,15 +1,16 @@
 import {
-    Dialog,
     Box,
     Divider,
     Grid,
-    Slide,
     Stack,
     SxProps,
     Theme,
     Typography,
     useTheme,
-    DialogContent
+    DialogContent,
+    Button,
+    Modal,
+    Fade
 } from "@mui/material"
 import axios from "axios";
 import { useSnackbar } from "notistack";
@@ -19,6 +20,7 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
 import { PlayerCard } from "src/@types/types";
+import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +36,7 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
+    const { setAllCards } = useContext(GameContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [deckCardOptions, setDeckCardOptions] = useState<PlayerCard[]>([]);
     const [deckDisplayCards, setDeckDisplayCards] = useState<PlayerCard[]>([]);
@@ -58,9 +61,34 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
             };
             setAwaitingResponse(false);
         }).catch((error) => {
+            enqueueSnackbar(error);
             console.error(error);
         })
     };
+
+    const addCardToHand = async (card: PlayerCard) => {
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+
+        const formData = new FormData();
+        formData.append('game_id', gameID);
+        formData.append('card_id', (card.id).toString());
+        formData.append('card_template_id', (card.card_template.id).toString());
+
+        await axios.post(`${MAIN_API.base_url}handle_card_action/place_in_hand/`, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                const res = response.data.response;
+                setAllCards(res);
+                getGameCards();
+                enqueueSnackbar(`Added ${card.card_template.card_name} to hand.`);
+            } else {
+                enqueueSnackbar(response.data.response);
+            };
+        }).catch((error) => {
+            console.error(error);
+            enqueueSnackbar(error);
+        })
+    };    
 
     useEffect(() => {
         if (open) {
@@ -93,15 +121,6 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
         height: '100%',
     };
 
-    const backdropStyles: SxProps<Theme> = {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        overflow: 'auto',
-    };
-
     function getPercentage(card: PlayerCard) {
         let cardCount = deckCardOptions.filter((c: PlayerCard) => c.card_template.id === card.card_template.id).length;
         let percentage = (cardCount / deckCardOptions.length) * 100;
@@ -121,21 +140,13 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
         <div>
             { awaitingResponse && <LoadingBackdrop /> }
             <div>
-                <Dialog
+                <Modal
                     open={open}
-                    fullWidth={isMobile}
-                    sx={{
-                        color: theme.palette.primary.main,
-                        zIndex: (theme) => theme.zIndex.drawer + 1,
-                    }}
-                    PaperProps={{
-                        sx: {
-                            backgroundColor: 'transparent',
-                        }
-                    }}
                     onClick={() => { setOpen(false) }}
+                    closeAfterTransition
+                    sx={{ overflow: 'scroll' }}
                 >
-                    <Slide direction="up" in={open} mountOnEnter unmountOnExit>
+                    <Fade in={open}>
                         <DialogContent>
                             <Grid
                                 container
@@ -144,33 +155,50 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
                                 sx={gridContainerStyles}
                             >
                                 { rankCards(deckDisplayCards).map((card) => (
-                                    <Grid item key={card.id + 'card'} sx={gridItemStyles}>
+                                    <Grid
+                                        item
+                                        key={card.id + 'card'}
+                                        sx={gridItemStyles}
+                                    >
                                         <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
-                                            <Box
-                                                sx={{
-                                                    height: '100%',
-                                                    width: '200px',
-                                                    ...!isMobile ? {
-                                                        transition: 'transform 0.3s',
-                                                        cursor: 'pointer',
-                                                        '&:hover': { transform: 'scale(1.075)' },
-                                                    } : {},
-                                                }}
-                                            >
-                                                <img
-                                                    src={card.card_template.img_url}
-                                                    alt={card.card_template.card_name}
-                                                    style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
-                                            </Box>
-                                            <Typography color={theme.palette.text.primary}>{getPercentage(card)}%</Typography>
+                                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
+                                                <Box
+                                                    sx={{
+                                                        height: '100%',
+                                                        width: '200px',
+                                                        ...!isMobile ? {
+                                                            transition: 'transform 0.3s',
+                                                            cursor: 'pointer',
+                                                            '&:hover': { transform: 'scale(1.075)' },
+                                                        } : {},
+                                                    }}
+                                                >
+                                                    <img
+                                                        src={card.card_template.img_url}
+                                                        alt={card.card_template.card_name}
+                                                        style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                </Box>
+                                                <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
+                                                    <Typography color={theme.palette.text.primary}>{getPercentage(card)}%</Typography>
+                                                    <Button
+                                                        variant={'contained'}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            processTokens(addCardToHand, card);
+                                                        }}
+                                                    >
+                                                        Add to Hand
+                                                    </Button>
+                                                </Stack>
+                                            </Stack>
                                             <Divider flexItem />
                                         </Stack>
                                     </Grid>
                                 ))}
                             </Grid>
                         </DialogContent>
-                    </Slide>
-                </Dialog>
+                    </Fade>
+                </Modal>
             </div>
         </div>
     )

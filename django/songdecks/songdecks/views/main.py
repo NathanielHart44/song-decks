@@ -94,12 +94,13 @@ def handle_card_action(request, action):
         game_id = request.data.get('game_id', None)
         card_id = request.data.get('card_id', None)
         play_notes = request.data.get('update_play_notes', None)
+        card_template_id = request.data.get('card_template_id', None)
         debug = {}
         debug['original_play_notes'] = play_notes
 
         game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
         if game_search.count() == 0:
-            return JsonResponse({"success": False, "response": "Game not found."})
+            return JsonResponse({"success": False, "response": f"Game not found. {game_id}"})
         game = game_search.first()
         if game.status != 'in-progress':
             return JsonResponse({"success": False, "response": "Game not alterable."})
@@ -112,6 +113,16 @@ def handle_card_action(request, action):
             selected_card.status = 'in-hand'
             selected_card.drawn_this_round = True
             selected_card.save()
+        elif action == 'place_in_hand' and card_id == -1 and card_template_id:
+            card_template = CardTemplate.objects.filter(id=card_template_id).first()
+            if not card_template:
+                return JsonResponse({"success": False, "response": "Card template not found."})
+            card = PlayerCard.objects.filter(game=game, card_template=card_template, status='in-deck').first()
+            if not card:
+                return JsonResponse({"success": False, "response": "Unable to draw this card."})
+            card.status = 'in-hand'
+            card.drawn_this_round = True
+            card.save()
         else:
             card = PlayerCard.objects.filter(id=card_id, game=game)
             if card.count() == 0:
