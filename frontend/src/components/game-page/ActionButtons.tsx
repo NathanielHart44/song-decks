@@ -22,18 +22,11 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
     const { enqueueSnackbar } = useSnackbar();
     const [updatePlayNotes, setUpdatePlayNotes] = useState<string>(currentCard.play_notes ?? '');
     const [noteOpen, setNoteOpen] = useState<boolean>(false);
-    const [noteEdit, setNoteEdit] = useState<boolean>(false);
 
     useEffect(() => {
-        setNoteEdit(false);
         setNoteOpen(false);
         setUpdatePlayNotes(currentCard.play_notes ?? '');
     }, [currentCard]);
-
-    // useEffect(() => {
-    //     setNoteEdit(false);
-    //     setUpdatePlayNotes(currentCard.play_notes ?? '');
-    // }, [updatePlayNotes]);
 
     function getSnackbarMessage(action: ACTION_TYPE) {
         switch (action) {
@@ -105,6 +98,7 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
                                     processTokens(handleCardAction, 'update_play_notes');
                                 };
                             }}
+                            focused
                             multiline
                         />
                     </Slide>

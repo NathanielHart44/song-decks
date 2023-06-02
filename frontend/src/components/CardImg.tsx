@@ -74,13 +74,12 @@ export function DefaultCardImg() {
             justifyContent="center"
             alignItems="center"
             borderRadius="6px"
-            sx={{
-                border: `2px solid ${theme.palette.grey[900]}`,
-            }}
+            sx={{ border: `2px solid ${theme.palette.grey[900]}` }}
         >
             <img
                 src="/icons/crown.svg"
-                alt="Overlay SVG" />
+                alt="Overlay SVG"
+            />
         </Box>
     );
 };
