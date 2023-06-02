@@ -42,10 +42,10 @@ docker images
 ```
 (Use this to get the id for the next step)
 ```
-docker tag d7ee5edc6631 cmajorb/asoiaf-decks:latest-amd64
+docker tag <ID> cmajorb/asoiaf-decks:latest-amd64
 docker push cmajorb/asoiaf-decks:latest-amd64
 ```
-(replace the tag with your own)
+(replace the `<ID>` with your own image id)
 
 ## Updating Backend in Production
 
