@@ -1,7 +1,7 @@
-import { Box } from "@mui/material";
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import { Box, keyframes } from "@mui/material";
+import React, { useContext, useEffect, useReducer, useRef, useState } from "react";
 import { DefaultCardImg } from "../CardImg";
-import { useSnackbar } from "notistack";
+import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------
 
@@ -16,6 +16,9 @@ type Props = {
 };
 
 export default function HSwipe({ isMobile, cards }: Props) {
+
+  const { inHand, inPlay, inDiscard } = useContext(GameContext);
+  const should_animate_draw = (inHand.length === 0 && inPlay.length === 0 && inDiscard.length === 0);
 
     const slidesReducer = (state: State, event: Action) => {
         function getIndexes(index: number) {
@@ -77,6 +80,8 @@ export default function HSwipe({ isMobile, cards }: Props) {
 
   const [state, dispatch] = useReducer(slidesReducer, initialState);
 
+  const pulse = keyframes`0% { opacity: 1 } 50% { opacity: 0.5 } 100% { opacity: 1 }`;
+
   return (
     <Box
       sx={{
@@ -88,6 +93,7 @@ export default function HSwipe({ isMobile, cards }: Props) {
         margin: 0,
         padding: 0,
         overflow: "hidden",
+        animation: should_animate_draw ? `${pulse} 2s infinite` : 'none'
       }}
     >
       {(state.visibleCards).map((card, i) => {
@@ -124,7 +130,6 @@ interface SlideProps {
 
 function Slide({ isMobile, currentIndex, cards, offset, onClick }: SlideProps) {
 
-  const { enqueueSnackbar } = useSnackbar();
   const active = offset === 0 ? true : null;
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotation, setRotation] = useState(0);
