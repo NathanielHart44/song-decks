@@ -86,7 +86,7 @@ export default function SelectDeck() {
         if (selectedFaction && allCommanders) {
             const neutralCommanders = allCommanders?.filter((commander) => commander.faction.neutral);
             let filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
-            if (neutralCommanders) {
+            if (neutralCommanders && selectedFaction && selectedFaction.name !== 'Free Folk' && selectedFaction.name !== 'Neutral') {
                 filteredCommanders = filteredCommanders?.concat(neutralCommanders);
             }
             setViewedCommanders(filteredCommanders);
