@@ -63,7 +63,8 @@
       async function submitRequest() {
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get((url + requestInput + '/'), { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        const res_url = requestInput.length > 0 ? (url + requestInput + '/') : url;
+        await axios.get(res_url, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response.data) { setResponse(JSON.stringify(response.data, null, 2)) };
             setAwaitingResponse(false);
         }).catch((error) => { console.error(error) });
