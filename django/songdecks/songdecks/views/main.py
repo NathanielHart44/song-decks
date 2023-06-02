@@ -374,7 +374,7 @@ def add_edit_faction(request, faction_id=None):
         info = {
             'name': request.data.get('name', None),
             'img_url': request.data.get('img_url', None),
-            'neutral': request.data.get('neutral', 'false')
+            'neutral': request.data.get('neutral', False)
         }
         for key in info:
             if info[key] is None:
