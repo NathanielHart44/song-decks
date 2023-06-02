@@ -30,3 +30,28 @@ docker compose up --build
 ```
 docker compose run web python3 /songdecks/manage.py createsuperuser
 ```
+
+## Updating Frontend in Production
+
+Run the following command locally to upload the build to Docker Hub:
+```
+docker build --platform=linux/amd64 -t cmajorb/asoiaf-decks:latest-amd64 .
+```
+```
+docker images
+```
+(Use this to get the id for the next step)
+```
+docker tag d7ee5edc6631 cmajorb/asoiaf-decks:latest-amd64
+docker push cmajorb/asoiaf-decks:latest-amd64
+```
+(replace the tag with your own)
+
+## Updating Backend in Production
+
+Run the following commands:
+
+```
+git pull
+docker compose up --build -d
+```
