@@ -302,11 +302,11 @@ def add_edit_card(request, card_id=None):
             'replaces_id': request.data.get('replaces_id', None),
         }
         for key in info:
-            if not card_id and key == 'commander_id':
+            if key == 'commander_id':
                 continue
-            if not info['replaces_id'] and key == 'replaces_id':
+            elif not info['replaces_id'] and key == 'replaces_id':
                 continue
-            if info[key] is None:
+            elif info[key] is None:
                 return JsonResponse({"success": False, "response": f"Missing {key}."})
         faction_search = Faction.objects.filter(id=info['faction_id'])
         if faction_search.count() == 0:
