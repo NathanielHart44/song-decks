@@ -371,10 +371,11 @@ def delete_card(request, card_id):
 @api_view(['POST'])
 def add_edit_faction(request, faction_id=None):
     try:
+        neutral_str = bool(request.data.get('neutral', 'false'))
         info = {
             'name': request.data.get('name', None),
             'img_url': request.data.get('img_url', None),
-            'neutral': bool(request.data.get('neutral', False))
+            'neutral': True if neutral_str.lower() == 'true' else False
         }
         for key in info:
             if info[key] is None:
