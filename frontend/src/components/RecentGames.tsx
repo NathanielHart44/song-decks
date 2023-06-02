@@ -12,9 +12,13 @@ import {
     keyframes,
     useTheme
 } from "@mui/material";
+import axios from "axios";
+import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
 import { Game } from "src/@types/types";
 import Iconify from "src/components/Iconify";
+import { MAIN_API } from "src/config";
+import { processTokens } from "src/utils/jwt";
 
 // ----------------------------------------------------------------------
 
@@ -24,6 +28,8 @@ type RecentGameProps = {
 };
 
 export function RecentGames({ isMobile, games }: RecentGameProps) {
+
+    const theme = useTheme();
     const display_amt = 5;
     const [displayedGames, setDisplayedGames] = useState<Game[]>(games.slice(0, display_amt));
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -32,9 +38,6 @@ export function RecentGames({ isMobile, games }: RecentGameProps) {
         const initialDisplayedGames = games.slice(0, display_amt);
         setDisplayedGames(initialDisplayedGames);
     }, [games]);
-
-    const theme = useTheme();
-    const bg_color = alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity);
 
     function getPulse() {
         return keyframes({
@@ -67,22 +70,11 @@ export function RecentGames({ isMobile, games }: RecentGameProps) {
                 <Table size={'small'} stickyHeader>
                     <TableBody sx={{ '& > :nth-of-type(2n+2)': { bgcolor: alpha(theme.palette.primary.main, 0.05) } }}>
                         { displayedGames.map((game) => (
-                            <TableRow
+                            <GameRow
                                 key={game.id}
-                                sx={{ transition: '0.25s background-color;', '&:hover': { bgcolor: bg_color } }}
-                            >
-                                { isMobile ?
-                                    <TableCell component="th" scope="row" align="center">{game.commander.name}</TableCell> :
-                                    <TableCell component="th" scope="row" align="center">{game.faction.name}</TableCell> }
-                                { !isMobile && <TableCell align="center">{game.commander.name}</TableCell> }
-                                {/* <TableCell align="center">
-                                    <Button variant="contained" disabled={true}>Resume Game</Button>
-                                </TableCell> */}
-                                <TableCell align="center">Round: {game.round}</TableCell>
-                                <TableCell align="center">
-                                    <Button variant="contained" disabled={game.status === 'in-progress' ? false : true}>End Game</Button>
-                                </TableCell>
-                            </TableRow>
+                                game={game}
+                                isMobile={isMobile}
+                            />
                         ))}
                     </TableBody>
                 </Table>
@@ -103,5 +95,59 @@ export function RecentGames({ isMobile, games }: RecentGameProps) {
                 </IconButton>
             }
         </Stack>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type GameRowProps = {
+    game: Game;
+    isMobile: boolean;
+};
+
+function GameRow({ game, isMobile }: GameRowProps) {
+
+    const { enqueueSnackbar } = useSnackbar();
+    const theme = useTheme();
+    const bg_color = alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity);
+
+    const endGame = async () => {
+        let token = localStorage.getItem('accessToken') ?? '';
+        await axios.get(`${MAIN_API.base_url}end_game/${(game.id).toString()}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            if (response?.data && response.data.success) {
+                const res = response.data.response;
+                enqueueSnackbar(res);
+                game.status = 'completed';
+            } else {
+                enqueueSnackbar(response.data.response);
+            };
+        }).catch((error) => {
+            console.error(error);
+        })
+    };
+
+    return (
+        <TableRow
+            key={game.id}
+            sx={{ transition: '0.25s background-color;', '&:hover': { bgcolor: bg_color } }}
+        >
+            { isMobile ?
+                <TableCell component="th" scope="row" align="center">{game.commander.name}</TableCell> :
+                <TableCell component="th" scope="row" align="center">{game.faction.name}</TableCell> }
+            { !isMobile && <TableCell align="center">{game.commander.name}</TableCell> }
+            {/* <TableCell align="center">
+                <Button variant="contained" disabled={true}>Resume Game</Button>
+            </TableCell> */}
+            <TableCell align="center">Round: {game.round}</TableCell>
+            <TableCell align="center">
+                <Button
+                    variant="contained"
+                    disabled={game.status === 'in-progress' ? false : true}
+                    onClick={() => processTokens(endGame)}
+                >
+                    End Game
+                </Button>
+            </TableCell>
+        </TableRow>
     );
 };

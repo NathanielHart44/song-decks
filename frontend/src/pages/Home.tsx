@@ -62,8 +62,12 @@ export default function Home() {
         <Page title="Home">
             <Stack spacing={6} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 <Stack spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                    <Button variant={'contained'} onClick={() => { navigate(PATH_PAGE.select_deck) }}>
-                        Start New Game
+                    <Button
+                        variant={'contained'}
+                        onClick={() => { navigate(PATH_PAGE.select_deck) }}
+                        size={'large'}
+                    >
+                        New Game
                     </Button>
                 </Stack>
                 <Box width={'75%'}>
