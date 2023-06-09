@@ -52,6 +52,7 @@ const reValidateToken = async (refreshToken: string | null) => {
 
 const logout = async () => {
   setSession(null, null);
+  localStorage.removeItem('currentUser');
   window.location.href = '/auth/login';
 };
 

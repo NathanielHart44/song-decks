@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Stack, Alert, IconButton, InputAdornment, TextField } from '@mui/material';
 import useAuth from '../../../hooks/useAuth';
-import useIsMountedRef from '../../../hooks/useIsMountedRef';
 import Iconify from '../../../components/Iconify';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm } from 'react-hook-form';
@@ -18,7 +17,6 @@ type FormValuesProps = {
 export default function LoginForm() {
   const { login } = useAuth();
   const [loginError, setLoginError] = useState({ error: null });
-  const isMountedRef = useIsMountedRef();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -42,17 +40,15 @@ export default function LoginForm() {
     try {
       await login(data.username, data.password);
     } catch (error) {
-      if (isMountedRef.current) {
-        var message = null;
-        if(JSON.parse(error).password) {
-          message = JSON.parse(error).password;
-        } else if(JSON.parse(error).username) {
-          message = JSON.parse(error).username;
-        } else {
-          message = JSON.parse(error).detail;
-        }
-        setLoginError({ error: message });
+      var message = null;
+      if(JSON.parse(error).password) {
+        message = JSON.parse(error).password;
+      } else if(JSON.parse(error).username) {
+        message = JSON.parse(error).username;
+      } else {
+        message = JSON.parse(error).detail;
       }
+      setLoginError({ error: message });
     }
   };
   return (

@@ -72,6 +72,7 @@
 
       function resetReponse() { setResponse(null); clearRequestText() };
 
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       useEffect(() => { if (!open) resetReponse() }, [open]);
 
       return (

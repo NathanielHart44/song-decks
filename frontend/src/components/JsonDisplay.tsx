@@ -61,6 +61,7 @@ function JsonDisplay({ label, val, term, valIsSingle }: JsonDisplayProps){
       } else {
           return label;
       }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [label, term]);
 
     const valToRender = useMemo(() => {
@@ -69,6 +70,7 @@ function JsonDisplay({ label, val, term, valIsSingle }: JsonDisplayProps){
       } else {
           return val;
       }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [val, term]);
 
     if(minimized){

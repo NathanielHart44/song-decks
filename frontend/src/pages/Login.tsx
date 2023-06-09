@@ -16,6 +16,7 @@ export default function Login() {
   return (
     <Page title="Login">
       <Container maxWidth="sm">
+
         <LoginForm />
 
         <Typography variant="body2" align="center" sx={{ mt: 3 }}>
