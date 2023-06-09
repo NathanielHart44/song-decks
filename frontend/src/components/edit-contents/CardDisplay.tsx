@@ -35,6 +35,7 @@ export function CardDisplay({ isMobile, card, cards, defaultCards, factions, com
                 <img
                     src={card.img_url}
                     alt={card.card_name}
+                    loading="lazy"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
             </Box>
             <EditAddCard

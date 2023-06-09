@@ -32,6 +32,7 @@ export default function CardImg({ img_url, card_name, hide, has_text, onClickFun
                         border: `1px solid ${theme.palette.grey[900]}`,
                         borderRadius: '6px',
                     }}
+                    loading="lazy"
                 />
                 { has_text && (
                     <Box
@@ -79,6 +80,7 @@ export function DefaultCardImg() {
             <img
                 src="/icons/crown.svg"
                 alt="Overlay SVG"
+                loading="lazy"
             />
         </Box>
     );

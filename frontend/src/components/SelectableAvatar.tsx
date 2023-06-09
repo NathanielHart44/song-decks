@@ -41,7 +41,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, default
                         sx={avatarStyles}
                         onClick={() => { handleClick(item); }}
                     >
-                        <img src={defaultIcon} alt={altText} />
+                        <img src={defaultIcon} alt={altText} loading="lazy" />
                     </Avatar>
                 )}
                 <Typography variant={'caption'} align={'center'}>
