@@ -1,5 +1,5 @@
 import { Navigate, useRoutes } from 'react-router-dom';
-import { PATH_AFTER_LOGIN } from 'src/config';
+// import { PATH_AFTER_LOGIN } from 'src/config';
 // pages
 import NotFound from 'src/pages/NotFound';
 import Home from 'src/pages/Home';

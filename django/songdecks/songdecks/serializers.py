@@ -36,7 +36,7 @@ class CommanderSerializer(serializers.ModelSerializer):
 class CardTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CardTemplate
-        fields = ('id', 'card_name', 'img_url', 'faction', 'commander', 'game_count', 'play_count', 'discard_count')
+        fields = ('id', 'card_name', 'img_url', 'faction', 'commander', 'game_count', 'play_count', 'discard_count', 'replaces')
         depth = 1
 
 class GameSerializer(serializers.ModelSerializer):

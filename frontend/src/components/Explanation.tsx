@@ -11,7 +11,7 @@ import {
   Dialog,
   DialogContent
 } from '@mui/material';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { createRef, useContext, useEffect, useState } from 'react';
 import { NAVBAR } from 'src/config';
 import Iconify from './Iconify';
 import { useNavigate } from 'react-router-dom';
@@ -24,13 +24,6 @@ export default function Explanation() {
 
   const theme = useTheme();
   const { isMobile } = useContext(MetadataContext);
-
-  const handleClick = () => {
-    window.scrollTo({
-      top: window.innerHeight,
-      behavior: 'smooth',
-    });
-  };
 
   const info = [
     {
@@ -71,21 +64,13 @@ export default function Explanation() {
   ];
   const card_height_percent = isMobile ? 60 : 50;
   const card_width_percent = isMobile ? 90 : 75;
+  const card_spacing = 60;
+  const cardRefs = info.map(() => createRef<HTMLDivElement>());
 
-  function getPulse() {
-    return keyframes({
-      '0%': {
-        transform: 'scale(0.9)',
-        opacity: 1,
-      },
-      '50%': {
-        transform: 'scale(1.1)',
-        opacity: 0.65,
-      },
-      '100%': {
-        transform: 'scale(0.9)',
-        opacity: 1,
-      },
+  const handleScrollClick = (index: number) => {
+    window.scrollTo({
+      top: window.innerHeight * (index + 1),
+      behavior: 'smooth',
     });
   };
 
@@ -108,7 +93,7 @@ export default function Explanation() {
           <IconButton
             size="large"
             color="inherit"
-            onClick={handleClick}
+            onClick={() => { handleScrollClick(0) }}
           >
             <Iconify
               icon={'eva:arrow-ios-downward-outline'}
@@ -122,7 +107,7 @@ export default function Explanation() {
       </Stack>
 
       <Stack
-        spacing={60}
+        spacing={card_spacing}
         alignItems={'center'}
         sx={{ width: '100%', height: '100%' }}
       >
@@ -131,10 +116,12 @@ export default function Explanation() {
             key={index}
             index={index}
             isMobile={isMobile}
+            cardRef={cardRefs[index]}
             info={info}
             textGroup={textGroup}
             card_height_percent={card_height_percent}
             card_width_percent={card_width_percent}
+            card_spacing={card_spacing}
           />
         ))}
       </Stack>
@@ -148,6 +135,7 @@ export default function Explanation() {
 type StackCardProps = {
   index: number;
   isMobile: boolean;
+  cardRef: React.RefObject<HTMLDivElement>;
   info: {
     title: string;
     text: string;
@@ -160,16 +148,16 @@ type StackCardProps = {
   };
   card_height_percent: number;
   card_width_percent: number;
+  card_spacing: number;
 };
 
-function StackCard({ index, isMobile, info, textGroup, card_height_percent, card_width_percent }: StackCardProps) {
+function StackCard({ index, isMobile, cardRef, info, textGroup, card_height_percent, card_width_percent, card_spacing }: StackCardProps) {
 
   const theme = useTheme();
   const navigate = useNavigate();
   const minHeight = isMobile ? 30 : 50;
   const isLastCard = index === info.length - 1;
   const [width, setWidth] = useState<number>(card_width_percent);
-  const cardRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
   const [popUpOpen, setPopUpOpen] = useState(false);
@@ -197,6 +185,7 @@ function StackCard({ index, isMobile, info, textGroup, card_height_percent, card
         observer.unobserve(cardRef.current);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -220,7 +209,7 @@ function StackCard({ index, isMobile, info, textGroup, card_height_percent, card
     return () => {
       window.removeEventListener('scroll', handleScroll);
     }
-  }, [index, card_width_percent, isLastCard]);
+  }, [index, card_width_percent, isLastCard, cardRef]);
 
   const top_location =
     isLastCard ? `calc(30% + ${((info.length - 2) * 20) - (isMobile ? (NAVBAR.BASE_HEIGHT + 20) : NAVBAR.BASE_HEIGHT)}px)`
@@ -228,76 +217,118 @@ function StackCard({ index, isMobile, info, textGroup, card_height_percent, card
 
   const flexDirection = index % 2 === 0 ? 'row' : 'row-reverse';
 
+  const handleScrollClick = (index: number) => {
+    if (!cardRef.current) return;
+    const cardHeight = cardRef.current.offsetHeight;
+    const stackSpacing = theme.spacing(card_spacing);
+    const scrollPosition = (cardHeight * (index + 1)) + (parseInt(stackSpacing) * (index + 1));
+  
+    window.scrollTo({
+      top: scrollPosition,
+      behavior: 'smooth',
+    });
+  };
+
   return (
-    <Card
-      ref={cardRef}
-      sx={{
-        p: 2,
-        width: `${isVisible ? width : 100}%`,
-        minHeight: `${minHeight}px`,
-        height: `max(${card_height_percent}vh, ${minHeight}px)`,
-        position: isSticky ? 'sticky' : 'relative',
-        top: top_location,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <CardContent>
-        <Stack spacing={1} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
-          { textGroup.title !== 'BUTTON' &&
-            <Typography variant={'h5'} sx={{ textAlign: 'center', mb: 0 }}>
-              {textGroup.title}
-            </Typography>
+    <>
+      <Card
+        ref={cardRef}
+        sx={{
+          p: 2,
+          width: `${isVisible ? width : 100}%`,
+          minHeight: `${minHeight}px`,
+          height: `max(${card_height_percent}vh, ${minHeight}px)`,
+          position: isSticky ? 'sticky' : 'relative',
+          top: top_location,
+          justifyContent: 'center',
+          alignItems: 'center',
+          border: `1px solid ${theme.palette.primary.darker}`,
+        }}
+      >
+          { !isLastCard &&
+            <IconButton
+              sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: `calc(50% - ${30}px)`,
+              }}
+              size="large"
+              color="inherit"
+              onClick={() => { handleScrollClick(index + 1) }}
+            >
+              <Iconify
+                icon={'eva:arrow-ios-downward-outline'}
+                width={30}
+                height={30}
+                color={theme.palette.primary.main}
+                sx={{ animation: `${getPulse()} 2s ease-in-out infinite` }}
+              />
+            </IconButton>
           }
-        </Stack>
-      </CardContent>
-      <CardContent sx={{ py: 0, px: 1 }}>
-        <Box
-          sx={{
-              display: 'flex',
-              flexDirection: flexDirection,
-          }}
-        >
-          <Stack spacing={6} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
-            <Typography paragraph sx={{ textAlign: 'center', mb: 0 }}>
-              {textGroup.text}
-            </Typography>
-            { textGroup.title === 'Sign Up' &&
-              <Stack alignItems={'center'} justifyContent={'center'} sx={{ width: '50%' }}>
-                <Button variant={'contained'} fullWidth onClick={() => { navigate(PATH_AUTH.register) }}>
-                  Get Started
-                </Button>
-              </Stack>
+        <CardContent>
+          <Stack spacing={1} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
+            { textGroup.title !== 'BUTTON' &&
+              <Typography variant={'h5'} sx={{ textAlign: 'center', mb: 0 }}>
+                {textGroup.title}
+              </Typography>
             }
           </Stack>
+        </CardContent>
+        <CardContent sx={{ py: 0, px: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : flexDirection,
+            }}
+          >
+            <Stack spacing={6} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
+              <Typography paragraph sx={{ textAlign: 'center', mb: 0 }}>
+                {textGroup.text}
+              </Typography>
+              { textGroup.title === 'Sign Up' &&
+                <Stack alignItems={'center'} justifyContent={'center'} sx={{ width: '50%' }}>
+                  <Button variant={'contained'} fullWidth onClick={() => { navigate(PATH_AUTH.register) }}>
+                    Get Started
+                  </Button>
+                </Stack>
+              }
+            </Stack>
 
-          { textGroup.image.length === 1 &&
-            <CardContent
-              onClick={handleClick}
-              sx={{ cursor: 'pointer', py: 0, pl: index % 2 === 0 ? 1 : 0, pr: index % 2 === 0 ? 0 : 1 }}
-            >
-              <img
-                src={textGroup.image[0]}
-                alt={`Example ${index+1}`}
-                style={{
-                    height: `max(${card_height_percent * (isMobile ? 0.4 : 0.6)}vh, ${minHeight}px)`,
-                    border: `1px solid ${theme.palette.primary.main}`,
-                    borderRadius: '6px',
-                    objectFit: 'cover',
-                    width: '100%',
+            { textGroup.image.length === 1 &&
+              <CardContent
+                onClick={handleClick}
+                sx={{
+                  cursor: 'pointer',
+                  ...(!isMobile && {
+                    py: 0,
+                    pl: index % 2 === 0 ? 1 : 0,
+                    pr: index % 2 === 0 ? 0 : 1
+                  }),
                 }}
-                loading="lazy"
-              />
-              <Popup
-                image={textGroup.image[0]}
-                open={popUpOpen}
-                handleClose={handleClick}
-              />
-            </CardContent>
-          }
-        </Box>
-      </CardContent>
-    </Card>
+              >
+                <img
+                  src={textGroup.image[0]}
+                  alt={`Example ${index+1}`}
+                  style={{
+                      height: `max(${card_height_percent * (isMobile ? 0.4 : 0.6)}vh, ${minHeight}px)`,
+                      border: `1px solid ${theme.palette.grey.default_canvas}`,
+                      borderRadius: '6px',
+                      objectFit: 'cover',
+                      width: '100%',
+                  }}
+                  loading="lazy"
+                />
+                <Popup
+                  image={textGroup.image[0]}
+                  open={popUpOpen}
+                  handleClose={handleClick}
+                />
+              </CardContent>
+            }
+          </Box>
+        </CardContent>
+      </Card>
+    </>
   )
 }
 
@@ -339,3 +370,22 @@ function Popup({ image, open, handleClose }: PopupProps) {
     </Dialog>
   )
 }
+
+// ----------------------------------------------------------------------
+
+function getPulse() {
+  return keyframes({
+    '0%': {
+      transform: 'scale(0.9)',
+      opacity: 1,
+    },
+    '50%': {
+      transform: 'scale(1.1)',
+      opacity: 0.65,
+    },
+    '100%': {
+      transform: 'scale(0.9)',
+      opacity: 1,
+    },
+  });
+};
