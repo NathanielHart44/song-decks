@@ -14,12 +14,13 @@ import {
 import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MetadataContext } from 'src/contexts/MetadataContext';
-import { PATH_PAGE } from 'src/routes/paths';
+import { PATH_AUTH, PATH_PAGE } from 'src/routes/paths';
 // components
 import Iconify from './Iconify';
 import Logo from './Logo';
 import { logout } from 'src/utils/jwt';
 import { User } from 'src/@types/types';
+import { NAVBAR } from 'src/config';
 
 // ----------------------------------------------------------------------
 
@@ -28,10 +29,12 @@ export default function NavBar() {
     const { isMobile, currentUser } = useContext(MetadataContext);
     const theme = useTheme();
     const is_login = window.location.href.indexOf("login") > -1;
-    
+    const navigate = useNavigate();
+
     return (
         // <HideOnScroll>
             <AppBar sx={{
+                height: NAVBAR.BASE_HEIGHT,
                 backgroundColor: theme.palette.grey.default_canvas,
             }}>
                 <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
@@ -41,6 +44,9 @@ export default function NavBar() {
                             { !isMobile && <MenuButtons currentUser={currentUser} /> }
                             { isMobile && <PositionedMenu currentUser={currentUser} /> }
                         </>
+                    }
+                    { !currentUser && !is_login &&
+                        <Button color="inherit" onClick={() => { navigate(PATH_AUTH.login) }}>Login</Button>
                     }
                 </Toolbar>
             </AppBar>

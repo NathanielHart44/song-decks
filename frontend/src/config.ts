@@ -9,6 +9,7 @@ export const HOST_API = '';
 
 export const MAIN_API = {
   // base_url: "http://localhost:8080/",
+  // base_url: "http://192.168.1.226:8080/",
   base_url: "https://asoiaf-decks.com:8080/",
 };
 
@@ -16,3 +17,6 @@ export const MAIN_API = {
 // ----------------------------------------------------------------------
 export const PATH_AFTER_LOGIN = PATH_PAGE.home;
 export const IMG_STORAGE = 'https://asoiaf-app.s3.us-west-1.amazonaws.com/'
+export const NAVBAR = {
+  BASE_HEIGHT: 64,
+}
