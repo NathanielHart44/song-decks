@@ -42,15 +42,15 @@ export function RecentGames({ isMobile, games }: RecentGameProps) {
     function getPulse() {
         return keyframes({
             '0%': {
-                transform: 'scale(0.95)',
+                transform: 'scale(0.9)',
                 opacity: 1,
             },
             '50%': {
-                transform: 'scale(1.05)',
+                transform: 'scale(1.1)',
                 opacity: 0.65,
             },
             '100%': {
-                transform: 'scale(0.95)',
+                transform: 'scale(0.9)',
                 opacity: 1,
             },
         });
