@@ -12,6 +12,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('current_user/', views.current_user),
     path('register/', permission_classes([AllowAny])(views.register)),
+    path('submit_feedback/', views.submit_feedback),
 
     # ----------------------------------------------------------------------
 
@@ -63,6 +64,8 @@ urlpatterns = [
 
     path('get_all_users/', views.get_all_users),
     path('toggle_moderator/<str:username>/', views.toggle_moderator),
+    path('reset_password/<str:username>/', views.reset_password),
+    path('games_played_info/', views.games_played_info),
 
     # ----------------------------------------------------------------------
 

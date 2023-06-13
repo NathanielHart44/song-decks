@@ -1,4 +1,11 @@
+from songdecks.settings import EMAIL_HOST_USER
+from django.core.mail import send_mail
+from textwrap import dedent
 from songdecks.models import PlayerCard, UserCardStats
+
+# ----------------------------------------------------------------------
+
+domain = "https://asoiaf-decks.com"
 
 # ----------------------------------------------------------------------
 
@@ -39,3 +46,25 @@ def handle_card_updates(game):
 def get_profile_game_cards(game, profile):
     game_cards = PlayerCard.objects.filter(game=game, owner=profile)
     return game_cards
+
+def send_email_notification(recipient, subject, message, filename=None):
+    try:
+        subject = subject
+        message = dedent(f"""{message}\n\n\nTo unsubscribe from email notifications, please go to {domain}/user/account.
+        """)
+        from_email = EMAIL_HOST_USER
+        recipient_list = recipient if isinstance(recipient, list) else [recipient]
+        demo_email = "demo@test.com"
+        if demo_email in recipient_list:
+            recipient_list.remove(demo_email)
+        email = send_mail(
+            subject,
+            message,
+            from_email,
+            recipient_list
+        )
+        if filename != None:
+            email.attach_file(filename)
+        email.send(fail_silently=False)
+    except Exception as e:
+        print(e)

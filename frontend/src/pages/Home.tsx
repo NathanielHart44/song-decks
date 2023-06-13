@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Divider, Stack } from "@mui/material";
+import { Box, Button, Card, CircularProgress, Dialog, DialogContent, Divider, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import { PATH_PAGE } from "src/routes/paths";
 import { processTokens } from "src/utils/jwt";
 import { RecentGames } from "../components/RecentGames";
 import { PlayerStats } from "../components/PlayerStats";
+import ContactPop from "src/components/ContactPop";
 
 // ----------------------------------------------------------------------
 
@@ -24,7 +25,10 @@ export default function Home() {
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
     const [recentGames, setRecentGames] = useState<Game[]>([]);
     const [playerStats, setPlayerStats] = useState<UserCardStats[]>([]);
+    const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
 
+    const handleFeedback = () => { setFeedbackOpen(!feedbackOpen) };
+    
     const getRecentGames = async () => {
         let token = localStorage.getItem('accessToken') ?? '';
         await axios.get(`${MAIN_API.base_url}get_recent_games/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
@@ -61,14 +65,27 @@ export default function Home() {
     return (
         <Page title="Home">
             <Stack spacing={6} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Stack spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Stack spacing={2} width={isMobile ? '50%' : '25%'} justifyContent={'center'} alignItems={'center'}>
                     <Button
                         variant={'contained'}
                         onClick={() => { navigate(PATH_PAGE.select_deck) }}
                         size={'large'}
+                        fullWidth
                     >
                         New Game
                     </Button>
+                    <Button
+                        variant={'contained'}
+                        onClick={handleFeedback}
+                        size={'large'}
+                        fullWidth
+                    >
+                        Leave Feedback
+                    </Button>
+                    <ContactPop
+                        popOpen={feedbackOpen}
+                        setPopOpen={setFeedbackOpen}
+                    />
                 </Stack>
                 <Box width={'75%'}>
                     <Divider flexItem />

@@ -21,7 +21,7 @@ import { MAIN_API } from 'src/config';
 export default function AdminPage() {
 
     return (
-    <Page title="Gateway: Admin">
+    <Page title="Admin">
         <Container maxWidth={false}>
         <Stack spacing={2} alignItems={'center'} sx={{ width: '100%' }}>
             <AccordianDiv title="Core" tasks={coreAdminTasks}/>
@@ -82,4 +82,5 @@ const main_url = `${MAIN_API.base_url}`;
 const coreAdminTasks = [
     { title: 'See All Users', url: `${main_url}get_all_users/`, placeholder: '' },
     { title: 'Toggle Moderator Status', url: `${main_url}toggle_moderator/`, placeholder: 'Username' },
+    { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
 ];

@@ -28,8 +28,6 @@ export default function NavBar() {
 
     const { isMobile, currentUser } = useContext(MetadataContext);
     const theme = useTheme();
-    const is_login = window.location.href.indexOf("login") > -1;
-    const navigate = useNavigate();
 
     return (
         // <HideOnScroll>
@@ -39,15 +37,8 @@ export default function NavBar() {
             }}>
                 <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
                     <Logo />
-                    { currentUser && !is_login &&
-                        <>
-                            { !isMobile && <MenuButtons currentUser={currentUser} /> }
-                            { isMobile && <PositionedMenu currentUser={currentUser} /> }
-                        </>
-                    }
-                    { !currentUser && !is_login &&
-                        <Button color="inherit" onClick={() => { navigate(PATH_AUTH.login) }}>Login</Button>
-                    }
+                    { !isMobile && <MenuButtons currentUser={currentUser} /> }
+                    { isMobile && <PositionedMenu currentUser={currentUser} /> }
                 </Toolbar>
             </AppBar>
         // </HideOnScroll>
@@ -77,18 +68,38 @@ export default function NavBar() {
 // ----------------------------------------------------------------------
 
 type MenuButtonsProps = {
-    currentUser: User;
+    currentUser?: User;
 };
 
 function MenuButtons({ currentUser }: MenuButtonsProps) {
-    const is_moderator = currentUser.moderator;
+    const is_moderator = currentUser?.moderator;
     const navigate = useNavigate();
     return (
         <Stack direction={'row'} spacing={1}>
-            { is_moderator && <Button color="inherit" onClick={() => { navigate(PATH_PAGE.moderator) }}>Admin</Button> }
-            { is_moderator && <Button color="inherit" onClick={() => { navigate(PATH_PAGE.manage) }}>Manage</Button> }
-            <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Home</Button>
-            <Button color="inherit" onClick={() => { logout() }}>Logout</Button>
+            { currentUser ?
+                <>
+                    { is_moderator && <Button color="inherit" onClick={() => { navigate(PATH_PAGE.moderator) }}>Admin</Button> }
+                    { is_moderator && <Button color="inherit" onClick={() => { navigate(PATH_PAGE.manage) }}>Manage</Button> }
+                    <Button color="inherit" onClick={() => { navigate(PATH_PAGE.home) }}>Home</Button>
+                    <Button color="inherit" onClick={() => { logout() }}>Logout</Button>
+                </> :
+                <>
+                    <Button
+                        color="inherit"
+                        // variant={'contained'}
+                        onClick={() => { navigate(PATH_AUTH.register) }}
+                    >
+                        Sign Up
+                    </Button>
+                    <Button
+                        // color="inherit"
+                        variant={'contained'}
+                        onClick={() => { navigate(PATH_AUTH.login) }}
+                    >
+                        Login
+                    </Button>
+                </>
+            }
         </Stack>
     )
 }
@@ -96,7 +107,7 @@ function MenuButtons({ currentUser }: MenuButtonsProps) {
 // ----------------------------------------------------------------------
 
 function PositionedMenu({ currentUser }: MenuButtonsProps) {
-    const is_moderator = currentUser.moderator;
+    const is_moderator = currentUser?.moderator;
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => { setAnchorEl(event.currentTarget) };
@@ -127,10 +138,19 @@ function PositionedMenu({ currentUser }: MenuButtonsProps) {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 TransitionComponent={Fade}
             >
-                { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.moderator); handleClose() }}>Admin</MenuItem> }
-                { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem> }
-                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
-                <MenuItem color="inherit" onClick={() => { logout() }}>Logout</MenuItem>
+                { currentUser ?
+                <>
+                    { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.moderator); handleClose() }}>Admin</MenuItem> }
+                    { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem> }
+                    <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
+                    <MenuItem color="inherit" onClick={() => { logout() }}>Logout</MenuItem>
+                </> :
+                <>
+                    <MenuItem color="inherit" onClick={() => { navigate(PATH_AUTH.register); handleClose() }}>Sign Up</MenuItem>
+                    <MenuItem color="inherit" onClick={() => { navigate(PATH_AUTH.login); handleClose() }}>Login</MenuItem>
+                </>
+
+                }
             </Menu>
         </div>
     );

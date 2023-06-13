@@ -1,4 +1,8 @@
-from django.db.models import Q
+from songdecks.settings import EMAIL_HOST_USER
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
@@ -9,7 +13,7 @@ from songdecks.serializers import (
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
-from songdecks.views.helpers import handle_card_updates, get_profile_game_cards
+from songdecks.views.helpers import handle_card_updates, get_profile_game_cards, send_email_notification
 
 # ----------------------------------------------------------------------
 # Game setup/general views
@@ -499,5 +503,78 @@ def toggle_moderator(request, username):
         user.profile.save()
         updated_profile_status = Profile.objects.filter(user=user).first().moderator
         return JsonResponse({"success": True, "response": f"Successfully toggled moderator status to {updated_profile_status} for {user.username}."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def reset_password(request, username):
+    try:
+        profile = request.user.profile
+        if profile.moderator == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        user_search = User.objects.filter(username=username)
+        if user_search.count() == 0:
+            return JsonResponse({"success": False, "response": "User not found."})
+        user = user_search.first()
+        new_password = User.objects.make_random_password()
+        user.set_password(new_password)
+        user.save()
+        return JsonResponse({"success": True, "response": f"Successfully reset password for {user.username} to: {new_password}"})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def games_played_info(request):
+    try:
+        now = timezone.now()
+        seven_days_ago = now - timedelta(days=7)
+        thirty_days_ago = now - timedelta(days=30)
+
+        # Exclude admin and annotate with total, last 7 days and last 30 days game count
+        profiles = Profile.objects.exclude(user__username='admin').annotate(
+            total_game_count=Coalesce(Count('game', distinct=True), 0),
+            last_7_days_game_count=Coalesce(Count('game', filter=Q(game__created_at__gte=seven_days_ago), distinct=True), 0),
+            last_30_days_game_count=Coalesce(Count('game', filter=Q(game__created_at__gte=thirty_days_ago), distinct=True), 0)
+        )
+
+        moderators = profiles.filter(moderator=True)
+        players = profiles.filter(moderator=False)
+
+        data = {}
+        for key, queryset in [('active_moderators', moderators), ('active_players', players)]:
+            # Calculate total games, active counts and more than 3 games counts
+            total_games = queryset.aggregate(sum=Sum('total_game_count'))['sum']
+            total_active = queryset.filter(total_game_count__gt=0).count()
+            more_than_three_games = queryset.filter(total_game_count__gt=3).count()
+
+            # Annotate completed games count
+            completed_games_count = Game.objects.filter(status='completed', owner__in=queryset).count()
+
+            data[key] = {
+                'total_games': total_games,
+                'total_count': total_active,
+                'more_than_three_games': more_than_three_games,
+                'games_last_seven_days': queryset.filter(last_7_days_game_count__gt=0).count(),
+                'games_last_thirty_days': queryset.filter(last_30_days_game_count__gt=0).count(),
+                'completed_games': completed_games_count
+            }
+        return JsonResponse({"success": True, "response": data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['POST'])
+def submit_feedback(request):
+    try:
+        reply_str = request.data.get('reply', 'false')
+        requested_reply = True if reply_str.lower() == 'true' else False
+        message = request.data.get('feedback', None)
+        if message is None:
+            return JsonResponse({"success": False, "response": "No feedback provided."})
+        send_email_notification(
+            recipient=EMAIL_HOST_USER,
+            subject=f"{request.user.username} - ({request.user.first_name} {request.user.last_name}) - (Reply? {'Y' if requested_reply else 'N'}{'' if not requested_reply else f' - {request.user.email}'})",
+            message=message
+        )
+        return JsonResponse({"success": True, "response": "Successfully submitted feedback."})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
