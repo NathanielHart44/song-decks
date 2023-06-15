@@ -1,4 +1,3 @@
-import './App.css';
 import MainStyle from './components/MainStyle';
 import NavBar from './components/NavBar';
 import NotistackProvider from './components/NotistackProvider';

@@ -128,6 +128,7 @@ function PositionedMenu({ currentUser }: MenuButtonsProps) {
             >
                 <Iconify icon={'eva:menu-outline'} color={'inherit'} />
             </IconButton>
+            { currentUser ? 
             <Menu
                 id="main-menu"
                 aria-labelledby="menu-button"
@@ -138,20 +139,24 @@ function PositionedMenu({ currentUser }: MenuButtonsProps) {
                 transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 TransitionComponent={Fade}
             >
-                { currentUser ?
-                <>
-                    { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.moderator); handleClose() }}>Admin</MenuItem> }
-                    { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem> }
-                    <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
-                    <MenuItem color="inherit" onClick={() => { logout() }}>Logout</MenuItem>
-                </> :
-                <>
-                    <MenuItem color="inherit" onClick={() => { navigate(PATH_AUTH.register); handleClose() }}>Sign Up</MenuItem>
-                    <MenuItem color="inherit" onClick={() => { navigate(PATH_AUTH.login); handleClose() }}>Login</MenuItem>
-                </>
-
-                }
-            </Menu>
+                { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.moderator); handleClose() }}>Admin</MenuItem> }
+                { is_moderator && <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.manage); handleClose() }}>Manage</MenuItem> }
+                <MenuItem color="inherit" onClick={() => { navigate(PATH_PAGE.home); handleClose() }}>Home</MenuItem>
+                <MenuItem color="inherit" onClick={() => { logout() }}>Logout</MenuItem>
+            </Menu> :
+            <Menu
+                id="main-menu"
+                aria-labelledby="menu-button"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                TransitionComponent={Fade}
+            >
+                <MenuItem color="inherit" onClick={() => { navigate(PATH_AUTH.register); handleClose() }}>Sign Up</MenuItem>
+                <MenuItem color="inherit" onClick={() => { navigate(PATH_AUTH.login); handleClose() }}>Login</MenuItem>
+            </Menu> }
         </div>
     );
 }

@@ -1,9 +1,5 @@
 import axios from 'axios';
-// config
 import { HOST_API } from 'src/config';
-
-
-// ----------------------------------------------------------------------
 
 const axiosInstance = axios.create({
   baseURL: HOST_API,
@@ -11,7 +7,13 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject((error.response && error.response.data) || 'Something went wrong')
+  (error) => {
+    if (!error.response) {
+      return Promise.reject('We\'re having trouble connecting. Please try again later.')
+    }
+
+    return Promise.reject((error.response && error.response.data) || 'Something went wrong, please try again later.')
+  }
 );
 
 export default axiosInstance;

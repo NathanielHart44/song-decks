@@ -46,7 +46,11 @@ export default function LoginForm() {
       } else if(JSON.parse(error).username) {
         message = JSON.parse(error).username;
       } else {
-        message = JSON.parse(error).detail;
+        if (JSON.parse(error).detail) {
+          message = JSON.parse(error).detail;
+        } else {
+          message = JSON.parse(error);
+        }
       }
       setLoginError({ error: message });
     }
