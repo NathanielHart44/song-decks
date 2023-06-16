@@ -1,6 +1,6 @@
 import { Link as RouterLink } from 'react-router-dom';
 // @mui
-import { Link, Container, Typography } from '@mui/material';
+import { Link, Container, Stack, Typography } from '@mui/material';
 // routes
 import { PATH_AUTH } from 'src/routes/paths';
 // components
@@ -15,17 +15,23 @@ export default function Login() {
 
   return (
     <Page title="Login">
-      <Container maxWidth="sm">
-
-        <LoginForm />
-
-        <Typography variant="body2" align="center" sx={{ mt: 3 }}>
-          Don’t have an account?{' '}
-          <Link variant="subtitle2" component={RouterLink} to={PATH_AUTH.register}>
-            Get started
-          </Link>
+      <Stack style={{ height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center' }}>
+        <Typography variant="h4" align="center" sx={{ my: 3 }}>
+          Login
         </Typography>
-      </Container>
+
+        <Container maxWidth="sm">
+
+          <LoginForm />
+
+          <Typography variant="body2" align="center" sx={{ mt: 3 }}>
+            Don’t have an account?{' '}
+            <Link variant="subtitle2" component={RouterLink} to={PATH_AUTH.register}>
+              Get started
+            </Link>
+          </Typography>
+        </Container>
+      </Stack>
     </Page>
   );
 }
