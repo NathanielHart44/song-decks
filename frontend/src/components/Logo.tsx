@@ -21,7 +21,7 @@ export default function Logo() {
             <Box sx={{ maxHeight: '100%', maxWidth: '60px' }}>
                 <img src="/icons/throne.png" alt="ASOIAF Logo" loading="lazy" />
             </Box>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}>
+            <Typography variant="h6" component="div" fontFamily={'Metamorphous'} sx={{ flexGrow: 1, whiteSpace: 'nowrap' }}>
                 ASOIAF Decks
             </Typography>
         </Stack>

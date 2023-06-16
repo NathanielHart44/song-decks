@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Divider, Stack } from "@mui/material";
+import { Box, Button, CircularProgress, Divider, Grid, Stack } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -65,28 +65,32 @@ export default function Home() {
     return (
         <Page title="Home">
             <Stack spacing={6} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Stack spacing={2} width={isMobile ? '50%' : '25%'} justifyContent={'center'} alignItems={'center'}>
-                    <Button
-                        variant={'contained'}
-                        onClick={() => { navigate(PATH_PAGE.select_deck) }}
-                        size={'large'}
-                        fullWidth
-                    >
-                        New Game
-                    </Button>
-                    <Button
-                        variant={'contained'}
-                        onClick={handleFeedback}
-                        size={'large'}
-                        fullWidth
-                    >
-                        Leave Feedback
-                    </Button>
+                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
+                        <Button
+                            variant={'contained'}
+                            onClick={() => { navigate(PATH_PAGE.select_deck) }}
+                            size={'large'}
+                            fullWidth
+                        >
+                            New Game
+                        </Button>
+                    </Grid>
+                    <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
+                        <Button
+                            variant={'contained'}
+                            onClick={handleFeedback}
+                            size={'large'}
+                            fullWidth
+                        >
+                            Leave Feedback
+                        </Button>
+                    </Grid>
                     <ContactPop
                         popOpen={feedbackOpen}
                         setPopOpen={setFeedbackOpen}
                     />
-                </Stack>
+                </Grid>
                 <Box width={'75%'}>
                     <Divider flexItem />
                 </Box>

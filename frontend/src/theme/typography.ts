@@ -3,7 +3,7 @@ import { pxToRem, responsiveFontSizes } from '../utils/getFontValue';
 // ----------------------------------------------------------------------
 
 const FONT_PRIMARY = 'Public Sans, sans-serif'; // Google Font
-const FONT_SECONDARY = 'MedievalSharp'; // Google Font
+const FONT_SECONDARY = 'Metamorphous'; // Google Font
 // const FONT_SECONDARY = 'CircularStd, sans-serif'; // Local Font
 
 const typography = {
