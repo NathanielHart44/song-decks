@@ -1,4 +1,7 @@
 import { styled } from "@mui/material";
+import { useLocation } from "react-router-dom";
+import { DEFAULT_BG_IMG, LANDING_BG_IMG } from "src/config";
+import { PATH_AUTH, PATH_PAGE } from "src/routes/paths";
 
 // ----------------------------------------------------------------------
 
@@ -7,6 +10,11 @@ type Props ={
 }
 
 export default function MainStyle({ children }: Props) {
+
+    const { pathname } = useLocation();
+    const landing_or_auth = (pathname === PATH_PAGE.landing) || (pathname === PATH_AUTH.login) || (pathname === PATH_AUTH.register);
+
+    const img = landing_or_auth ? LANDING_BG_IMG : DEFAULT_BG_IMG;
 
     const HEADER = {
         MOBILE_HEIGHT: 88,
@@ -20,6 +28,12 @@ export default function MainStyle({ children }: Props) {
     flexGrow: 1,
     paddingTop: HEADER.MOBILE_HEIGHT,
     paddingBottom: HEADER.MOBILE_OFFSET_HEIGHT,
+    backgroundImage: img,
+    backgroundPosition: 'center',
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed',
+    minHeight: '100%',
     [theme.breakpoints.down('lg')]: {
         paddingLeft: 10,
         paddingRight: 10,

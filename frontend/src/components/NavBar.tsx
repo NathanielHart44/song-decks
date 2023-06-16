@@ -31,10 +31,12 @@ export default function NavBar() {
 
     return (
         // <HideOnScroll>
-            <AppBar sx={{
-                height: NAVBAR.BASE_HEIGHT,
-                backgroundColor: theme.palette.grey.default_canvas,
-            }}>
+            <AppBar
+                sx={{
+                    height: NAVBAR.BASE_HEIGHT,
+                    backgroundColor: theme.palette.grey.default_canvas,
+                }}
+            >
                 <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
                     <Logo />
                     { !isMobile && <MenuButtons currentUser={currentUser} /> }
