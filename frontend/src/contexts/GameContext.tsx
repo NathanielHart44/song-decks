@@ -24,9 +24,8 @@ export const GameContext = createContext<{
     discardCard: PlayerCard | null;
     setDiscardCard: (card: PlayerCard | null) => void;
 
-    selectedSection: HTMLDivElement | null;
-    setSelectedSection: (section: HTMLDivElement | null) => void;
-    loadSelectedSection: (section_id: string | null) => void;
+    selectedSection: string | null;
+    setSelectedSection: (section_id: string | null) => void;
 }>
 ({
     allCards: [],
@@ -51,7 +50,6 @@ export const GameContext = createContext<{
 
     selectedSection: null,
     setSelectedSection: () => {},
-    loadSelectedSection: () => {},
 });
 
 export default function GameProvider({ children }: Props) {
@@ -72,37 +70,9 @@ export default function GameProvider({ children }: Props) {
     const [inDiscard, setInDiscard] = useState<PlayerCard[]>([]);
     const [discardCard, setDiscardCard] = useState<PlayerCard | null>(null);
 
-    const [selectedSection, setSelectedSection] = useState<HTMLDivElement | null>(null);
-
-    function loadSelectedSection(section_id: string | null) {
-        if (typeof window !== 'undefined') {
-            const waitForElement = (section: string, retries: number = 30) => {
-                if (retries <= 0) return;
-    
-                const allElements = document.getElementsByTagName("*");
-                const sectionElement = Array.from(allElements).find((element) => element.id === section) as HTMLDivElement;
-    
-                if (sectionElement) {
-                    setSelectedSection(sectionElement);
-                } else {
-                    setTimeout(() => waitForElement(section, retries - 1), 100);
-                }
-            };
-    
-            if (section_id) {
-                waitForElement(section_id);
-            } else {
-                setSelectedSection(null);
-            }
-        }
-    };
+    const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const section = localStorage.getItem('selectedSection');
-            loadSelectedSection(section);
-        }
-
         if (allCards && allCards.length > 0) {
             let in_deck: PlayerCard[] = [];
             let in_hand: PlayerCard[] = [];
@@ -135,7 +105,7 @@ export default function GameProvider({ children }: Props) {
 
     useEffect(() => {
         if (selectedSection) {
-            const section_id = selectedSection.id;
+            const section_id = selectedSection;
             localStorage.setItem('selectedSection', section_id);
 
             if (section_id === 'Deck') {
@@ -152,10 +122,9 @@ export default function GameProvider({ children }: Props) {
 
     useEffect(() => {
         if (selectedSection) {
-            const section_id = selectedSection.id;
+            const section_id = selectedSection;
             if (section_id === 'Deck') {
                 // setSelectedCard(deckCard);
-                // only need to worry about this once we add flipping deck functionality
             } else if (section_id === 'Hand') {
                 if (handCard) {
                     setSelectedCard(handCard);
@@ -203,7 +172,6 @@ export default function GameProvider({ children }: Props) {
 
                 selectedSection,
                 setSelectedSection,
-                loadSelectedSection,
             }}
         >
             {children}

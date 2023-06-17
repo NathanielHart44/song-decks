@@ -1,15 +1,14 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
 import { ACTION_TYPE, PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
-import { Backdrop, Button, Slide, Stack, TextField, useTheme } from "@mui/material";
-import { MetadataContext } from "src/contexts/MetadataContext";
+import { Backdrop, Button, Grid, Slide, Stack, TextField, useTheme } from "@mui/material";
 
 // ----------------------------------------------------------------------
 type ButtonProps = {
-    category: 'hand' | 'play' | 'discard';
+    category: 'hand' | 'play' | 'discard' | 'deck';
     selected: boolean;
     currentCard: PlayerCard;
     gameID: string;
@@ -20,12 +19,12 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
 
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
-    const [updatePlayNotes, setUpdatePlayNotes] = useState<string>(currentCard.play_notes ?? '');
+    const [updatePlayNotes, setUpdatePlayNotes] = useState<string>((currentCard && currentCard.play_notes) ?? '');
     const [noteOpen, setNoteOpen] = useState<boolean>(false);
 
     useEffect(() => {
         setNoteOpen(false);
-        setUpdatePlayNotes(currentCard.play_notes ?? '');
+        setUpdatePlayNotes((currentCard && currentCard.play_notes) ?? '');
     }, [currentCard]);
 
     function getSnackbarMessage(action: ACTION_TYPE) {
@@ -57,7 +56,12 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setAllCards(res);
-                enqueueSnackbar(getSnackbarMessage(action));
+                if (action === 'draw') {
+                    const new_card = response.data.new_card;
+                    enqueueSnackbar("Drew: " + new_card.card_template.card_name);
+                } else {
+                    enqueueSnackbar(getSnackbarMessage(action));
+                }
             } else { enqueueSnackbar(response.data.response); };
             setAwaitingResponse(false);
         }).catch((error) => {
@@ -70,7 +74,12 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
             spacing={2}
             justifyContent={'center'}
             alignItems={'center'}
-            sx={{ width: '100%', opacity: selected ? 1 : 0, transition: 'opacity 0.5s' }}
+            sx={{
+                width: '100%',
+                opacity: selected ? 1 : 0,
+                transition: 'opacity 0.5s',
+                mt: 2
+            }}
         >
             <ButtonStack
                 disabled={!selected}
@@ -111,7 +120,7 @@ export function ActionButtons({ category, selected, currentCard, gameID, setAllC
 
 type ButtonStackProps = {
     disabled: boolean;
-    category: 'hand' | 'play' | 'discard';
+    category: 'hand' | 'play' | 'discard' | 'deck';
     handleCardAction: (action: ACTION_TYPE) => void;
 };
 type ButtonConfig = {
@@ -120,9 +129,7 @@ type ButtonConfig = {
 };
 function ButtonStack({ disabled, category, handleCardAction }: ButtonStackProps) {
 
-    const { isMobile } = useContext(MetadataContext);
-
-    const getButtonConfigs = (category: 'hand' | 'play' | 'discard'): ButtonConfig[] => {
+    const getButtonConfigs = (category: 'hand' | 'play' | 'discard' | 'deck'): ButtonConfig[] => {
         switch (category) {
             case 'hand':
                 return [
@@ -139,6 +146,10 @@ function ButtonStack({ disabled, category, handleCardAction }: ButtonStackProps)
                     { label: 'To Hand', action: 'place_in_hand' },
                     { label: 'To Deck', action: 'place_in_deck' },
                 ];
+            case 'deck':
+                return [
+                    { label: 'Draw', action: 'draw' },
+                ];
             default:
                 return [];
         }
@@ -152,26 +163,20 @@ function ButtonStack({ disabled, category, handleCardAction }: ButtonStackProps)
     };
 
     return (
-        <Stack
-            spacing={2}
-            direction={'row'}
-            justifyContent={'center'}
-            alignItems={'center'}
-            height={'100%'}
-            width={isMobile ? '50%' : '25%'}
-        >
-            {buttonConfigs.map((buttonConfig) => (
-                <Button
-                    key={buttonConfig.action}
-                    variant={'contained'}
-                    onClick={(event) => handleClick(event, buttonConfig.action)}
-                    disabled={disabled}
-                    fullWidth
-                    sx={{ whiteSpace: 'nowrap' }}
-                >
-                    {buttonConfig.label}
-                </Button>
+        <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+            { buttonConfigs.map((buttonConfig) => (
+                <Grid item xs={4} sm={4} md={4} lg={3} xl={2} key={buttonConfig.action}>
+                    <Button
+                        variant={'contained'}
+                        onClick={(event) => handleClick(event, buttonConfig.action)}
+                        disabled={disabled}
+                        fullWidth
+                        sx={{ whiteSpace: 'nowrap' }}
+                    >
+                        {buttonConfig.label}
+                    </Button>
+                </Grid>
             ))}
-        </Stack>
+        </Grid>
     );
 }

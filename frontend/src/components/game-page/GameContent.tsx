@@ -1,7 +1,6 @@
 import CardImg from "src/components/CardImg";
-import { CSSProperties, RefObject, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import HSwipe from "src/components/game-page/HSwipe";
-import EndButtons from "src/components/game-page/EndButtons";
 import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios from "axios";
@@ -9,50 +8,21 @@ import { MAIN_API } from "src/config";
 import { PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
-import { Button, Stack, Typography } from "@mui/material";
-import { ActionButtons } from "./ActionButtons";
+import { Typography } from "@mui/material";
 import { GameContext } from "src/contexts/GameContext";
-import CardProbability from "./CardProbability";
+import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
 
-type GameContentProps = {
-    isMobile: boolean;
-    sectionRefs: {
-        sectionRef1: RefObject<HTMLDivElement>;
-        sectionRef2: RefObject<HTMLDivElement>;
-        sectionRef3: RefObject<HTMLDivElement>;
-        sectionRef4: RefObject<HTMLDivElement>;
-    };
-};
-
-export default function GameContent({ isMobile, sectionRefs }: GameContentProps) {
+export default function GameContent() {
 
     const { gameID = '' } = useParams();
-    const { sectionRef1, sectionRef2, sectionRef3, sectionRef4 } = sectionRefs;
+    const { isMobile } = useContext(MetadataContext);
     const { enqueueSnackbar } = useSnackbar();
 
-    const { setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard, selectedCard } = useContext(GameContext);
+    const { selectedSection, setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
-    const [viewProbability, setViewProbability] = useState<boolean>(false);
-
-    const sections = [
-        { name: "Deck", cards: inDeck.length > 0 ? [inDeck[0]] : [], ref: sectionRef1 },
-        { name: "Hand", cards: inHand, ref: sectionRef2 },
-        { name: "In Play", cards: inPlay, ref: sectionRef3 },
-        { name: "Discard", cards: inDiscard, ref: sectionRef4 },
-    ];
-
-    const div_style: CSSProperties = {
-        height: isMobile ? '100vh' : '110vh',
-        width: '100%',
-        display: 'flex',
-        scrollSnapStop: 'always',
-        scrollSnapAlign: 'center',
-        justifyContent: 'center',
-        alignItems: 'center',
-    };
 
     const getCards = async () => {
         setAwaitingResponse(true);
@@ -71,109 +41,50 @@ export default function GameContent({ isMobile, sectionRefs }: GameContentProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { processTokens(getCards) }, []);
 
-    const drawCard = async () => {
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-        const formData = new FormData();
-        formData.append('game_id', gameID);
-
-        await axios.post(`${MAIN_API.base_url}handle_card_action/draw/`, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                setAllCards(response.data.response);
-                const new_card = response.data.new_card;
-                enqueueSnackbar("Drew: " + new_card.card_template.card_name);
-            } else { enqueueSnackbar(response.data.response) };
-            setAwaitingResponse(false);
-        }).catch((error) => {
-            console.error(error);
-        })
-    };
-
-    function processDrawCard() {
-        if (inDeck.length > 0) { processTokens(drawCard) }
-        else { enqueueSnackbar("No cards left in deck") };
-    };
-
     function handleSelectCard(card: PlayerCard, section: string, hide_msg?: boolean) {
         if (section === "Deck") { return }
         else if (section === "Hand") { setHandCard(card) }
         else if (section === "In Play") { setPlayCard(card) }
         else if (section === "Discard") { setDiscardCard(card) };
         if (hide_msg) { return }
-        // else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
+        else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
     };
+
+    function getSectionCards(section: string | null) {
+        if (section === "Deck" || section === null) { return inDeck }
+        else if (section === "Hand") { return inHand }
+        else if (section === "In Play") { return inPlay }
+        else if (section === "Discard") { return inDiscard }
+        else { return [] };
+    }
 
     return (
         <>
             { awaitingResponse && <LoadingBackdrop /> }
             { !awaitingResponse &&
-                ( sections.map((section, index) => {
+                <HSwipe
+                    isMobile={isMobile}
+                    cards={getSectionCards(selectedSection).map((card: PlayerCard) => {
+
+                        const onClickFunc  = () => handleSelectCard(card, selectedSection ? selectedSection : "Deck");
+
+                        if (!card || !card.card_template) { return <></> };
                         return (
-                            <div key={section.name + 'S' + index} style={div_style} ref={section.ref} id={section.name}>
-                                <Stack spacing={2} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%', height: '100%' }}>
-                                    <div style={{ width: '100%' }}>
-                                        <HSwipe
-                                            key={section.name + 'H' + index}
-                                            isMobile={isMobile}
-                                            cards={section.cards.map((card: PlayerCard) => {
-
-                                                const onClickFunc =
-                                                (section.name === "Deck") ? processDrawCard : () => handleSelectCard(card, section.name);
-
-                                                if (!card || !card.card_template) { return <></> };
-                                                return (
-                                                    <CardImg
-                                                        img_url={card.card_template.img_url}
-                                                        card_name={
-                                                        section.name === "Deck"
-                                                            ? "CARD BACK"
-                                                            : card.card_template.card_name
-                                                        }
-                                                        hide={section.name === "Deck"}
-                                                        has_text={card.play_notes?.length > 0 ? true : false}
-                                                        onClickFunc={onClickFunc}
-                                                    />
-                                                );
-                                            })}
-                                        />
-                                    </div>
-                                    { selectedCard && section.name !== "Deck" &&
-                                        <ActionButtons
-                                            category={
-                                                section.name === "In Play" ? "play" :
-                                                section.name.toLowerCase() as "hand" | "discard"
-                                            }
-                                            selected={section.cards.length === 0 ? false : true}
-                                            currentCard={selectedCard}
-                                            gameID={gameID}
-                                            setAllCards={setAllCards}
-                                            setAwaitingResponse={setAwaitingResponse}
-                                        />
-                                    }
-                                    { section.name === "Deck" &&
-                                        <>
-                                            <CardProbability
-                                                gameID={gameID}
-                                                deck_count={inDeck.length}
-                                                open={viewProbability}
-                                                setOpen={setViewProbability}
-                                            />
-                                            <Button
-                                                variant={'contained'}
-                                                onClick={() => setViewProbability(!viewProbability)}
-                                            >
-                                                {viewProbability ? "Hide" : "View"} Probability
-                                            </Button>
-                                        </>
-                                    }
-                                </Stack>
-                            </div>
-                        )
-                    })
-                )
+                            <CardImg
+                                img_url={card.card_template.img_url}
+                                card_name={
+                                selectedSection === "Deck"
+                                    ? "CARD BACK"
+                                    : card.card_template.card_name
+                                }
+                                hide={selectedSection === "Deck" || selectedSection === null}
+                                has_text={card.play_notes?.length > 0 ? true : false}
+                                onClickFunc={onClickFunc}
+                            />
+                        );
+                    })}
+                />
             }
-
-            <EndButtons gameID={gameID} />
         </>
     );
 };

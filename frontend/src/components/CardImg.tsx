@@ -37,17 +37,24 @@ export default function CardImg({ img_url, card_name, hide, has_text, onClickFun
                 { has_text && (
                     <Box
                         position="absolute"
-                        top={-12}
-                        right={-6}
+                        top={-8}
+                        right={-8}
                         display="flex"
                         justifyContent="center"
                         alignItems="center"
+                        sx={{
+                            width: '40px',
+                            height: '40px',
+                            border: `2px solid ${theme.palette.primary.main}`,
+                            bgcolor: theme.palette.background.default,
+                            borderRadius: '50%',
+                        }}
                     >
                         <Iconify
-                            icon={"eva:bookmark-fill"}
-                            width={44}
-                            height={44}
-                            color={theme.palette.primary.main}
+                            icon={"eva:file-text-outline"}
+                            width={28}
+                            height={28}
+                            color={theme.palette.grey[400]}
                         />
                     </Box>
                 )}

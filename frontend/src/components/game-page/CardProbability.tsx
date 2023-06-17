@@ -10,7 +10,9 @@ import {
     DialogContent,
     Button,
     Modal,
-    Fade
+    Fade,
+    SpeedDial,
+    SpeedDialIcon
 } from "@mui/material"
 import axios from "axios";
 import { useSnackbar } from "notistack";
@@ -21,6 +23,7 @@ import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
 import { PlayerCard } from "src/@types/types";
 import { GameContext } from "src/contexts/GameContext";
+import Iconify from "../Iconify";
 
 // ----------------------------------------------------------------------
 
@@ -40,6 +43,7 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [deckCardOptions, setDeckCardOptions] = useState<PlayerCard[]>([]);
     const [deckDisplayCards, setDeckDisplayCards] = useState<PlayerCard[]>([]);
+    const z_index = (open ? 999 : 0);
 
     const getGameCards = async () => {
         setAwaitingResponse(true);
@@ -139,6 +143,13 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
     return (
         <div>
             { awaitingResponse && <LoadingBackdrop /> }
+            <SpeedDial
+                ariaLabel="Probability"
+                sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: (theme) => theme.zIndex.drawer + z_index }}
+                icon={open ? <SpeedDialIcon /> : <Iconify icon={'eva:percent-outline'} width={'45%'} height={'45%'} />}
+                onClick={() => { setOpen(!open) }}
+                open={open}
+            />
             <div>
                 <Modal
                     open={open}

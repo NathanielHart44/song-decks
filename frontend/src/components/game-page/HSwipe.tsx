@@ -1,7 +1,5 @@
-import { Box, keyframes } from "@mui/material";
-import React, { useContext, useEffect, useReducer, useRef, useState } from "react";
-import { DefaultCardImg } from "../CardImg";
-import { GameContext } from "src/contexts/GameContext";
+import { Box } from "@mui/material";
+import React, { useEffect, useReducer, useState } from "react";
 
 // ----------------------------------------------------------------------
 
@@ -16,9 +14,6 @@ type Props = {
 };
 
 export default function HSwipe({ isMobile, cards }: Props) {
-
-  const { inHand, inPlay, inDiscard } = useContext(GameContext);
-  const should_animate_draw = (inHand.length === 0 && inPlay.length === 0 && inDiscard.length === 0);
 
     const slidesReducer = (state: State, event: Action) => {
         function getIndexes(index: number) {
@@ -79,8 +74,26 @@ export default function HSwipe({ isMobile, cards }: Props) {
     useEffect(() => { dispatch({ type: "CARDS_CHANGED" }) }, [cards]);
 
   const [state, dispatch] = useReducer(slidesReducer, initialState);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  const pulse = keyframes`0% { opacity: 1 } 50% { opacity: 0.5 } 100% { opacity: 1 }`;
+  const handleTouchStart = (event: React.TouchEvent) => { setTouchStartX(event.touches[0].clientX) };
+
+  const handleTouchMove = (event: React.TouchEvent) => {
+    if (!touchStartX) return;
+
+    const touchEndX = event.touches[0].clientX;
+    const threshold = 100;
+
+    if (touchEndX - touchStartX > threshold) {
+      setTouchStartX(null);
+      dispatch({ type: "PREV" });
+    } else if (touchStartX - touchEndX > threshold) {
+      setTouchStartX(null);
+      dispatch({ type: "NEXT" });
+    }
+  };
+
+  const handleTouchEnd = () => { setTouchStartX(null) };
 
   return (
     <Box
@@ -91,10 +104,13 @@ export default function HSwipe({ isMobile, cards }: Props) {
         height: "100%",
         width: "100%",
         margin: 0,
+        mt: 2,
         padding: 0,
         overflow: "hidden",
-        animation: should_animate_draw ? `${pulse} 2s infinite` : 'none'
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {(state.visibleCards).map((card, i) => {
         let offset = i - 1;
@@ -129,106 +145,37 @@ interface SlideProps {
 }
 
 function Slide({ isMobile, currentIndex, cards, offset, onClick }: SlideProps) {
-
-  const active = offset === 0 ? true : null;
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [rotation, setRotation] = useState(0);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isCardClicked, setIsCardClicked] = useState(true);
-  const [showCardBack, setShowCardBack] = useState(false);
-
-  const handleTouchStart = (event: React.TouchEvent) => {
-    setTouchStartX(event.touches[0].clientX);
-    setIsDragging(true);
-    setIsCardClicked(true);
-  };
-
-  const handleTouchMove = (event: React.TouchEvent) => {
-    if (!touchStartX || !active) return;
+    const active = offset === 0 ? true : null;
   
-    const touchEndX = event.touches[0].clientX;
-    const rotationDegree = (touchEndX - touchStartX) * 0.5;
-  
-    if (Math.abs(rotationDegree) > 5) {
-      setRotation(rotationDegree);
-      setIsCardClicked(false);
-      setShowCardBack(rotationDegree < -90 || rotationDegree > 90);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setTouchStartX(null);
-    setIsDragging(false);
-    const remainingRotation = Math.abs(rotation) - 90;
-    const timeoutDuration = (remainingRotation / 90) * 500;
-    setRotation(0);
-    if (cardRef.current) {
-      cardRef.current.style.transition = "transform 0.5s ease-in-out";
-    }
-    setTimeout(() => {
-      setShowCardBack(false);
-    }, timeoutDuration);
-  };
-
-  useEffect(() => {
-    if (cardRef.current) {
-      if (isDragging) {
-        cardRef.current.style.transition = "none";
-      }
-      cardRef.current.style.transform = `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(${rotation}deg)`;
-    }
-  }, [rotation, isDragging]);
-  
-
-  return (
-    <Box
-      data-active={active}
-      onClick={() => { (isCardClicked && onClick) && onClick() }}
-      sx={{
-        zIndex: offset === 0 ? 1 : 0,
-        gridArea: "1 / -1",
-        transformStyle: "preserve-3d",
-        "--offset": offset,
-        "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
-      }}
-    >
-      <Box
-        ref={cardRef}
-        onTouchStart={event => currentIndex === 1 && handleTouchStart(event)}
-        onTouchMove={event => currentIndex === 1 && handleTouchMove(event)}
-        onTouchEnd={event => currentIndex === 1 && handleTouchEnd()}
-        sx={{
-          ...!isMobile && {
-            width: offset === 0 ? "20vw" : "16vw",
-          },
-          ...isMobile && {
-            width: offset === 0 ? "70vw" : "50vw",
-          },
-          height: "100%",
-          transition: "transform 0.5s ease-in-out, width 0.5s ease-in-out",
-          display: "grid",
-          transformStyle: "preserve-3d",
-          transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
-          overflow: "hidden",
-        }}
-      >
-        {cards[currentIndex]}
-        { currentIndex === 1 && showCardBack &&
+    return (
+        <Box
+          data-active={active}
+          onClick={onClick}
+          sx={{
+            zIndex: offset === 0 ? 1 : 0,
+            gridArea: "1 / -1",
+            transformStyle: "preserve-3d",
+            "--offset": offset,
+            "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
+          }}
+        >
           <Box
             sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              zIndex: 1,
+                ...!isMobile && {
+                    width: offset === 0 ? "20vw" : "16vw",
+                },
+                ...isMobile && {
+                    width: offset === 0 ? "70vw" : "45vw",
+                },
+                height: "100%",
+                transition: "transform 0.5s ease-in-out, width 0.5s ease-in-out",
+                display: "grid",
+                transformStyle: "preserve-3d",
+                transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
             }}
           >
-            <DefaultCardImg />
+            {cards[currentIndex]}
           </Box>
-        }
-      </Box>
-    </Box>
-  );
-}
+        </Box>
+      );
+  }
