@@ -35,8 +35,8 @@ export default function MainStyle({ children }: Props) {
     backgroundAttachment: 'fixed',
     minHeight: '100%',
     [theme.breakpoints.down('lg')]: {
-        paddingLeft: 10,
-        paddingRight: 10,
+        paddingLeft: 4,
+        paddingRight: 4,
     },
     [theme.breakpoints.up('lg')]: {
         paddingLeft: 16,
