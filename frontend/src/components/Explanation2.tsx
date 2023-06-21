@@ -52,20 +52,15 @@ export default function Explanation2 () {
     return (
         <Stack spacing={6} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
             <Stack spacing={1} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%' }}>
-                <Typography variant={'h1'} paragraph sx={{ textAlign: 'center', mb: 0 }}>
-                    ASOIAF Decks
+                <Typography variant={'h3'} paragraph sx={{ textAlign: 'center', mb: 0 }}>
+                    Digital Tactics Deck
                 </Typography>
                 <Stack alignItems={'center'} justifyContent={'center'} sx={{ width: '50%' }}>
                     <Divider flexItem />
                 </Stack>
-                <Stack spacing={1}>
-                    <Typography variant={'h4'} paragraph sx={{ textAlign: 'center', mb: 0 }}>
-                        Digital Tactics Deck
-                    </Typography>
-                    <Typography paragraph color={theme.palette.text.secondary} sx={{ textAlign: 'center', mb: 0 }}>
-                        An unofficial tool built for A Song of Ice & Fire: Tabletop Miniatures Game.
-                    </Typography>
-                </Stack>
+                <Typography paragraph color={theme.palette.text.secondary} sx={{ textAlign: 'center', mb: 0 }}>
+                    An unofficial tool built for A Song of Ice & Fire: Tabletop Miniatures Game.
+                </Typography>
             </Stack>
 
             <Stack
