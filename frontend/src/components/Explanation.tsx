@@ -76,7 +76,7 @@ export default function Explanation() {
 
   return (
     <>
-      <Stack spacing={4} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: isMobile ? '80vh' : '100vh' }}>
+      <Stack spacing={4} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: isMobile ? '80vh' : '90vh' }}>
         <Stack spacing={4} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%' }}>
           <Typography variant={'h2'} paragraph sx={{ textAlign: 'center', mb: 0 }}>
             Welcome to ASOIAF Decks!
@@ -234,7 +234,7 @@ function StackCard({ index, isMobile, cardRef, info, textGroup, card_height_perc
       <Card
         ref={cardRef}
         sx={{
-          p: 2,
+          // p: 2,
           width: `${isVisible ? width : 100}%`,
           minHeight: `${minHeight}px`,
           height: `max(${card_height_percent}vh, ${minHeight}px)`,
@@ -265,15 +265,6 @@ function StackCard({ index, isMobile, cardRef, info, textGroup, card_height_perc
               />
             </IconButton>
           }
-        <CardContent>
-          <Stack spacing={1} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
-            { textGroup.title !== 'BUTTON' &&
-              <Typography variant={'h5'} sx={{ textAlign: 'center', mb: 0 }}>
-                {textGroup.title}
-              </Typography>
-            }
-          </Stack>
-        </CardContent>
         <CardContent sx={{ py: 0, px: 1 }}>
           <Box
             sx={{
@@ -282,6 +273,11 @@ function StackCard({ index, isMobile, cardRef, info, textGroup, card_height_perc
             }}
           >
             <Stack spacing={6} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%', height: '100%' }}>
+              { textGroup.title !== 'BUTTON' &&
+                <Typography variant={'h5'} sx={{ textAlign: 'center', mb: 0 }}>
+                  {textGroup.title}
+                </Typography>
+              }
               <Typography paragraph sx={{ textAlign: 'center', mb: 0 }}>
                 {textGroup.text}
               </Typography>
@@ -340,7 +336,7 @@ type PopupProps = {
   handleClose: () => void;
 };
 
-function Popup({ image, open, handleClose }: PopupProps) {
+export function Popup({ image, open, handleClose }: PopupProps) {
 
   return (
     <Dialog
@@ -355,17 +351,29 @@ function Popup({ image, open, handleClose }: PopupProps) {
         },
       }}
     >
-      <DialogContent>
-        <img
-          src={image}
-          alt={'Example'}
-          style={{
+      <DialogContent onClick={handleClose}>
+        <Box
+          sx={{
             width: '100%',
-            height: 'auto',
-            objectFit: 'contain',
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: '6px',
+            overflow: 'hidden',
           }}
-          loading="lazy"
-        />
+        >
+          <img
+            src={image}
+            alt={'Example'}
+            style={{
+              width: '100%',
+              maxHeight: '100vh',
+              objectFit: 'contain',
+            }}
+            loading="lazy"
+          />
+        </Box>
       </DialogContent>
     </Dialog>
   )

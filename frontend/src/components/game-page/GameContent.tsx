@@ -47,7 +47,7 @@ export default function GameContent() {
         else if (section === "In Play") { setPlayCard(card) }
         else if (section === "Discard") { setDiscardCard(card) };
         if (hide_msg) { return }
-        else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
+        // else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
     };
 
     function getSectionCards(section: string | null) {
