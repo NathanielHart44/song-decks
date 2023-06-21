@@ -346,7 +346,7 @@ export function Popup({ image, open, handleClose }: PopupProps) {
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
-          bgcolor: 'transparent',
+          // bgcolor: 'transparent',
           boxShadow: 'none',
         },
       }}
