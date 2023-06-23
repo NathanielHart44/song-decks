@@ -12,23 +12,16 @@ type Props ={
 export default function MainStyle({ children }: Props) {
 
     const { pathname } = useLocation();
-    const landing_or_auth = (pathname === PATH_PAGE.landing) || (pathname === PATH_AUTH.login) || (pathname === PATH_AUTH.register);
+    const is_landing = (pathname === PATH_PAGE.landing);
+    const is_auth = (pathname === PATH_AUTH.login) || (pathname === PATH_AUTH.register);
 
-    const img = landing_or_auth ? LANDING_BG_IMG : DEFAULT_BG_IMG;
-
-    const HEADER = {
-        MOBILE_HEIGHT: 88,
-        MOBILE_OFFSET_HEIGHT: 88 - 32,
-        MAIN_DESKTOP_HEIGHT: 88,
-        DASHBOARD_DESKTOP_HEIGHT: 92,
-        DASHBOARD_DESKTOP_OFFSET_HEIGHT: 92 - 32,
-    };
+    const img = is_auth ? LANDING_BG_IMG : DEFAULT_BG_IMG;
 
     const MainStyle = styled('main', {})(({ theme }) => ({
     flexGrow: 1,
     paddingTop: HEADER.MOBILE_HEIGHT,
     paddingBottom: HEADER.MOBILE_OFFSET_HEIGHT,
-    backgroundImage: img,
+    ...(!is_landing && { backgroundImage: img }),
     backgroundPosition: 'center',
     backgroundSize: 'cover',
     backgroundRepeat: 'no-repeat',
@@ -52,4 +45,12 @@ export default function MainStyle({ children }: Props) {
             {children}
         </MainStyle>
     )
+};
+
+export const HEADER = {
+    MOBILE_HEIGHT: 88,
+    MOBILE_OFFSET_HEIGHT: 88 - 32,
+    MAIN_DESKTOP_HEIGHT: 88,
+    DASHBOARD_DESKTOP_HEIGHT: 92,
+    DASHBOARD_DESKTOP_OFFSET_HEIGHT: 92 - 32,
 };

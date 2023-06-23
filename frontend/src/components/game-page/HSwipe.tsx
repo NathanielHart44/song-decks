@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import React, { useEffect, useReducer, useState } from "react";
+import { motion, useMotionValue } from 'framer-motion';
 
 // ----------------------------------------------------------------------
 
@@ -82,7 +83,7 @@ export default function HSwipe({ isMobile, cards }: Props) {
     if (!touchStartX) return;
 
     const touchEndX = event.touches[0].clientX;
-    const threshold = 100;
+    const threshold = 0;
 
     if (touchEndX - touchStartX > threshold) {
       setTouchStartX(null);
@@ -101,6 +102,7 @@ export default function HSwipe({ isMobile, cards }: Props) {
         display: "grid",
         justifyContent: "center",
         alignItems: "center",
+        alignContent: "start",
         height: "100%",
         width: "100%",
         margin: 0,
@@ -121,11 +123,10 @@ export default function HSwipe({ isMobile, cards }: Props) {
 
         return (
           <Slide
+            key={'Slide' + i}
             isMobile={isMobile}
-            currentIndex={i}
-            cards={state.visibleCards}
+            card={card}
             offset={offset}
-            key={state.slideIndex + i}
             onClick={onClick}
           />
         );
@@ -138,44 +139,60 @@ type Action = { type: "NEXT" } | { type: "PREV" } | { type: "CARDS_CHANGED" };
 
 interface SlideProps {
     isMobile: boolean;
-    currentIndex: number;
-    cards: React.ReactNode[];
+    card: React.ReactNode;
     offset: number;
     onClick?: () => void;
 }
 
-function Slide({ isMobile, currentIndex, cards, offset, onClick }: SlideProps) {
-    const active = offset === 0 ? true : null;
-  
-    return (
-        <Box
-          data-active={active}
-          onClick={onClick}
-          sx={{
-            zIndex: offset === 0 ? 1 : 0,
-            gridArea: "1 / -1",
-            transformStyle: "preserve-3d",
-            "--offset": offset,
-            "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
-          }}
-        >
-          <Box
-            sx={{
-                ...!isMobile && {
-                    width: offset === 0 ? "20vw" : "16vw",
-                },
-                ...isMobile && {
-                    width: offset === 0 ? "70vw" : "45vw",
-                },
-                height: "100%",
-                transition: "transform 0.5s ease-in-out, width 0.5s ease-in-out",
-                display: "grid",
-                transformStyle: "preserve-3d",
-                transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
-            }}
-          >
-            {cards[currentIndex]}
-          </Box>
-        </Box>
-      );
-  }
+function Slide({ isMobile, card, offset, onClick }: SlideProps) {
+
+  const active = offset === 0 ? true : null;
+  const x = useMotionValue(0);
+
+  return (
+    <Box
+      component={motion.div}
+      drag="x"
+      data-active={active}
+      onClick={onClick}
+      style={{
+        x,
+        zIndex: offset === 0 ? 1 : 0,
+        gridArea: "1 / -1",
+        transformStyle: "preserve-3d",
+        // "--offset": offset,
+        // "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
+      }}
+      dragConstraints={{ left: 0, right: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      }}
+      // animate={{
+      //   transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
+      // }}
+    >
+      <Box
+        // component={motion.div}
+        // drag="x"
+        sx={{
+          ...!isMobile && {
+              width: offset === 0 ? "20vw" : "16vw",
+          },
+          ...isMobile && {
+              width: offset === 0 ? "70vw" : offset === 1 ? "50vw" : "50vw",
+          },
+          height: "100%",
+          display: "grid",
+          transformStyle: "preserve-3d",
+          "--offset": offset,
+          "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1,
+          transform: `perspective(1000px) translateX(calc(90% * var(--offset))) rotateY(calc(20deg * var(--dir)))`,
+        }}
+      >
+        {card}
+      </Box>
+    </Box>
+  );
+};

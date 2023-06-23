@@ -1,17 +1,21 @@
 import { Box, Stack, useTheme } from "@mui/material";
 import Iconify from "./Iconify";
+import { useContext } from "react";
+import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------
 
 type Props = {
     img_url: string;
     card_name: string;
-    hide?: boolean;
     has_text?: boolean;
     onClickFunc?: () => void;
 }
 
-export default function CardImg({ img_url, card_name, hide, has_text, onClickFunc }: Props) {
+export default function CardImg({ img_url, card_name, has_text, onClickFunc }: Props) {
+
+    const { selectedSection } = useContext(GameContext);
+    const hide = selectedSection === 'Deck' || selectedSection === null;
 
     const theme = useTheme();
 
@@ -21,7 +25,7 @@ export default function CardImg({ img_url, card_name, hide, has_text, onClickFun
             justifyContent={'center'}
             alignItems={'center'}
             sx={{ cursor: 'pointer' }}
-            onClick={onClickFunc}
+            onClick={onClickFunc ? onClickFunc : (e) => e.preventDefault()}
             flexDirection={'column'}
         >
             <Stack spacing={hide ? 0 : 1} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
@@ -88,6 +92,9 @@ export function DefaultCardImg() {
                 src="/icons/crown.svg"
                 alt="Overlay SVG"
                 loading="lazy"
+                style={{
+                    pointerEvents: 'none',
+                }}
             />
         </Box>
     );

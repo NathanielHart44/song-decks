@@ -130,40 +130,46 @@ export default function SelectDeck() {
         <Page title="Select Deck">
             { awaitingResponse && <LoadingBackdrop /> }
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Typography variant={'h3'}>Select Faction & Commander</Typography>
                 <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
-                    { selectedFaction ?
-                        <SelectableAvatar
-                            item={selectedFaction}
-                            altText={`SELECTED ${selectedFaction.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick}
-                        /> :
-                        <SelectableAvatar
-                            item={selectedFaction}
-                            altText={'DEFAULT FACTION'}
-                            defaultIcon={'/icons/throne.png'}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                        />
-                    }
-                    { selectedCommander ?
-                        <SelectableAvatar
+                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        { selectedFaction ?
+                            <SelectableAvatar
+                                item={selectedFaction}
+                                altText={`SELECTED ${selectedFaction.name}`}
+                                isMobile={isMobile}
+                                handleClick={handleFactionClick}
+                            /> :
+                            <SelectableAvatar
+                                item={selectedFaction}
+                                altText={'DEFAULT FACTION'}
+                                defaultIcon={'/icons/throne.png'}
+                                isMobile={isMobile}
+                                handleClick={handleFactionClick}
+                                sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
+                            />
+                        }
+                        <Typography variant={'h4'} sx={{ textAlign: 'center' }}>Faction</Typography>
+                    </Stack>
+
+                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        { selectedCommander ?
+                            <SelectableAvatar
                             item={selectedCommander}
                             altText={`SELECTED ${selectedCommander.name}`}
                             isMobile={isMobile}
                             handleClick={handleCommanderClick}
-                        /> :
-                        <SelectableAvatar
+                            /> :
+                            <SelectableAvatar
                             item={selectedCommander}
                             altText={'DEFAULT COMMANDER'}
                             defaultIcon={'/icons/crown.svg'}
                             isMobile={isMobile}
                             handleClick={handleCommanderClick}
                             sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                        />
-                    }
+                            />
+                        }
+                        <Typography variant={'h4'} sx={{ textAlign: 'center' }}>Commander</Typography>
+                    </Stack>
                 </Stack>
 
                 {  factions && !selectedFaction &&

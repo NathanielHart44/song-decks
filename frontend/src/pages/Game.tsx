@@ -8,6 +8,7 @@ import { ActionButtons } from "src/components/game-page/ActionButtons";
 import { useParams } from "react-router-dom";
 import CardProbability from "src/components/game-page/CardProbability";
 import LoadingBackdrop from "src/components/LoadingBackdrop";
+
 // ----------------------------------------------------------------------
 
 export default function Game() {

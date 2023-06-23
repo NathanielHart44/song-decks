@@ -1,15 +1,14 @@
-import CardImg from "src/components/CardImg";
 import { useContext, useEffect, useState } from "react";
-import HSwipe from "src/components/game-page/HSwipe";
 import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
-import { PlayerCard } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../LoadingBackdrop";
-import { Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { GameContext } from "src/contexts/GameContext";
+import HSwipe3 from "./HSwipe3";
+import { useWindowDimensions } from "src/utils/useWindowDimensions";
 import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
@@ -19,8 +18,28 @@ export default function GameContent() {
     const { gameID = '' } = useParams();
     const { isMobile } = useContext(MetadataContext);
     const { enqueueSnackbar } = useSnackbar();
+    const { height, width } = useWindowDimensions();
 
-    const { selectedSection, setAllCards, inDeck, inHand, setHandCard, inPlay, setPlayCard, inDiscard, setDiscardCard } = useContext(GameContext);
+    const display_ratio = 450 / 320;
+    const [calcWidth, setCalcWidth] = useState<number>(0);
+    const [calcHeight, setCalcHeight] = useState<number>(0);
+
+    function calculateWidth(w_width: number) {
+        const calc_width =
+            w_width < 320 ? (w_width * 0.66) :
+                w_width < 500 ? (w_width * 0.75) :
+                    w_width < 800 ? (w_width * 0.33) : 320;
+        return calc_width;
+    };
+
+    useEffect(() => {
+        const new_width = calculateWidth(width);
+        setCalcWidth(new_width);
+        setCalcHeight(new_width * display_ratio);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [width, height]);
+
+    const { selectedSection, setAllCards, inDeck, inHand, inPlay, inDiscard } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
@@ -41,49 +60,37 @@ export default function GameContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { processTokens(getCards) }, []);
 
-    function handleSelectCard(card: PlayerCard, section: string, hide_msg?: boolean) {
-        if (section === "Deck") { return }
-        else if (section === "Hand") { setHandCard(card) }
-        else if (section === "In Play") { setPlayCard(card) }
-        else if (section === "Discard") { setDiscardCard(card) };
-        if (hide_msg) { return }
-        // else { enqueueSnackbar("Selected: " + card.card_template.card_name) };
-    };
-
     function getSectionCards(section: string | null) {
         if (section === "Deck" || section === null) { return inDeck }
         else if (section === "Hand") { return inHand }
         else if (section === "In Play") { return inPlay }
         else if (section === "Discard") { return inDiscard }
         else { return [] };
-    }
+    };
 
     return (
         <>
             { awaitingResponse && <LoadingBackdrop /> }
-            { !awaitingResponse &&
-                <HSwipe
-                    isMobile={isMobile}
-                    cards={getSectionCards(selectedSection).map((card: PlayerCard) => {
-
-                        const onClickFunc  = () => handleSelectCard(card, selectedSection ? selectedSection : "Deck");
-
-                        if (!card || !card.card_template) { return <></> };
-                        return (
-                            <CardImg
-                                img_url={card.card_template.img_url}
-                                card_name={
-                                selectedSection === "Deck"
-                                    ? "CARD BACK"
-                                    : card.card_template.card_name
-                                }
-                                hide={selectedSection === "Deck" || selectedSection === null}
-                                has_text={card.play_notes?.length > 0 ? true : false}
-                                onClickFunc={onClickFunc}
-                            />
-                        );
-                    })}
-                />
+            { (!awaitingResponse && (getSectionCards(selectedSection).length > 0)) &&
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '100%',
+                        width: '100%',
+                        overflow: 'hidden',
+                        pt: 4,
+                        // border: '2px solid blue'
+                    }}
+                >
+                    <HSwipe3
+                        isMobile={isMobile}
+                        card_height={calcHeight}
+                        card_width={calcWidth}
+                        cards={getSectionCards(selectedSection)}
+                    />
+                </Box>
             }
         </>
     );

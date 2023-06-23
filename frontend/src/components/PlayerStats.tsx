@@ -75,7 +75,7 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
 
     return (
         <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-            <Typography variant={'h6'}>Card Stats</Typography>
+            <Typography variant={'h4'} sx={{ mb: 2 }}>Card Stats</Typography>
             <Box position="relative" width={'100%'} height={'100%'}>
                 <Box
                     position="absolute"
@@ -98,7 +98,7 @@ export function PlayerStats({ stats }: PlayerStatsProps) {
                         labels: {
                             fill: theme.palette.text.primary,
                             fontFamily: theme.typography.fontFamily,
-                            ...(!isMobile && { fontSize: 7 })
+                            ...(!isMobile && { fontSize: 6 })
                         }
                     }}
                 />

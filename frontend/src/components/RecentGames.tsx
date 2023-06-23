@@ -65,7 +65,7 @@ export function RecentGames({ isMobile, games }: RecentGameProps) {
 
     return (
         <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-            <Typography variant={'h6'}>Recent Games</Typography>
+            <Typography variant={'h4'}>Recent Games</Typography>
             <TableContainer>
                 <Table size={'small'} stickyHeader>
                     <TableBody sx={{ '& > :nth-of-type(2n+2)': { bgcolor: alpha(theme.palette.primary.main, 0.05) } }}>
@@ -111,6 +111,8 @@ function GameRow({ game, isMobile }: GameRowProps) {
     const theme = useTheme();
     const bg_color = alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity);
 
+    const [ended, setEnded] = useState<boolean>(false);
+
     const endGame = async () => {
         let token = localStorage.getItem('accessToken') ?? '';
         await axios.get(`${MAIN_API.base_url}end_game/${(game.id).toString()}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
@@ -118,6 +120,7 @@ function GameRow({ game, isMobile }: GameRowProps) {
                 const res = response.data.response;
                 enqueueSnackbar(res);
                 game.status = 'completed';
+                setEnded(true);
             } else {
                 enqueueSnackbar(response.data.response);
             };
@@ -142,7 +145,7 @@ function GameRow({ game, isMobile }: GameRowProps) {
             <TableCell align="center">
                 <Button
                     variant="contained"
-                    disabled={game.status === 'in-progress' ? false : true}
+                    disabled={(!ended && game.status === 'in-progress') ? false : true}
                     onClick={() => processTokens(endGame)}
                 >
                     End Game
