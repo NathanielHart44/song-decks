@@ -83,4 +83,5 @@ const coreAdminTasks = [
     { title: 'See All Users', url: `${main_url}get_all_users/`, placeholder: '' },
     { title: 'Toggle Moderator Status', url: `${main_url}toggle_moderator/`, placeholder: 'Username' },
     { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
+    { title: 'Reset Password', url: `${main_url}reset_password/`, placeholder: 'Username' },
 ];
