@@ -41,6 +41,7 @@ export default function EndBackdrop({ gameID, open, setOpen }: EndBackDropProps)
                 const res = response.data.response;
                 if (type === 'end_game') {
                     enqueueSnackbar(res);
+                    localStorage.removeItem('deckDisplay');
                     delay(750).then(() => { navigate(PATH_PAGE.home) });
                 } else {
                     enqueueSnackbar('Round ended!');
