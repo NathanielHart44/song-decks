@@ -82,6 +82,7 @@ export default function GameContent() {
                         overflow: 'hidden',
                         pt: 4,
                         // border: '2px solid blue'
+                        // 
                     }}
                 >
                     <HSwipe3
