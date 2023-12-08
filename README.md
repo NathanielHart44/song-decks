@@ -47,6 +47,13 @@ docker push cmajorb/asoiaf-decks:latest-amd64
 ```
 (replace the `<ID>` with your own image id)
 
+After logging into the server, run the following commands:
+```
+docker pull cmajorb/asoiaf-decks:latest-amd64
+```
+```
+docker compose up -d
+```
 ## Updating Backend in Production
 
 Run the following commands:
