@@ -41,7 +41,9 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
     const { isMobile } = useContext(MetadataContext);
     const { setAllCards } = useContext(GameContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    // Used for handling adding cards to hand, determining probability
     const [deckCardOptions, setDeckCardOptions] = useState<PlayerCard[]>([]);
+    // Used for displaying the images of the cards
     const [deckDisplayCards, setDeckDisplayCards] = useState<PlayerCard[]>([]);
     const z_index = (open ? 999 : 0);
 
@@ -92,22 +94,38 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
             console.error(error);
             enqueueSnackbar(error);
         })
-    };    
+    };
+
+    function allCardsCurrentlyInGame() {
+        let allCardsInGame = true;
+        if (deckCardOptions.length === 0) { return false };
+        for (let i = 0; i < deckCardOptions.length; i++) {
+            if (deckCardOptions[i].game.id !== parseInt(gameID)) {
+                allCardsInGame = false;
+                break;
+            };
+        };
+        return allCardsInGame;
+    };
 
     useEffect(() => {
         if (open) {
             const deckCount = localStorage.getItem('deckCount') ?? '';
             const deckOptions = localStorage.getItem('deckOptions') ?? '';
             const deckDisplay = localStorage.getItem('deckDisplay') ?? '';
-            if (deckCount !== deck_count.toString()) {
-                processTokens(getGameCards);
+            if (!allCardsCurrentlyInGame()) {
+                processTokens(getGameCards)
             } else {
-                setDeckCardOptions(JSON.parse(deckOptions));
-                setDeckDisplayCards(JSON.parse(deckDisplay));
+                if (deckCount !== deck_count.toString()) {
+                    processTokens(getGameCards);
+                } else {
+                    setDeckCardOptions(JSON.parse(deckOptions));
+                    setDeckDisplayCards(JSON.parse(deckDisplay));
+                };
             };
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, deck_count]);
+    }, [gameID, open, deck_count]);
 
     const gridContainerStyles: SxProps<Theme> = {
         justifyContent: 'space-around',
