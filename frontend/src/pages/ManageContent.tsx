@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import { Commander, Faction, CardTemplate } from "src/@types/types";
 import LoadingBackdrop from "src/components/LoadingBackdrop";
 import Page from "src/components/Page";
@@ -26,6 +26,47 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
 import { AddNew } from "../components/edit-contents/AddNew";
 import { CardOptions } from "../components/edit-contents/CardOptions";
+import UploadAvatarComp from "src/components/UploadAvatarComp";
+
+// ----------------------------------------------------------------------
+
+type State = {
+    factions: Faction[];
+    selectedFaction: Faction | null;
+    factionCards: CardTemplate[] | null;
+    allCommanders: Commander[];
+    viewedCommanders: Commander[] | null;
+    selectedCommander: Commander | null;
+    commanderCards: CardTemplate[] | null;
+    addNewFaction: boolean;
+    addNewCommander: boolean;
+    addNewCard: boolean;
+};
+
+type Action =
+    | { type: 'SET_FACTIONS'; payload: Faction[] }
+    | { type: 'SET_SELECTED_FACTION'; payload: Faction | null }
+    | { type: 'SET_FACTION_CARDS'; payload: CardTemplate[] | null }
+    | { type: 'SET_ALL_COMMANDERS'; payload: Commander[] }
+    | { type: 'SET_VIEWED_COMMANDERS'; payload: Commander[] | null }
+    | { type: 'SET_SELECTED_COMMANDER'; payload: Commander | null }
+    | { type: 'SET_COMMANDER_CARDS'; payload: CardTemplate[] | null }
+    | { type: 'TOGGLE_ADD_NEW_FACTION' }
+    | { type: 'TOGGLE_ADD_NEW_COMMANDER' }
+    | { type: 'TOGGLE_ADD_NEW_CARD' };
+
+const initialState = {
+    factions: [],
+    selectedFaction: null,
+    factionCards: null,
+    allCommanders: [],
+    viewedCommanders: null,
+    selectedCommander: null,
+    commanderCards: null,
+    addNewFaction: false,
+    addNewCommander: false,
+    addNewCard: false,
+};
 
 // ----------------------------------------------------------------------
 
@@ -33,28 +74,43 @@ export default function ManageContent() {
 
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
-    const theme = useTheme();
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    
+    function contentReducer(state: State, action: Action) {
+        switch (action.type) {
+            case 'SET_FACTIONS':
+                return { ...state, factions: action.payload };
+            case 'SET_SELECTED_FACTION':
+                return { ...state, selectedFaction: action.payload };
+            case 'SET_FACTION_CARDS':
+                return { ...state, factionCards: action.payload };
+            case 'SET_ALL_COMMANDERS':
+                return { ...state, allCommanders: action.payload };
+            case 'SET_VIEWED_COMMANDERS':
+                return { ...state, viewedCommanders: action.payload };
+            case 'SET_SELECTED_COMMANDER':
+                return { ...state, selectedCommander: action.payload };
+            case 'SET_COMMANDER_CARDS':
+                return { ...state, commanderCards: action.payload };
+            case 'TOGGLE_ADD_NEW_FACTION':
+                return { ...state, addNewFaction: !state.addNewFaction };
+            case 'TOGGLE_ADD_NEW_COMMANDER':
+                return { ...state, addNewCommander: !state.addNewCommander };
+            case 'TOGGLE_ADD_NEW_CARD':
+                return { ...state, addNewCard: !state.addNewCard };
+            default:
+                throw new Error('Unhandled action type!');
+        }
+    };    
 
-    const [factions, setFactions] = useState<Faction[]>();
-    const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
-    const [factionCards, setFactionCards] = useState<CardTemplate[] | null>(null);
-
-    const [allCommanders, setAllCommanders] = useState<Commander[]>();
-    const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
-    const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
-    const [commanderCards, setCommanderCards] = useState<CardTemplate[] | null>(null);
-
-    const [addNewFaction, setAddNewFaction] = useState<boolean>(false);
-    const [addNewCommander, setAddNewCommander] = useState<boolean>(false);
-    const [addNewCard, setAddNewCard] = useState<boolean>(false);
+    const [contentState, contentDispatch] = useReducer(contentReducer, initialState);
 
     const getFactions = async () => {
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
         await axios.get(`${MAIN_API.base_url}factions/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
-                setFactions(response.data.response);
+                contentDispatch({ type: 'SET_FACTIONS', payload: response.data.response });
             } else { enqueueSnackbar(response.data.response) };
         }).catch((error) => {
             console.error(error);
@@ -62,12 +118,13 @@ export default function ManageContent() {
     };
 
     const getFactionCards = async () => {
-        if (!selectedFaction) { return };
+        if (!contentState.selectedFaction) { return };
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}get_cards_of_faction/${selectedFaction.id}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        const url = `${MAIN_API.base_url}get_cards_of_faction/${contentState.selectedFaction.id}/`;
+        await axios.get(url, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
-                setFactionCards(response.data.response);
+                contentDispatch({ type: 'SET_FACTION_CARDS', payload: response.data.response });
             } else { enqueueSnackbar(response.data.response) };
             setAwaitingResponse(false);
         }).catch((error) => {
@@ -79,7 +136,7 @@ export default function ManageContent() {
         let token = localStorage.getItem('accessToken') ?? '';
         await axios.get(`${MAIN_API.base_url}commanders/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
-                setAllCommanders(response.data.response);
+                contentDispatch({ type: 'SET_ALL_COMMANDERS', payload: response.data.response });
             } else { enqueueSnackbar(response.data.response) };
             setAwaitingResponse(false);
         }).catch((error) => {
@@ -88,12 +145,13 @@ export default function ManageContent() {
     };
 
     const getCommanderCards = async () => {
-        if (!selectedCommander) { return };
+        if (!contentState.selectedCommander) { return };
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}get_cards_of_commander/${selectedCommander.id}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        const url = `${MAIN_API.base_url}get_cards_of_commander/${contentState.selectedCommander.id}/`;
+        await axios.get(url, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
-                setCommanderCards(response.data.response);
+                contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: response.data.response });
             } else { enqueueSnackbar(response.data.response) };
             setAwaitingResponse(false);
         }).catch((error) => {
@@ -103,48 +161,48 @@ export default function ManageContent() {
 
     useEffect(() => { processTokens(getFactions) }, []);
 
-    useEffect(() => { if (factions) { processTokens(getCommanders) } }, [factions]);
+    useEffect(() => { if (contentState.factions) { processTokens(getCommanders) } }, [contentState.factions]);
 
     useEffect(() => {
-        if (selectedFaction && allCommanders) {
-            const filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
-            setViewedCommanders(filteredCommanders);
+        if (contentState.selectedFaction && contentState.allCommanders) {
+            const filteredCommanders = contentState.allCommanders?.filter((commander) => commander.faction.id === contentState.selectedFaction?.id);
+            contentDispatch({ type: 'SET_VIEWED_COMMANDERS', payload: filteredCommanders });
             processTokens(getFactionCards);
         }
-    }, [selectedFaction]);
+    }, [contentState.selectedFaction]);
 
     useEffect(() => {
-        if (selectedFaction && allCommanders) {
-            const filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
-            if (!filteredCommanders?.find((commander) => commander.id === selectedCommander?.id)) {
-                setSelectedCommander(null);
-                setCommanderCards(null);
+        if (contentState.selectedFaction && contentState.allCommanders) {
+            const filteredCommanders = contentState.allCommanders?.filter((commander) => commander.faction.id === contentState.selectedFaction?.id);
+            if (!filteredCommanders?.find((commander) => commander.id === contentState.selectedCommander?.id)) {
+                contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
+                contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: null });
             }
-            setViewedCommanders(filteredCommanders);
+            contentDispatch({ type: 'SET_VIEWED_COMMANDERS', payload: filteredCommanders });
         }
-    }, [allCommanders, selectedCommander]);
+    }, [contentState.allCommanders, contentState.selectedCommander]);
 
     useEffect(() => {
-        if (selectedFaction && selectedCommander) { processTokens(getCommanderCards) };
-    }, [selectedCommander]);
+        if (contentState.selectedFaction && contentState.selectedCommander) { processTokens(getCommanderCards) };
+    }, [contentState.selectedCommander]);
 
     function handleFactionClick(faction: Faction) {
-        if (selectedFaction && (selectedFaction?.id === faction.id)) {
-            setSelectedFaction(null);
-            setFactionCards(null);
-            setSelectedCommander(null);
-            setCommanderCards(null);
+        if (contentState.selectedFaction && (contentState.selectedFaction?.id === faction.id)) {
+            contentDispatch({ type: 'SET_SELECTED_FACTION', payload: null });
+            contentDispatch({ type: 'SET_FACTION_CARDS', payload: null });
+            contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
+            contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: null });
         } else {
-            setSelectedFaction(faction);
+            contentDispatch({ type: 'SET_SELECTED_FACTION', payload: faction });
         }    
     }
 
     function handleCommanderClick(commander: Commander) {
-        if (selectedCommander && (selectedCommander?.id === commander.id)) {
-            setSelectedCommander(null);
-            setCommanderCards(null);
+        if (contentState.selectedCommander && (contentState.selectedCommander?.id === commander.id)) {
+            contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
+            contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: null });
         } else {
-            setSelectedCommander(commander);
+            contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: commander });
         }
     }
 
@@ -184,143 +242,17 @@ export default function ManageContent() {
                     justifyContent={'center'}
                     alignItems={'center'}
                     width={'100%'}
-                    key={
-                        selectedFaction ?
-                            selectedCommander ?
-                                `${selectedCommander.name}-${selectedCommander.id}-${selectedFaction.id}` :
-                                `${selectedFaction.name}-${selectedFaction.id}` :
-                            'default'
-                    }
                     sx={{ animation: `${getFadeIn()} 2s` }}
                 >
-                    <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Typography variant={'h3'}>Manage Content</Typography>
-                        <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'flex-start'}>
-                            { selectedFaction ?
-                                <Stack>
-                                    <SelectableAvatar
-                                        item={selectedFaction}
-                                        altText={`SELECTED ${selectedFaction.name}`}
-                                        isMobile={isMobile}
-                                        handleClick={handleFactionClick}
-                                    />
-                                    <Button size={'small'} onClick={() => { setAddNewFaction(true) }}>Edit</Button>
-                                </Stack> :
-                                <SelectableAvatar
-                                    item={selectedFaction}
-                                    altText={'DEFAULT FACTION'}
-                                    defaultIcon={'/icons/throne.png'}
-                                    isMobile={isMobile}
-                                    handleClick={handleFactionClick}
-                                    sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                                />
-                            }
-                            { selectedCommander ?
-                                <Stack>
-                                    <SelectableAvatar
-                                        item={selectedCommander}
-                                        altText={`SELECTED ${selectedCommander.name}`}
-                                        isMobile={isMobile}
-                                        handleClick={handleCommanderClick}
-                                    />
-                                    <Button size={'small'} onClick={() => { setAddNewCommander(true) }}>Edit</Button>
-                                </Stack> :
-                                <SelectableAvatar
-                                    item={selectedCommander}
-                                    altText={'DEFAULT COMMANDER'}
-                                    defaultIcon={'/icons/crown.svg'}
-                                    isMobile={isMobile}
-                                    handleClick={handleCommanderClick}
-                                    sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                                />
-                            }
-                        </Stack>
-
-                        { factions && !selectedFaction &&
-                            <Box sx={{ width: '100%' }}>
-                                <Grid
-                                    container
-                                    rowSpacing={2}
-                                    columnSpacing={2}
-                                    sx={gridContainerStyles}
-                                >
-                                    { factions.map((faction) => (
-                                        <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                            <SelectableAvatar
-                                                item={faction}
-                                                altText={faction.name}
-                                                isMobile={isMobile}
-                                                handleClick={handleFactionClick}
-                                            />
-                                        </Grid>
-                                    ))}
-                                    <Grid item sx={gridItemStyles}>
-                                        <AddNew
-                                            type={'faction'}
-                                            isMobile={isMobile}
-                                            handleClick={() => { setAddNewFaction(true) }}
-                                        />
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        }
-                        { factions &&
-                            <EditAddFaction
-                                faction={selectedFaction ? selectedFaction : null}
-                                factions={factions}
-                                editOpen={addNewFaction}
-                                setEditOpen={setAddNewFaction}
-                                setFactions={setFactions}
-                            />
-                        }
-
-                        { selectedFaction && allCommanders && viewedCommanders && !selectedCommander &&
-                            <Box sx={{ width: '100%' }}>
-                                <Grid
-                                    container
-                                    rowSpacing={2}
-                                    columnSpacing={2}
-                                    sx={gridContainerStyles}
-                                >
-                                    { viewedCommanders.map((commander) => (
-                                        <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                            <SelectableAvatar
-                                                item={commander}
-                                                altText={commander.name}
-                                                isMobile={isMobile}
-                                                handleClick={handleCommanderClick}
-                                            />
-                                        </Grid>
-                                    ))}
-                                    <Grid item sx={gridItemStyles}>
-                                        <AddNew
-                                            type={'commander'}
-                                            isMobile={isMobile}
-                                            handleClick={() => { setAddNewCommander(true) }}
-                                        />
-                                    </Grid>
-                                </Grid>
-                            </Box>
-                        }
-                        { factions && selectedFaction && allCommanders &&
-                            <EditAddCommander
-                                commander={
-                                    selectedCommander ? selectedCommander :
-                                    {
-                                        id: -1,
-                                        name: '',
-                                        img_url: '',
-                                        faction: selectedFaction,
-                                    }
-                                }
-                                editOpen={addNewCommander}
-                                setEditOpen={setAddNewCommander}
-                                commanders={allCommanders}
-                                setCommanders={setAllCommanders}
-                                factions={factions}
-                            />
-                        }
-                    </Stack>
+                    <ContentTop
+                        contentState={contentState}
+                        contentDispatch={contentDispatch}
+                        isMobile={isMobile}
+                        handleFactionClick={handleFactionClick}
+                        handleCommanderClick={handleCommanderClick}
+                        gridContainerStyles={gridContainerStyles}
+                        gridItemStyles={gridItemStyles}
+                    />
 
                     <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
                         <Box width={'75%'} sx={{ py: 4 }}>
@@ -328,51 +260,238 @@ export default function ManageContent() {
                         </Box>
                     </Stack>
 
-                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        { !commanderCards && factionCards && factions && (
-                            <CardOptions
-                                isMobile={isMobile}
-                                cards={factionCards}
-                                defaultCards={null}
-                                factions={factions}
-                                commanders={allCommanders ?? []}
-                                handleClick={() => { setAddNewCard(true) }}
-                                setCards={setFactionCards}
-                            />
-                        )}
-                        { commanderCards && factions && (
-                            <CardOptions
-                                isMobile={isMobile}
-                                cards={commanderCards}
-                                defaultCards={factionCards ? factionCards : null}
-                                factions={factions}
-                                commanders={allCommanders ?? []}
-                                handleClick={() => { setAddNewCard(true) }}
-                                setCards={setCommanderCards}
-                            />
-                        )}
-                        { factions && allCommanders &&
-                            <EditAddCard
-                                card={{
-                                    id: -1,
-                                    card_name: '',
-                                    img_url: '',
-                                    faction: selectedFaction ? selectedFaction : null,
-                                    commander: selectedCommander ? selectedCommander : null,
-                                    replaces: null,
-                                }}
-                                cards={commanderCards ? commanderCards : factionCards ? factionCards : []}
-                                defaultCards={commanderCards ? commanderCards : factionCards ? factionCards : []}
-                                factions={factions}
-                                commanders={allCommanders}
-                                editOpen={addNewCard}
-                                setEditOpen={setAddNewCard}
-                                setCards={commanderCards ? setCommanderCards : setFactionCards}
-                            />
-                        }
-                    </Stack>
+                    <ContentBottom
+                        contentState={contentState}
+                        contentDispatch={contentDispatch}
+                        isMobile={isMobile}
+                    />
                 </Stack>
             }
         </Page>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type ContentTopProps = {
+    contentState: State;
+    contentDispatch: React.Dispatch<Action>;
+    isMobile: boolean;
+    handleFactionClick: (faction: Faction) => void;
+    handleCommanderClick: (commander: Commander) => void;
+    gridContainerStyles: SxProps<Theme>;
+    gridItemStyles: SxProps<Theme>;
+};
+
+function ContentTop({ contentState, contentDispatch, isMobile, handleFactionClick, handleCommanderClick, gridContainerStyles, gridItemStyles }: ContentTopProps) {
+
+    const theme = useTheme();
+
+    return (
+        <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+            <Typography variant={'h3'}>Manage Content</Typography>
+            <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'flex-start'}>
+                {contentState.selectedFaction ?
+                    <Stack>
+                        <SelectableAvatar
+                            item={contentState.selectedFaction}
+                            altText={`SELECTED ${contentState.selectedFaction.name}`}
+                            isMobile={isMobile}
+                            handleClick={handleFactionClick} />
+                        <Button
+                            size={'small'}
+                            onClick={() => {
+                                contentDispatch({ type: 'TOGGLE_ADD_NEW_FACTION' });
+                            } }
+                        >
+                            Edit
+                        </Button>
+                    </Stack> :
+                    <SelectableAvatar
+                        item={contentState.selectedFaction}
+                        altText={'DEFAULT FACTION'}
+                        defaultIcon={'/icons/throne.png'}
+                        isMobile={isMobile}
+                        handleClick={handleFactionClick}
+                        sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
+                    />
+                    }
+                {contentState.selectedCommander ?
+                    <Stack>
+                        <SelectableAvatar
+                            item={contentState.selectedCommander}
+                            altText={`SELECTED ${contentState.selectedCommander.name}`}
+                            isMobile={isMobile}
+                            handleClick={handleCommanderClick} />
+                        <Button
+                            size={'small'}
+                            onClick={() => {
+                                contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' });
+                            } }
+                        >
+                            Edit
+                        </Button>
+                    </Stack> :
+                    <SelectableAvatar
+                        item={contentState.selectedCommander}
+                        altText={'DEFAULT COMMANDER'}
+                        defaultIcon={'/icons/crown.svg'}
+                        isMobile={isMobile}
+                        handleClick={handleCommanderClick}
+                        sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
+                    />
+                }
+            </Stack>
+
+            { contentState.factions && !contentState.selectedFaction &&
+                <Box sx={{ width: '100%' }}>
+                    <Grid
+                        container
+                        rowSpacing={2}
+                        columnSpacing={2}
+                        sx={gridContainerStyles}
+                    >
+                        {contentState.factions.map((faction) => (
+                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
+                                <SelectableAvatar
+                                    item={faction}
+                                    altText={faction.name}
+                                    isMobile={isMobile}
+                                    handleClick={handleFactionClick} />
+                            </Grid>
+                        ))}
+                        <Grid item sx={gridItemStyles}>
+                            <AddNew
+                                type={'faction'}
+                                isMobile={isMobile}
+                                handleClick={() => {
+                                    contentDispatch({ type: 'TOGGLE_ADD_NEW_FACTION' });
+                                } }
+                            />
+                        </Grid>
+                    </Grid>
+                </Box>
+            }
+            { contentState.factions &&
+                <EditAddFaction
+                    faction={contentState.selectedFaction ? contentState.selectedFaction : null}
+                    factions={contentState.factions}
+                    editOpen={contentState.addNewFaction}
+                    setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_FACTION' }); } }
+                    setFactions={(factions: Faction[]) => { contentDispatch({ type: 'SET_FACTIONS', payload: factions }); } }
+                />
+            }
+
+            { contentState.selectedFaction && contentState.allCommanders && contentState.viewedCommanders && !contentState.selectedCommander &&
+                <Box sx={{ width: '100%' }}>
+                    <Grid
+                        container
+                        rowSpacing={2}
+                        columnSpacing={2}
+                        sx={gridContainerStyles}
+                    >
+                        {contentState.viewedCommanders.map((commander) => (
+                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
+                                <SelectableAvatar
+                                    item={commander}
+                                    altText={commander.name}
+                                    isMobile={isMobile}
+                                    handleClick={handleCommanderClick} />
+                            </Grid>
+                        ))}
+                        <Grid item sx={gridItemStyles}>
+                            <AddNew
+                                type={'commander'}
+                                isMobile={isMobile}
+                                handleClick={() => {
+                                    contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' });
+                                } } />
+                        </Grid>
+                    </Grid>
+                </Box>
+            }
+            { contentState.factions && contentState.selectedFaction && contentState.allCommanders &&
+                <EditAddCommander
+                    commander={contentState.selectedCommander ? contentState.selectedCommander :
+                        {
+                            id: -1,
+                            name: '',
+                            img_url: '',
+                            faction: contentState.selectedFaction,
+                        }}
+                    editOpen={contentState.addNewCommander}
+                    setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' }); } }
+                    commanders={contentState.allCommanders}
+                    setCommanders={(commanders: Commander[]) => { contentDispatch({ type: 'SET_ALL_COMMANDERS', payload: commanders }); } }
+                    factions={contentState.factions}
+                />
+            }
+        </Stack>
+    );
+}
+
+// ----------------------------------------------------------------------
+
+type ContentBottomProps = {
+    contentState: State;
+    contentDispatch: React.Dispatch<Action>;
+    isMobile: boolean;
+};
+
+function ContentBottom({ contentState, contentDispatch, isMobile }: ContentBottomProps) {
+
+    return (
+        <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+            { (!contentState.selectedFaction && !contentState.selectedCommander) &&
+                <UploadAvatarComp />
+            }
+            { !contentState.commanderCards && contentState.factionCards && contentState.factions && (
+                <CardOptions
+                    isMobile={isMobile}
+                    cards={contentState.factionCards}
+                    defaultCards={null}
+                    factions={contentState.factions}
+                    commanders={contentState.allCommanders ?? []}
+                    handleClick={() => {
+                        contentDispatch({ type: 'TOGGLE_ADD_NEW_CARD' });
+                    } }
+                    setCards={(cards: CardTemplate[]) => { contentDispatch({ type: 'SET_FACTION_CARDS', payload: cards }); } }
+                />
+            )}
+            { contentState.commanderCards && contentState.factions && (
+                <CardOptions
+                    isMobile={isMobile}
+                    cards={contentState.commanderCards}
+                    defaultCards={contentState.factionCards ? contentState.factionCards : null}
+                    factions={contentState.factions}
+                    commanders={contentState.allCommanders ?? []}
+                    handleClick={() => {
+                        contentDispatch({ type: 'TOGGLE_ADD_NEW_CARD' });
+                    } }
+                    setCards={(cards: CardTemplate[]) => { contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: cards }); } }
+                />
+            )}
+            { contentState.factions && contentState.allCommanders &&
+                <EditAddCard
+                    card={{
+                        id: -1,
+                        card_name: '',
+                        img_url: '',
+                        faction: contentState.selectedFaction ? contentState.selectedFaction : null,
+                        commander: contentState.selectedCommander ? contentState.selectedCommander : null,
+                        replaces: null,
+                    }}
+                    cards={contentState.commanderCards ? contentState.commanderCards : contentState.factionCards ? contentState.factionCards : []}
+                    defaultCards={contentState.commanderCards ? contentState.commanderCards : contentState.factionCards ? contentState.factionCards : []}
+                    factions={contentState.factions}
+                    commanders={contentState.allCommanders}
+                    editOpen={contentState.addNewCard}
+                    setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_CARD' }); } }
+                    setCards={contentState.commanderCards ?
+                        (cards: CardTemplate[]) => { contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: cards }); } :
+                        (cards: CardTemplate[]) => { contentDispatch({ type: 'SET_FACTION_CARDS', payload: cards }); } }
+                />
+            }
+        </Stack>
     );
 };
