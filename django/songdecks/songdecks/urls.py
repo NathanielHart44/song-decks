@@ -24,6 +24,7 @@ urlpatterns = [
     path('current_user/', views.current_user),
     path('register/', permission_classes([AllowAny])(views.register)),
     path('submit_feedback/', views.submit_feedback),
+    path('download_img/', views.download_img),
 
     # ----------------------------------------------------------------------
 

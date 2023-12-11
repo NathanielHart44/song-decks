@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
     Backdrop,
     Button,
@@ -7,13 +8,14 @@ import {
     useTheme
 } from "@mui/material"
 import { useSnackbar } from "notistack";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Commander, Faction, FakeCommander } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import LoadingBackdrop from "../LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
 import axios from "axios";
 import { MAIN_API } from "src/config";
+import UploadAvatarComp, { FileWithPreview } from "../upload/UploadAvatarComp";
 
 // ----------------------------------------------------------------------
 
@@ -35,7 +37,16 @@ export default function EditAddCommander({ commander, commanders, factions, edit
 
     const [commanderName, setCommanderName] = useState<string>(commander.name);
     const [imgURL, setImgURL] = useState<string>(commander.img_url);
+    const [urlLock, setURLLock] = useState<boolean>(false);
+    const [uploadFile, setUploadFile] = useState<FileWithPreview | null>(null);
     const [faction, setFaction] = useState<Faction | null>(commander.faction);
+
+    useEffect(() => {
+        setCommanderName(commander.name);
+        setFaction(commander.faction);
+        setImgURL(commander.img_url);
+        setUploadFile(null);
+    }, [commander]);
 
     const handleCommanderNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCommanderName(event.target.value);
@@ -86,9 +97,10 @@ export default function EditAddCommander({ commander, commanders, factions, edit
         formData.append('img_url', imgURL);
         formData.append('faction_id', (faction.id).toString());
         if (commander.id !== -1) { formData.append('commander_id', (commander.id).toString()) };
+        if (uploadFile) { formData.append('img_file', uploadFile) };
 
         const url = (commander.id !== -1) ? `${MAIN_API.base_url}add_edit_commander/${commander.id}/` : `${MAIN_API.base_url}add_edit_commander/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}`, 'content-type': 'multipart/form-data' } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 const new_commander = response.data.commander;
@@ -163,7 +175,20 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 value={imgURL}
                                 sx={{ labelWidth: "text".length * 9 }}
                                 onChange={handleImgURLChange}
+                                disabled={urlLock}
                                 label={"Image URL"}
+                            />
+
+                            <UploadAvatarComp
+                                type={'commander'}
+                                name={commanderName}
+                                faction={faction}
+                                commander={null}
+                                uploadFile={uploadFile}
+                                setUploadFile={setUploadFile}
+                                imgURL={imgURL}
+                                setImgURL={setImgURL}
+                                setURLLock={setURLLock}
                             />
 
                             <Stack
@@ -201,4 +226,4 @@ export default function EditAddCommander({ commander, commanders, factions, edit
             </div>
         </div>
     )
-}
+};

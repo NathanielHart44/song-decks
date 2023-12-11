@@ -1,5 +1,5 @@
+boto3
 Django
-uwsgi
 django-environ
 djangorestframework
 djangorestframework-simplejwt
@@ -8,3 +8,4 @@ drf-jwt~=1.19.2
 dj-rest-auth
 django-allauth
 mysqlclient
+uwsgi

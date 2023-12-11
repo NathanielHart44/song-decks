@@ -16,6 +16,7 @@ import LoadingBackdrop from "../LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
 import axios from "axios";
 import { MAIN_API } from "src/config";
+import UploadAvatarComp, { FileWithPreview } from "../upload/UploadAvatarComp";
 
 // ----------------------------------------------------------------------
 
@@ -36,6 +37,8 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
 
     const [factionName, setFactionName] = useState<string>(faction ? faction.name : '');
     const [imgURL, setImgURL] = useState<string>(faction ? faction.img_url : '');
+    const [urlLock, setURLLock] = useState<boolean>(false);
+    const [uploadFile, setUploadFile] = useState<FileWithPreview | null>(null);
     const [neutral, setNeutral] = useState<boolean>(faction ? faction.neutral : false);
 
     const handleFactionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +87,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
         formData.append('name', factionName);
         formData.append('img_url', imgURL);
         formData.append('neutral', neutral.toString());
+        if (uploadFile) { formData.append('img_file', uploadFile) };
 
         const url = faction ? `${MAIN_API.base_url}add_edit_faction/${faction.id}/` : `${MAIN_API.base_url}add_edit_faction/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
@@ -141,7 +145,21 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 sx={{ labelWidth: "text".length * 9 }}
                                 onChange={handleImgURLChange}
                                 label={"Image URL"}
+                                disabled={urlLock}
                             />
+
+                            <UploadAvatarComp
+                                type={'faction'}
+                                name={factionName}
+                                faction={faction}
+                                commander={null}
+                                uploadFile={uploadFile}
+                                setUploadFile={setUploadFile}
+                                imgURL={imgURL}
+                                setImgURL={setImgURL}
+                                setURLLock={setURLLock}
+                            />
+
                             <Stack direction={'row'} alignItems={'center'}>
                                 <Checkbox
                                     checked={neutral}

@@ -26,7 +26,6 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
 import { AddNew } from "../components/edit-contents/AddNew";
 import { CardOptions } from "../components/edit-contents/CardOptions";
-import UploadAvatarComp from "src/components/UploadAvatarComp";
 
 // ----------------------------------------------------------------------
 
@@ -200,7 +199,9 @@ export default function ManageContent() {
     function handleCommanderClick(commander: Commander) {
         if (contentState.selectedCommander && (contentState.selectedCommander?.id === commander.id)) {
             contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
+            console.log('Setting commander to null');
             contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: null });
+            console.log('Setting commander cards to null');
         } else {
             contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: commander });
         }
@@ -412,7 +413,7 @@ function ContentTop({ contentState, contentDispatch, isMobile, handleFactionClic
             }
             { contentState.factions && contentState.selectedFaction && contentState.allCommanders &&
                 <EditAddCommander
-                    commander={contentState.selectedCommander ? contentState.selectedCommander :
+                    commander={contentState.selectedCommander !== null ? contentState.selectedCommander :
                         {
                             id: -1,
                             name: '',
@@ -442,9 +443,6 @@ function ContentBottom({ contentState, contentDispatch, isMobile }: ContentBotto
 
     return (
         <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-            { (!contentState.selectedFaction && !contentState.selectedCommander) &&
-                <UploadAvatarComp />
-            }
             { !contentState.commanderCards && contentState.factionCards && contentState.factions && (
                 <CardOptions
                     isMobile={isMobile}

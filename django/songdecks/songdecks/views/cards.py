@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from songdecks.serializers import (PlayerCardSerializer, CardTemplateSerializer)
 from songdecks.models import (Faction, Commander, CardTemplate,
     Game, PlayerCard)
-from songdecks.views.helpers import get_profile_game_cards
+from songdecks.views.helpers import get_profile_game_cards, upload_file_to_s3
+from songdecks.settings import AWS_S3_BUCKET_NAME
 
 # ----------------------------------------------------------------------
 # Card Actions
@@ -124,6 +125,13 @@ def add_edit_card(request, card_id=None):
                 continue
             elif info[key] is None:
                 return JsonResponse({"success": False, "response": f"Missing {key}."})
+            
+        img_file = request.data.get('img_file', None)
+        if img_file:
+            is_success, error_msg = upload_file_to_s3(img_file, AWS_S3_BUCKET_NAME, info['img_url'])
+            if not is_success:
+                return JsonResponse({"success": False, "response": error_msg})
+
         faction_search = Faction.objects.filter(id=info['faction_id'])
         if faction_search.count() == 0:
             return JsonResponse({"success": False, "response": "Faction not found."})

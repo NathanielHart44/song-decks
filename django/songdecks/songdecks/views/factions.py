@@ -2,6 +2,8 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from songdecks.serializers import (FactionSerializer)
 from songdecks.models import (Faction)
+from songdecks.views.helpers import upload_file_to_s3
+from songdecks.settings import AWS_S3_BUCKET_NAME
 
 # ----------------------------------------------------------------------
 # Faction Content
@@ -28,6 +30,13 @@ def add_edit_faction(request, faction_id=None):
         for key in info:
             if info[key] is None:
                 return JsonResponse({"success": False, "response": f"Missing {key}."})
+            
+        img_file = request.data.get('img_file', None)
+        if img_file:
+            is_success, error_msg = upload_file_to_s3(img_file, AWS_S3_BUCKET_NAME, info['img_url'])
+            if not is_success:
+                return JsonResponse({"success": False, "response": error_msg})
+
         if faction_id is None:
             faction = Faction.objects.create(
                 name=info['name'],

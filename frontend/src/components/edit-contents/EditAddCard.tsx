@@ -14,6 +14,7 @@ import LoadingBackdrop from "../LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
 import axios from "axios";
 import { MAIN_API } from "src/config";
+import UploadAvatarComp, { FileWithPreview } from "../upload/UploadAvatarComp";
 
 // ----------------------------------------------------------------------
 
@@ -37,6 +38,8 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
 
     const [cardName, setCardName] = useState<string>(card.card_name);
     const [imgURL, setImgURL] = useState<string>(card.img_url);
+    const [urlLock, setURLLock] = useState<boolean>(false);
+    const [uploadFile, setUploadFile] = useState<FileWithPreview | null>(null);
     const [faction, setFaction] = useState<Faction | null>(card.faction);
     const [commander, setCommander] = useState<Commander | null>(card.commander);
     const [replacement, setReplacement] = useState<CardTemplate | null>(card.replaces ? card.replaces : null);
@@ -93,6 +96,7 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
         formData.append('faction_id', (faction.id).toString());
         if (commander) { formData.append('commander_id', (commander.id).toString()) };
         if (replacement) { formData.append('replaces_id', (replacement.id).toString()) };
+        if (uploadFile) { formData.append('img_file', uploadFile) };
 
         const url = (card.id !== -1) ? `${MAIN_API.base_url}add_edit_card/${card.id}/` : `${MAIN_API.base_url}add_edit_card/`;
         await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
@@ -122,7 +126,7 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                     sx={{
                         backgroundColor: 'rgba(0, 0, 0, 0.75)',
                         color: theme.palette.primary.main,
-                        zIndex: (theme) => theme.zIndex.drawer + 1
+                        zIndex: (theme) => theme.zIndex.drawer + 1,
                     }}
                     onClick={closeScreen}
                 >
@@ -185,14 +189,6 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 onChange={handleCardNameChange}
                                 label={"Card Name"}
                             />
-                            <TextField
-                                variant="outlined"
-                                fullWidth
-                                value={imgURL}
-                                sx={{ labelWidth: "text".length * 9 }}
-                                onChange={handleImgURLChange}
-                                label={"Image URL"}
-                            />
                             { defaultCards &&
                                 <TextField
                                     select
@@ -217,6 +213,29 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                     ))}
                                 </TextField>
                             }
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                value={imgURL}
+                                sx={{ labelWidth: "text".length * 9 }}
+                                onChange={handleImgURLChange}
+                                label={"Image URL"}
+                                disabled={urlLock}
+                            />
+
+                            <UploadAvatarComp
+                                type={'card'}
+                                name={cardName}
+                                faction={faction}
+                                commander={
+                                    (commander && commander.id !== -1) ? commander : null
+                                }
+                                uploadFile={uploadFile}
+                                setUploadFile={setUploadFile}
+                                imgURL={imgURL}
+                                setImgURL={setImgURL}
+                                setURLLock={setURLLock}
+                            />
 
                             <Stack
                                 direction={'row'}

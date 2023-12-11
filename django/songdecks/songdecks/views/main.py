@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
 from songdecks.views.helpers import handle_card_updates, send_email_notification
+import requests
+from django.http import HttpResponse
 
 # ----------------------------------------------------------------------
 # Game setup/general views
@@ -165,5 +167,30 @@ def submit_feedback(request):
             message=message
         )
         return JsonResponse({"success": True, "response": "Successfully submitted feedback."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['POST'])
+def download_img(request):
+    img_url = request.data.get('img_url', None)
+    if img_url is None:
+        return JsonResponse({"success": False, "response": "No image URL provided."})
+    try:
+        try:
+            response = requests.get(img_url, stream=True)
+        except Exception as e:
+            return JsonResponse({"success": False, "response": "Image could not be retrieved."})
+
+        if response.status_code != 200:
+            return JsonResponse({"success": False, "response": "Image could not be retrieved."})
+        
+        content_type = response.headers.get('content-type')
+        if content_type is None:
+            return JsonResponse({"success": False, "response": "Unable to determine the content type of the image."})
+        
+        if 'image' not in content_type:
+            return JsonResponse({"success": False, "response": f"URL does not point to an image. Type is: {content_type}"})
+        
+        return HttpResponse(response.content, content_type=content_type)
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})

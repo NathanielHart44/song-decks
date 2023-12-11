@@ -1,4 +1,8 @@
-from songdecks.settings import EMAIL_HOST_USER
+from songdecks.settings import (
+    EMAIL_HOST_USER, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_REGION
+)
+import boto3
+import mimetypes
 from django.core.mail import send_mail
 from textwrap import dedent
 from songdecks.models import PlayerCard, UserCardStats
@@ -68,3 +72,31 @@ def send_email_notification(recipient, subject, message, filename=None):
         email.send(fail_silently=False)
     except Exception as e:
         print(e)
+
+def get_boto3_session():
+    session = boto3.Session(
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_S3_REGION
+    )
+    return session
+
+def upload_file_to_s3(file, bucket_name, file_name):
+    # file_name should include the path to the file as well.
+    # Example: "commanders/martell/commander_1.jpg"
+    is_success, error_msg = False, None
+    if 'amazonaws.com/' in file_name:
+        file_name = file_name.split('amazonaws.com/')[1]
+    try:
+        mime_type, _ = mimetypes.guess_type(file_name)
+        if mime_type is None:
+            mime_type = 'application/octet-stream'
+
+        session = get_boto3_session()
+        s3 = session.resource('s3')
+        s3.Bucket(bucket_name).put_object(Key=file_name, Body=file, ContentType=mime_type)
+        is_success = True
+    except Exception as e:
+        error_msg = str(e) + f" - {file_name} - {bucket_name}"
+        return is_success, error_msg
+    return is_success, error_msg

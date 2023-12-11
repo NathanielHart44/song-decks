@@ -1,0 +1,321 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import { Button, Card, CircularProgress, FormHelperText, Grid, Stack, SxProps, TextField, Theme, styled } from '@mui/material';
+import { useCallback, useEffect, useState } from 'react';
+import { CustomFile } from './type';
+import { fData } from 'src/utils/formatNumber';
+import { useDropzone } from 'react-dropzone';
+import Iconify from '../Iconify';
+import RejectionFiles from './RejectionFiles';
+import LazyImage from '../Image';
+import { Commander, Faction } from "src/@types/types";
+import createImageURL from 'src/utils/createImgURL';
+import isValidHttpUrl from 'src/utils/isValidHttpUrl';
+import { MAIN_API } from 'src/config';
+import axios from 'axios';
+import { processTokens } from 'src/utils/jwt';
+
+// ----------------------------------------------------------------------
+
+export interface FileWithPreview extends File {
+    preview: string;
+}
+
+type UploadProps = {
+    type: 'card' | 'faction' | 'commander';
+    name: string;
+    faction: Faction | null;
+    commander: Commander | null;
+    uploadFile: FileWithPreview | null;
+    setUploadFile: (arg0: FileWithPreview | null) => void;
+    imgURL: string;
+    setImgURL: (arg0: string) => void;
+    setURLLock: (arg0: boolean) => void;
+}
+
+// ----------------------------------------------------------------------
+
+export default function UploadAvatarComp({ type, name, faction, commander, uploadFile, setUploadFile, imgURL, setImgURL, setURLLock }: UploadProps) {
+
+    const [newUrl, setNewUrl] = useState<string>('');
+
+    useEffect(() => {
+        const img_url = createImageURL({ type, name, faction, commander, uploadFile });
+        setNewUrl(img_url);
+    }, [type, name, faction, commander, uploadFile]);
+
+    const is_card = type === 'card';
+
+    const handleDrop = useCallback((acceptedFiles: File[]) => {
+        const newFile = acceptedFiles[0] as FileWithPreview;
+
+        if (newFile) {
+            setUploadFile(Object.assign(newFile, {
+                preview: URL.createObjectURL(newFile)
+            }));
+        }
+    }, []);
+
+    return (
+        <Card 
+            sx={{
+                width: '100%',
+                // height: is_card ? 350 : 300,
+                height: 'auto',
+                p: 1,
+            }}
+        >
+            <UploadAvatar
+                file={uploadFile}
+                newUrl={newUrl}
+                imgURL={imgURL}
+                setImgURL={setImgURL}
+                maxSize={3145728}
+                onDrop={handleDrop}
+                removeFile={() => setUploadFile(null)}
+                is_card={is_card}
+                setURLLock={setURLLock}
+            />
+        </Card>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type UploadAvatarProps = {
+    file: CustomFile | string | null;
+    newUrl: string;
+    imgURL: string;
+    setImgURL: (arg0: string) => void;
+    maxSize: number;
+    is_card: boolean;
+    onDrop: (acceptedFiles: File[]) => void;
+    removeFile: () => void;
+    setURLLock: (arg0: boolean) => void;
+    sx?: SxProps<Theme>;
+};
+  
+// ----------------------------------------------------------------------
+  
+function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, is_card, onDrop, removeFile, setURLLock, sx, ...other }: UploadAvatarProps) {
+
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    const card_mod = 0.215;
+    const commander_mod = 0.5;
+    const dimensions = is_card ? [750 * card_mod, 1050 * card_mod] : [300 * commander_mod, 300 * commander_mod];
+
+    const [error, setError] = useState(false);
+    const [helperText, setHelperText] = useState('');
+
+    useEffect(() => {
+        setHelperText(`Allowed: *.jpeg, *.jpg, *.png\nMax size: ${fData(maxSize)}`);
+    }, [maxSize]);
+
+    const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
+        multiple: false,
+        onDropAccepted: (acceptedFiles) => {
+            setError(false);
+            setHelperText('');
+            onDrop(acceptedFiles);
+        },
+        onDropRejected: () => {
+            setError(true);
+            setHelperText('Invalid file type or size');
+        },
+        ...other,
+    });
+
+    const downloadImg = async () => {
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+
+        const formData = new FormData();
+        formData.append('img_url', imgURL);
+
+        await axios.post(`${MAIN_API.base_url}download_img/`, formData,
+            { headers: { Authorization: `JWT ${token}` }, responseType: 'blob' }
+        ).then((response) => {
+            const contentType = response.headers['content-type'];
+
+            if (contentType.startsWith('image')) {
+                // Handle image response
+                const urlSegments = new URL(imgURL).pathname.split('/');
+                const originalFileName = urlSegments[urlSegments.length - 1] || 'image.jpg';
+    
+                const imageBlob = new Blob([response.data], { type: contentType });
+                const imageFile = new File([imageBlob], originalFileName, { type: contentType });
+    
+                onDrop([imageFile]);
+            } else {
+                // TODO: Handle JSON response with specific error messages
+                removeFile();
+                setError(true);
+                setHelperText("Unnable to download image from URL.");
+            }
+            setAwaitingResponse(false);
+        });
+    };
+
+    function handleDownloadImgURL(url : string) {
+        if (!isValidHttpUrl(url)) {
+            setError(true);
+            setHelperText('Invalid URL');
+            return;
+        };
+        if (file && (url === newUrl)) { return };
+        setError(false);
+        setHelperText('');
+        processTokens(downloadImg);
+    };
+
+    useEffect(() => {
+        if (awaitingResponse) { return };
+        handleDownloadImgURL(imgURL);
+    }, [imgURL]);
+
+    useEffect(() => {
+        if (awaitingResponse) { setURLLock(true) }
+        else { setURLLock(false) };
+    }, [awaitingResponse]);
+
+    return (
+        <>
+            <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ p: 1, width: '100%' }}>
+                <Grid item sm={12} md={6}>
+                    <RootStyle
+                        sx={{
+                            ...((isDragReject || error) && {
+                                borderColor: 'error.light',
+                            }),
+                            borderRadius: is_card ? '2%' : '25%',
+                            width: `${dimensions[0]}px`,
+                            height: `${dimensions[1]}px`,
+                            ...sx,
+                        }}
+                    >
+                        <DropZoneStyle
+                            {...getRootProps()}
+                            sx={{
+                                ...(isDragActive && { opacity: 0.72 }),
+                                borderRadius: is_card ? '2%' : '25%',
+                            }}
+                        >
+                            <input {...getInputProps()} />
+
+                            {file && (
+                                <LazyImage alt="avatar" src={isString(file) ? file : file.preview} sx={{ zIndex: 8 }} />
+                            )}
+
+                            <PlaceholderStyle
+                                className="placeholder"
+                                sx={{
+                                    ...(file && {
+                                        opacity: 0,
+                                        '&:hover': { opacity: 0.72 },
+                                    }),
+                                }}
+                            >
+                                { awaitingResponse ?
+                                    <CircularProgress /> :
+                                    <Iconify icon={'mdi:file-document-add-outline'} sx={{ width: 24, height: 24, mb: 1 }} />
+                                }
+                            </PlaceholderStyle>
+                        </DropZoneStyle>
+                    </RootStyle>
+
+                    { (helperText && !awaitingResponse) && (
+                        <FormHelperText error={error} sx={{ textAlign: 'center' }}>
+                            {helperText}
+                        </FormHelperText>
+                    )}
+                </Grid>
+
+                <Grid item sm={12} md={6}>
+                    <Stack direction="column" justifyContent="center" alignItems="center" spacing={1} sx={{ width: '100%' }}>
+                        <TextField
+                            variant="outlined"
+                            fullWidth
+                            value={newUrl}
+                            size={"small"}
+                            sx={{ labelWidth: "text".length * 9, mt: 2 }}
+                            disabled
+                            label={"Generated URL"}
+                        />
+
+                        <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ width: '100%' }}>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={() => { setImgURL(newUrl) }}
+                                sx={{ width: '100%' }}
+                                disabled={newUrl === imgURL}
+                            >
+                                Use Gen. URL
+                            </Button>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={removeFile}
+                                sx={{ width: '100%' }}
+                                disabled={!file}
+                            >
+                                Remove Image
+                            </Button>
+                        </Stack>
+                    </Stack>
+                </Grid>
+
+                { fileRejections.length > 0 &&
+                    <Grid item xs={12}>
+                        <RejectionFiles fileRejections={fileRejections} />
+                    </Grid>
+                }
+            </Grid>
+        </>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+export function isString(file: CustomFile | string): file is string {
+    return typeof file === 'string';
+};
+
+const RootStyle = styled('div')(({ theme }) => ({
+    margin: 'auto',
+    padding: theme.spacing(1),
+    border: `1px dashed ${theme.palette.grey[500_32]}`,
+}));
+
+const DropZoneStyle = styled('div')({
+    zIndex: 0,
+    width: '100%',
+    height: '100%',
+    outline: 'none',
+    display: 'flex',
+    overflow: 'hidden',
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '& > *': { width: '100%', height: '100%' },
+    '&:hover': {
+        cursor: 'pointer',
+        '& .placeholder': {
+            zIndex: 9,
+        },
+    },
+});
+
+const PlaceholderStyle = styled('div')(({ theme }) => ({
+    display: 'flex',
+    position: 'absolute',
+    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    color: theme.palette.text.secondary,
+    backgroundColor: theme.palette.background.neutral,
+    transition: theme.transitions.create('opacity', {
+        easing: theme.transitions.easing.easeInOut,
+        duration: theme.transitions.duration.shorter,
+    }),
+    '&:hover': { opacity: 0.72 },
+}));
