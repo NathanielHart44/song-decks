@@ -12,7 +12,7 @@ import {
   DialogContent
 } from '@mui/material';
 import { createRef, useContext, useEffect, useState } from 'react';
-import { NAVBAR } from 'src/config';
+import { MAIN_API, NAVBAR } from 'src/config';
 import Iconify from './Iconify';
 import { useNavigate } from 'react-router-dom';
 import { PATH_AUTH } from 'src/routes/paths';
@@ -29,27 +29,27 @@ export default function Explanation() {
     {
       title: 'Manage Your Tactics Deck From Your Browser',
       text: 'No more forgetting your cards at home!',
-      image: ['/images/example_1.png'],
+      image: [`${MAIN_API.asset_url_base}additional-assets/example_1.png`],
     },
     {
       title: 'Built First For Mobile',
       text: 'Designed to be used on your phone or tablet while playing.',
-      image: ['/images/example_4.png'],
+      image: [`${MAIN_API.asset_url_base}additional-assets/example_4.png`],
     },
     {
       title: 'Provides In-Game Insights',
       text: 'The odds of drawing a certain card, how many cards are left, and more!',
-      image: ['/images/example_3.png'],
+      image: [`${MAIN_API.asset_url_base}additional-assets/example_3.png`],
     },
     {
       title: 'Interact With The Most Up-To-Date Cards',
       text: 'Every card for every Faction and Commander is available, and we\'re constantly updating them as new cards are released.',
-      image: ['/images/example_2.png'],
+      image: [`${MAIN_API.asset_url_base}additional-assets/example_2.png`],
     },
     {
       title: 'Designed To Be Flexible',
       text: 'Features such as leaving notes on your cards enable you to use ASOIAF Decks however you need!',
-      image: ['/images/example_5.png'],
+      image: [`${MAIN_API.asset_url_base}additional-assets/example_5.png`],
     },
     {
       title: 'And Much More to Come!',
