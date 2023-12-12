@@ -1,5 +1,6 @@
 import { Commander, Faction } from "src/@types/types";
 import { FileWithPreview } from "src/components/upload/UploadAvatarComp";
+import { MAIN_API } from "src/config";
 
 // ----------------------------------------------------------------------
 
@@ -14,7 +15,7 @@ type Props = {
 // Function that creates a S3 url for the image.
 export default function createImageURL({ type, name, faction, commander, uploadFile }: Props) {
 
-    let url = 'https://asoiaf-app.s3.us-west-1.amazonaws.com/';
+    let url = MAIN_API.asset_url_base;
 
     let formatted_name = formatFunct(name);
 

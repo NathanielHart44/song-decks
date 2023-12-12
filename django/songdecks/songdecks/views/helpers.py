@@ -87,6 +87,8 @@ def upload_file_to_s3(file, bucket_name, file_name):
     is_success, error_msg = False, None
     if 'amazonaws.com/' in file_name:
         file_name = file_name.split('amazonaws.com/')[1]
+    if 'assets.asoiaf-decks.com/' in file_name:
+        file_name = file_name.split('assets.asoiaf-decks.com/')[1]
     try:
         mime_type, _ = mimetypes.guess_type(file_name)
         if mime_type is None:
