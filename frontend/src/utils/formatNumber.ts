@@ -1,24 +1,14 @@
-export function fData(number: number): string {
-  if (isNaN(number)) return '0';
+import numeral from 'numeral';
 
-  const symbols = [
-      { value: 1, symbol: "" },
-      { value: 1E3, symbol: "K" },
-      { value: 1E6, symbol: "M" },
-      { value: 1E9, symbol: "B" },
-      { value: 1E12, symbol: "T" },
-      { value: 1E15, symbol: "P" },
-      { value: 1E18, symbol: "E" }
-  ];
+export function fData(number: string | number) {
+    return numeral(number).format('0.0 b');
+}
 
-  // Find the appropriate symbol
-  const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
-  let i;
-  for (i = symbols.length - 1; i > 0; i--) {
-      if (number >= symbols[i].value) {
-          break;
-      }
-  }
+export function fShortenNumber(number: string | number) {
+    return numeral(number).format('0.00a').replace('.00', '');
+}
 
-  return (number / symbols[i].value).toFixed(1).replace(rx, "$1") + symbols[i].symbol;
+export function fNumber(number: string | number, precision: number = 0) {
+    const formatString = `0,0.[${'0'.repeat(precision)}]`;
+    return numeral(number).format(formatString);
 }
