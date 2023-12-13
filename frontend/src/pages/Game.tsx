@@ -20,6 +20,8 @@ export default function Game() {
 
     const [probabilityOpen, setProbabilityOpen] = useState<boolean>(false);
 
+    // TODO: Preload images here, but running into issues with allCards containing cards not partaining to the current game.
+
     return (
         <Page title="Play">
             { awaitingResponse && <LoadingBackdrop /> }
