@@ -20,10 +20,10 @@ import { useContext, useEffect, useState } from "react";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
-import LoadingBackdrop from "../LoadingBackdrop";
+import LoadingBackdrop from "../base/LoadingBackdrop";
 import { PlayerCard } from "src/@types/types";
 import { GameContext } from "src/contexts/GameContext";
-import Iconify from "../Iconify";
+import Iconify from "../base/Iconify";
 
 // ----------------------------------------------------------------------
 

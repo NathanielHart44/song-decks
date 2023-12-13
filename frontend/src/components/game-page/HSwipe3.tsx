@@ -9,8 +9,8 @@ import {
 import { enqueueSnackbar } from "notistack";
 import { Box, useTheme } from "@mui/material";
 import { PlayerCard } from "src/@types/types";
-import { DefaultCardImg } from "../CardImg";
-import Iconify from "../Iconify";
+import { DefaultCardImg } from "../base/CardImg";
+import Iconify from "../base/Iconify";
 import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------

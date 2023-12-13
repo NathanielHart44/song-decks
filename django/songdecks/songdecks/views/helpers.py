@@ -5,7 +5,9 @@ import boto3
 import mimetypes
 from django.core.mail import send_mail
 from textwrap import dedent
-from songdecks.models import PlayerCard, UserCardStats
+from songdecks.models import PlayerCard, UserCardStats, Profile
+from datetime import datetime
+from django.utils import timezone
 
 # ----------------------------------------------------------------------
 
@@ -102,3 +104,21 @@ def upload_file_to_s3(file, bucket_name, file_name):
         error_msg = str(e) + f" - {file_name} - {bucket_name}"
         return is_success, error_msg
     return is_success, error_msg
+
+def get_last_acceptable_date(accepted_days):
+    naive_datetime = datetime.now()
+    aware_datetime = timezone.make_aware(naive_datetime)
+    last_acceptable_date = aware_datetime - timezone.timedelta(days=accepted_days)
+    return last_acceptable_date
+
+def create_profile(all_users):
+    created_num = 0
+    checked_num = 0
+    for user in all_users:
+        try:
+            user.profile
+        except Profile.DoesNotExist:
+            Profile.objects.create(user=user)
+            created_num += 1
+        checked_num += 1
+    print(f"Checked {checked_num} users and created {created_num} profiles.")

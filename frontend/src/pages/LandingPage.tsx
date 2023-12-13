@@ -4,7 +4,7 @@ import { MetadataContext } from 'src/contexts/MetadataContext';
 import { useNavigate } from 'react-router-dom';
 import { PATH_AUTH } from 'src/routes/paths';
 import { Popup } from 'src/components/Explanation';
-import Page from 'src/components/Page';
+import Page from 'src/components/base/Page';
 
 // ----------------------------------------------------------------------
 

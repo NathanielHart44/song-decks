@@ -6,7 +6,7 @@ import { useSnackbar } from 'notistack';
 import { Stack, IconButton, InputAdornment, Alert, TextField } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
-import Iconify from '../../../components/Iconify';
+import Iconify from '../../../components/base/Iconify';
 import axios from 'axios';
 import { MAIN_API } from 'src/config';
 import delay from 'src/utils/delay';

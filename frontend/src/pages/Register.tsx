@@ -5,7 +5,7 @@ import { Link, Container, Typography, Stack } from '@mui/material';
 // routes
 import { PATH_AUTH } from 'src/routes/paths';
 // components
-import Page from 'src/components/Page';
+import Page from 'src/components/base/Page';
 // sections
 import { RegisterForm } from 'src/forms/auth/register';
 

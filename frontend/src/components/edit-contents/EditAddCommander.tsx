@@ -11,7 +11,7 @@ import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { Commander, Faction, FakeCommander } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
-import LoadingBackdrop from "../LoadingBackdrop";
+import LoadingBackdrop from "../base/LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
 import axios from "axios";
 import { MAIN_API } from "src/config";

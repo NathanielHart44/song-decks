@@ -16,7 +16,7 @@ import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
 import { Game } from "src/@types/types";
-import Iconify from "src/components/Iconify";
+import Iconify from "src/components/base/Iconify";
 import { MAIN_API } from "src/config";
 import { processTokens } from "src/utils/jwt";
 

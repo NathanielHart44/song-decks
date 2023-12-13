@@ -1,7 +1,8 @@
 from songdecks.settings import EMAIL_HOST_USER
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from rest_framework.response import Response
 from songdecks.serializers import (PlayerCardSerializer,
     UserSerializer, UserCardStatsSerializer, GameSerializer)
 from django.contrib.auth.models import User
@@ -9,7 +10,9 @@ from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
 from songdecks.views.helpers import handle_card_updates, send_email_notification
 import requests
-from django.http import HttpResponse
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils import timezone
+from rest_framework import status
 
 # ----------------------------------------------------------------------
 # Game setup/general views
@@ -41,6 +44,32 @@ def register(request):
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
     
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_jwt_token(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    try:
+        user = User.objects.get(username=username)
+
+        if user.check_password(password):
+            # Update last_login
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+
+            # Create token
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            })
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    except User.DoesNotExist:
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
 @api_view(['GET'])
 def current_user(request):
     try:

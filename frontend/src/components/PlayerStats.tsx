@@ -7,7 +7,7 @@ import {
     VictoryLabel,
     VictoryLegend,
 } from 'victory';
-import Iconify from "./Iconify";
+import Iconify from "./base/Iconify";
 import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------

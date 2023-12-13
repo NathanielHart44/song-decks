@@ -4,7 +4,7 @@ import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
 import { processTokens } from "src/utils/jwt";
-import LoadingBackdrop from "../LoadingBackdrop";
+import LoadingBackdrop from "../base/LoadingBackdrop";
 import { Box, Typography } from "@mui/material";
 import { GameContext } from "src/contexts/GameContext";
 import HSwipe3 from "./HSwipe3";

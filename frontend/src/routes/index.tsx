@@ -6,7 +6,7 @@ import NotFound from 'src/pages/NotFound';
 import GuestGuard from 'src/guards/GuestGuard';
 import AuthGuard from 'src/guards/AuthGuard';
 import ModeratorGuard from 'src/guards/ModeratorGuard';
-import LoadingScreen from 'src/components/LoadingScreen';
+import LoadingScreen from 'src/components/base/LoadingScreen';
 
 // ----------------------------------------------------------------------
 

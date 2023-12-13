@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { MetadataContext } from 'src/contexts/MetadataContext';
 import { PATH_AUTH, PATH_PAGE } from 'src/routes/paths';
 // components
-import Iconify from './Iconify';
+import Iconify from './base/Iconify';
 import Logo from './Logo';
 import { logout } from 'src/utils/jwt';
 import { User } from 'src/@types/types';

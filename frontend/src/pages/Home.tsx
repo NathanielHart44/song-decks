@@ -4,7 +4,7 @@ import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Game, UserCardStats } from "src/@types/types";
-import Page from "src/components/Page";
+import Page from "src/components/base/Page";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";

@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 // components
 import { PATH_AUTH } from 'src/routes/paths';
-import LoadingBackdrop from 'src/components/LoadingBackdrop';
+import LoadingBackdrop from 'src/components/base/LoadingBackdrop';
 
 // ----------------------------------------------------------------------
 

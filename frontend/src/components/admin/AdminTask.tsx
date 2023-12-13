@@ -13,8 +13,8 @@
       Typography,
   } from '@mui/material';
   // sections
-  import Iconify from 'src/components/Iconify';
-  import JsonDisplay from './JsonDisplay'
+  import Iconify from 'src/components/base/Iconify';
+  import JsonDisplay from '../JsonDisplay'
 
   // ----------------------------------------------------------------------
 

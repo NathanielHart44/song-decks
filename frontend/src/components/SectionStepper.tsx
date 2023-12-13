@@ -1,6 +1,6 @@
 import { Tabs, Tab, Typography, Stack } from "@mui/material";
 import { useContext, useState } from "react";
-import Iconify from "./Iconify";
+import Iconify from "./base/Iconify";
 import { allSteps } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { GameContext } from "src/contexts/GameContext";

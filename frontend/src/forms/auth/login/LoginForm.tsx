@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Stack, Alert, IconButton, InputAdornment, TextField } from '@mui/material';
 import useAuth from '../../../hooks/useAuth';
-import Iconify from '../../../components/Iconify';
+import Iconify from '../../../components/base/Iconify';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm } from 'react-hook-form';
 

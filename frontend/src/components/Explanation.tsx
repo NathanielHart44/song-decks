@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { createRef, useContext, useEffect, useState } from 'react';
 import { MAIN_API, NAVBAR } from 'src/config';
-import Iconify from './Iconify';
+import Iconify from './base/Iconify';
 import { useNavigate } from 'react-router-dom';
 import { PATH_AUTH } from 'src/routes/paths';
 import { MetadataContext } from 'src/contexts/MetadataContext';

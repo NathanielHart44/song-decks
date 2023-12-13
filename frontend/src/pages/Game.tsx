@@ -1,4 +1,4 @@
-import Page from "src/components/Page";
+import Page from "src/components/base/Page";
 import { useContext, useState } from "react";
 import GameContent from "src/components/game-page/GameContent";
 import { Stack } from "@mui/material";
@@ -7,7 +7,7 @@ import { GameContext } from "src/contexts/GameContext";
 import { ActionButtons } from "src/components/game-page/ActionButtons";
 import { useParams } from "react-router-dom";
 import CardProbability from "src/components/game-page/CardProbability";
-import LoadingBackdrop from "src/components/LoadingBackdrop";
+import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
 // ----------------------------------------------------------------------
 

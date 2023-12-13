@@ -1,5 +1,5 @@
 import { Card, useTheme } from "@mui/material";
-import Iconify from "src/components/Iconify";
+import Iconify from "src/components/base/Iconify";
 
 // ----------------------------------------------------------------------
 

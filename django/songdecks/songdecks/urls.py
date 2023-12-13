@@ -18,7 +18,8 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
-    path('token_obtain/', jwt_views.TokenObtainPairView.as_view()),
+    # path('token_obtain/', jwt_views.TokenObtainPairView.as_view()),
+    path('token_obtain/', views.get_jwt_token),
     path('token_refresh/', jwt_views.TokenRefreshView.as_view()),
 
     path('current_user/', views.current_user),
@@ -69,6 +70,7 @@ urlpatterns = [
     path('toggle_moderator/<str:username>/', admin_views.toggle_moderator),
     path('reset_password/<str:username>/', admin_views.reset_password),
     path('games_played_info/', admin_views.games_played_info),
+    path('get_player_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_player_daily_stats),
 
     # ----------------------------------------------------------------------
 

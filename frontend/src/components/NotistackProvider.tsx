@@ -7,7 +7,7 @@ import { Box, GlobalStyles } from '@mui/material';
 // theme
 import { ColorSchema } from '../theme/palette';
 //
-import Iconify from './Iconify';
+import Iconify from './base/Iconify';
 
 // ----------------------------------------------------------------------
 

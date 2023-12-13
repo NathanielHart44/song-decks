@@ -5,14 +5,14 @@ import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Commander, Faction } from "src/@types/types";
-import LoadingBackdrop from "src/components/LoadingBackdrop";
-import Page from "src/components/Page";
+import LoadingBackdrop from "src/components/base/LoadingBackdrop";
+import Page from "src/components/base/Page";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
-import { SelectableAvatar } from "../components/SelectableAvatar";
+import { SelectableAvatar } from "../components/base/SelectableAvatar";
 
 // ----------------------------------------------------------------------
 
