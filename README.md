@@ -62,3 +62,17 @@ Run the following commands:
 git pull
 docker compose up --build -d
 ```
+
+## Updating .env files in Production
+
+Navigate to the correct directory and run the following command, which will show the hidden files:
+
+```
+ls -la
+```
+  
+Then, run the following command to edit the .env file:
+  
+```
+nano .env
+```

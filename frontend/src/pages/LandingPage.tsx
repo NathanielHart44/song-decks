@@ -1,10 +1,10 @@
-import { Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Divider, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Button, Card, CardActionArea, CardActions, CardContent, CardMedia, Dialog, DialogContent, Divider, Stack, Typography, useTheme } from '@mui/material';
 import { useContext, useState } from 'react';
 import { MetadataContext } from 'src/contexts/MetadataContext';
 import { useNavigate } from 'react-router-dom';
 import { PATH_AUTH } from 'src/routes/paths';
-import { Popup } from 'src/components/Explanation';
 import Page from 'src/components/base/Page';
+import { MAIN_API } from 'src/config';
 
 // ----------------------------------------------------------------------
 
@@ -16,27 +16,27 @@ export default function LandingPage() {
         {
           title: 'Manage Your Tactics Deck From The Browser',
           text: 'No more forgetting your cards at home!',
-          image: ['/images/example_1.png'],
+          image: [`${MAIN_API.asset_url_base}additional-assets/example_1.png`],
         },
         {
           title: 'Built First For Mobile',
           text: 'Designed to be used on your phone or tablet while playing.',
-          image: ['/images/example_4.png'],
+          image: [`${MAIN_API.asset_url_base}additional-assets/example_4.png`],
         },
         {
           title: 'Provides In-Game Insights',
           text: 'The odds of drawing a certain card, how many cards are left, and more!',
-          image: ['/images/example_3.png'],
+          image: [`${MAIN_API.asset_url_base}additional-assets/example_3.png`],
         },
         {
           title: 'Interact With The Most Up-To-Date Cards',
           text: 'Every card for every Faction and Commander is available, and we\'re constantly updating them as new cards are released.',
-          image: ['/images/example_2.png'],
+          image: [`${MAIN_API.asset_url_base}additional-assets/example_2.png`],
         },
         {
           title: 'Designed To Be Flexible',
           text: 'Features such as leaving notes on your cards enable you to use ASOIAF Decks however you need!',
-          image: ['/images/example_5.png'],
+          image: [`${MAIN_API.asset_url_base}additional-assets/example_5.png`],
         },
         {
           title: 'And Much More to Come!',
@@ -61,7 +61,7 @@ export default function LandingPage() {
                         <Divider flexItem />
                     </Stack>
                     <Typography paragraph color={theme.palette.text.secondary} sx={{ textAlign: 'center', mb: 0 }}>
-                        An unofficial tool built for A Song of Ice & Fire: Tabletop Miniatures Game.
+                        The tactics deck management tool for the ASOIAF miniatures game.
                     </Typography>
                 </Stack>
 
@@ -139,5 +139,54 @@ function ExCard({ info_part }: ExCardProps) {
                 handleClose={handleClick}
             />
         </Card>
+    )
+}
+
+type PopupProps = {
+    image: string;
+    open: boolean;
+    handleClose: () => void;
+};
+  
+export function Popup({ image, open, handleClose }: PopupProps) {
+  
+    return (
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            maxWidth={'lg'}
+            fullWidth
+            sx={{
+                '& .MuiDialog-paper': {
+                    // bgcolor: 'transparent',
+                    boxShadow: 'none',
+                },
+            }}
+        >
+            <DialogContent onClick={handleClose}>
+                <Box
+                    sx={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                    }}
+                >
+                    <img
+                        src={image}
+                        alt={'Example'}
+                        style={{
+                            width: '100%',
+                            maxHeight: '100vh',
+                            objectFit: 'contain',
+                        }}
+                        loading="lazy"
+                    />
+                </Box>
+            </DialogContent>
+        </Dialog>
     )
 }
