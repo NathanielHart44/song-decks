@@ -5,21 +5,25 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // ----------------------------------------------------------------------
 
 const rootElement = document.getElementById('root');
+const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <React.StrictMode>
-      <AuthProvider>
-        <HelmetProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </HelmetProvider>
-      </AuthProvider>
+      <GoogleOAuthProvider clientId={clientId}>
+        <AuthProvider>
+          <HelmetProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </HelmetProvider>
+        </AuthProvider>
+      </GoogleOAuthProvider>
     </React.StrictMode>
   );
 }

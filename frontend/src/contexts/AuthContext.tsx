@@ -2,6 +2,7 @@ import { createContext, ReactNode, useEffect, useReducer } from 'react';
 // utils
 import axios from '../utils/axios';
 import { isValidToken, refreshAccessToken, setSession } from '../utils/jwt';
+import { useGoogleLogin } from '@react-oauth/google';
 // @types
 import { ActionMap, AuthState, AuthUser, JWTContextType } from '../@types/auth';
 import { MAIN_API } from '../config';
@@ -137,6 +138,73 @@ function AuthProvider({ children }: AuthProviderProps) {
     initialize({ access: '', refresh: '' });
   }, []);
 
+  const register = async (userData: FormData) => {
+    try {
+      const response = await axios.post(`${MAIN_API.base_url}register/`, userData);
+      if (response.status === 200) {
+        const { access, refresh } = response.data;
+        setSession(access, refresh);
+        const user = await getUser(access);
+        dispatch({
+          type: Types.Login,
+          payload: { user },
+        });
+        return { success: true, message: 'Account created!' };
+      } else if (response.status === 400) {
+        const res_msg: string = response.data.response || '';
+        return { success: false, message: res_msg };
+      } else {
+        return { success: false, message: 'Unknown error' };
+      }
+    } catch (error) {
+      return { success: false, message: error.response };
+    }
+  };
+
+  const google_login = useGoogleLogin({
+    onSuccess: codeResponse => handle_google_login(codeResponse),
+    onError: errorResponse => console.error(errorResponse),
+    flow: 'auth-code',
+    redirect_uri: process.env.REACT_APP_URI_REDIRECT || '',
+  });
+
+  async function handle_google_login(codeResponse: any) {
+    console.log('RESPONSE', codeResponse);
+    const code = codeResponse.code;
+    console.log('handle_google_login - ', code);
+    const res =  await new Promise(async (resolve, reject) => {
+      try {
+        const formData = new FormData();
+        formData.append('code', code);
+        await axios.post(MAIN_API.base_url + 'google_auth/', formData).then(async (response) => {
+          console.log('response status', response.status);
+          if (response.status === 200) {
+            const { access, refresh } = response.data;
+            setSession(access, refresh);
+            const user = await getUser(access);
+            dispatch({
+              type: Types.Login,
+              payload: {
+                user,
+              },
+            });
+            resolve(response.data);
+          } else {
+            console.log('response.data', response.data);
+            reject({ description: JSON.stringify(response.data) });
+          }
+        })
+      } catch (err) {
+        if (JSON.stringify(err).includes('Unable to log in with provided credentials')) {
+          reject('Invalid username or password');
+        } else {
+          reject(JSON.stringify(err));
+        }
+      }
+    });
+    return res;
+  };
+
   const login = async (username: string, password: string) => {
     const res =  await new Promise(async (resolve, reject) => {
       try {
@@ -183,6 +251,8 @@ function AuthProvider({ children }: AuthProviderProps) {
         method: 'jwt',
         login,
         logout,
+        google_login,
+        register,
       }}
     >
       {children}

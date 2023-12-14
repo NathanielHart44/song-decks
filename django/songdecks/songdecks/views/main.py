@@ -1,4 +1,5 @@
-from songdecks.settings import EMAIL_HOST_USER
+from songdecks.settings import (EMAIL_HOST_USER, REACT_APP_GOOGLE_CLIENT_ID,
+    REACT_APP_GOOGLE_CLIENT_SECRET, REACT_APP_URI_REDIRECT)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse, HttpResponse
@@ -8,11 +9,14 @@ from songdecks.serializers import (PlayerCardSerializer,
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
-from songdecks.views.helpers import handle_card_updates, send_email_notification
+from songdecks.views.helpers import (handle_card_updates, send_email_notification,
+    update_last_login, gen_jwt_tokens_for_user, create_user_from_google)
 import requests
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 from rest_framework import status
+
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 # ----------------------------------------------------------------------
 # Game setup/general views
@@ -24,10 +28,16 @@ def register(request):
     request.user = User.objects.filter(username='admin').first()
     same_email_users = User.objects.filter(email=post_data['email'])
     if len(same_email_users) > 0:
-        return JsonResponse({"success": False, "response": "That email is already in use."})
+        return Response(
+            {"response": "Unable to create new account - email already in use."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     same_username_users = User.objects.filter(username=post_data['username'])
     if len(same_username_users) > 0:
-        return JsonResponse({"success": False, "response": "That username is already in use."})
+        return Response(
+            {"response": "Unable to create new account - username already in use."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     try:
         new_user = User.objects.create(
             username=post_data['username'],
@@ -38,11 +48,18 @@ def register(request):
             is_staff=False
         )
         new_user.set_password(post_data['password'])
+        new_user.last_login = timezone.now()
         new_user.save()
-        serializer = UserSerializer(User.objects.filter(id=new_user.id).first())
-        return JsonResponse({"success": True, "response": "Successfully created account!", "user": serializer.data})
+
+        return Response(gen_jwt_tokens_for_user(new_user))
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {
+                "response": "Unable to create new account.",
+                "detail": str(e)
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -51,29 +68,84 @@ def get_jwt_token(request):
     password = request.data.get('password')
     
     try:
-        user = User.objects.get(username=username)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = User.objects.get(email=username)
 
         if user.check_password(password):
-            # Update last_login
-            user.last_login = timezone.now()
-            user.save(update_fields=['last_login'])
-
-            # Create token
-            refresh = RefreshToken.for_user(user)
-
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
+            update_last_login(user)
+            return Response(gen_jwt_tokens_for_user(user))
         else:
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"detail": "Incorrect password for this account."},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
     except User.DoesNotExist:
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {"detail": "No active account found with the given credentials."},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_auth(request):
+    try:
+        try:
+            code = request.data.get('code')
+        except:
+            return Response(
+                {"detail": "No code provided."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        # Exchange code for token
+        token_url = 'https://oauth2.googleapis.com/token'
+        token_data = {
+            'code': code,
+            'client_id': REACT_APP_GOOGLE_CLIENT_ID,
+            'client_secret': REACT_APP_GOOGLE_CLIENT_SECRET,
+            'redirect_uri': REACT_APP_URI_REDIRECT,
+            'grant_type': 'authorization_code',
+        }
+        try:
+            token_response = requests.post(token_url, data=token_data)
+            token_json = token_response.json()
+            if 'error' in token_json.keys():
+                return Response(
+                    {"detail": token_json['error'], 'uri_redirect': REACT_APP_URI_REDIRECT},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            # verify ID token
+            idinfo = id_token.verify_oauth2_token(token_json['id_token'], google_requests.Request(), REACT_APP_GOOGLE_CLIENT_ID)
+            user_id = idinfo['sub']
+            email = idinfo.get('email')
+            name = idinfo.get('name')
+
+            try:
+                user = User.objects.get(email=email)
+                update_last_login(user)
+                return Response(gen_jwt_tokens_for_user(user))
+            except User.DoesNotExist:
+                user = create_user_from_google(name, email)
+                return Response(gen_jwt_tokens_for_user(user))
+        except Exception as e:
+            return Response(
+                {"detail": 'Failed on Google request: ' + str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['GET'])
 def current_user(request):
     try:
-        serializer = UserSerializer(request.user)
+        user = request.user
+        update_last_login(user)
+        serializer = UserSerializer(user)
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})

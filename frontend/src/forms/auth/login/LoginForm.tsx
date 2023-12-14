@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Stack, Alert, IconButton, InputAdornment, TextField } from '@mui/material';
+import { Stack, Alert, IconButton, InputAdornment, TextField, Divider } from '@mui/material';
 import useAuth from '../../../hooks/useAuth';
 import Iconify from '../../../components/base/Iconify';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { useForm } from 'react-hook-form';
+import { GoogleSignIn } from '../../../components/auth/GoogleSignIn';
 
 // ----------------------------------------------------------------------
 
@@ -55,14 +56,18 @@ export default function LoginForm() {
       setLoginError({ error: message });
     }
   };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
+        <GoogleSignIn />
+        <Divider flexItem />
+
         {loginError?.error && <Alert severity="error">{loginError.error}</Alert>}
 
         <TextField
           name="username"
-          label="Username"
+          label="Username/Email"
           variant="outlined"
           onChange={(event) => { methods.setValue('username', event.target.value) }}
         />

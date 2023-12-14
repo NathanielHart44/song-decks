@@ -3,11 +3,14 @@ from songdecks.settings import (
 )
 import boto3
 import mimetypes
+import requests
+import random
 from django.core.mail import send_mail
 from textwrap import dedent
-from songdecks.models import PlayerCard, UserCardStats, Profile
+from songdecks.models import PlayerCard, UserCardStats, Profile, User
 from datetime import datetime
 from django.utils import timezone
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # ----------------------------------------------------------------------
 
@@ -122,3 +125,51 @@ def create_profile(all_users):
             created_num += 1
         checked_num += 1
     print(f"Checked {checked_num} users and created {created_num} profiles.")
+
+def fetch_words_from_datamuse(word_type):
+    try:
+        response = requests.get(f"https://api.datamuse.com/words?rel_jjb={word_type}&max=100")
+        if response.status_code == 200:
+            words = [word['word'] for word in response.json()]
+            if words:
+                return words
+    except requests.RequestException:
+        pass
+    return []
+
+def generate_username():
+    nouns = fetch_words_from_datamuse("noun") or ["corn", "popcorn", "grass", "apple", "tree"]
+    verbs = fetch_words_from_datamuse("verb") or ["happy", "startled", "spiteful", "dancing", "jumping"]
+
+    noun = random.choice(nouns)
+    verb = random.choice(verbs)
+    number = random.randint(100, 999)
+    return f"G-{verb}-{noun}-{number}"
+
+def create_user_from_google(name, email):
+    first_name, last_name = (name.split(' ') + [''])[:2]
+    username = generate_username()
+    password = User.objects.make_random_password(length=8, allowed_chars="abcdefghjkmnpqrstuvwxyz01234567889")
+    user = User.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        username=username,
+        email=email,
+        is_superuser=False,
+        is_staff=False
+    )
+    user.set_password(password)
+    user.last_login = timezone.now()
+    user.save()
+    return user
+
+def gen_jwt_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+def update_last_login(user):
+    user.last_login = timezone.now()
+    user.save(update_fields=['last_login'])

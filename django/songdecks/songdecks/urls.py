@@ -21,6 +21,7 @@ urlpatterns = [
     # path('token_obtain/', jwt_views.TokenObtainPairView.as_view()),
     path('token_obtain/', views.get_jwt_token),
     path('token_refresh/', jwt_views.TokenRefreshView.as_view()),
+    path('google_auth/', views.google_auth),
 
     path('current_user/', views.current_user),
     path('register/', permission_classes([AllowAny])(views.register)),

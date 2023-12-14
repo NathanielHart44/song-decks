@@ -12,6 +12,7 @@ import ThemeProvider from './theme';
 // ----------------------------------------------------------------------
 
 function App() {
+
   return (
     <ThemeProvider>
       <ThemeLocalization>

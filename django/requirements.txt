@@ -7,5 +7,6 @@ django-cors-headers~=3.13.0
 drf-jwt~=1.19.2
 dj-rest-auth
 django-allauth
+google-auth
 mysqlclient
 uwsgi

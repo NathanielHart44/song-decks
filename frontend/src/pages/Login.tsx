@@ -1,18 +1,17 @@
 import { Link as RouterLink } from 'react-router-dom';
 // @mui
-import { Link, Container, Stack, Typography } from '@mui/material';
+import { Link, Container, Stack, Typography, Button, Box } from '@mui/material';
 // routes
 import { PATH_AUTH } from 'src/routes/paths';
 // components
 import Page from "src/components/base/Page";
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
 // sections
 import { LoginForm } from 'src/forms/auth/login';
 
 // ----------------------------------------------------------------------
 
 export default function Login() {
-  // const { signInWithGoogle } = useAuth();
-
   return (
     <Page title="Login">
       <Stack style={{ height: '100%', width: '100%', justifyContent: 'center', alignItems: 'center' }}>

@@ -27,6 +27,8 @@ export type JWTContextType = {
   method: 'jwt';
   login: (email: string, password: string) => Promise<unknown>;
   logout: () => Promise<void>;
+  google_login: () => void;
+  register: (userData: FormData) => Promise<{ success: boolean, message: string }>;
 };
 
 export interface UserMetaData {

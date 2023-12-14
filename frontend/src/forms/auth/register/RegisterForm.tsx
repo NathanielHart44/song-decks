@@ -3,13 +3,15 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 // @mui
-import { Stack, IconButton, InputAdornment, Alert, TextField } from '@mui/material';
+import { Stack, IconButton, InputAdornment, Alert, TextField, Divider } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/base/Iconify';
-import axios from 'axios';
-import { MAIN_API } from 'src/config';
 import delay from 'src/utils/delay';
+import { useNavigate } from 'react-router-dom';
+import { PATH_PAGE } from 'src/routes/paths';
+import useAuth from 'src/hooks/useAuth';
+import { GoogleSignIn } from 'src/components/auth/GoogleSignIn';
 
 // ----------------------------------------------------------------------
 
@@ -24,6 +26,9 @@ type FormValuesProps = {
 };
 
 export default function RegisterForm() {
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const [registerError, setRegisterError] = useState({ error: '' });
   const { enqueueSnackbar } = useSnackbar();
 
@@ -50,31 +55,38 @@ export default function RegisterForm() {
   } = methods;
 
   const onSubmit = async (data: FormValuesProps) => {
-    setRegisterError({ error: '' });
+      setRegisterError({ error: '' });
       const formData = new FormData();
       formData.append('email', data.email.toString());
       formData.append('username', data.username.toString());
       formData.append('password', data.password.toString());
       formData.append('firstName', data.firstName.toString());
       formData.append('lastName', data.lastName.toString());
-      await axios({ method: 'post', url: (MAIN_API.base_url + 'register/'), data: formData }).then(async (res) => {
-        if (res.data) {
-          if (res.data.success) {
-            // reset();
-            enqueueSnackbar('Created account!');
-            delay(500).then(() => window.location.href = '/auth/login');
-          } else {
-            enqueueSnackbar(res.data.response, { variant: "error" });
-          }
-        }
-      }).catch((error) => {
-        enqueueSnackbar('An error occurred. Please try again.', { variant: "error" });
-        console.error(error);
-      });
+
+      if (data.password !== data.confirmPassword) {
+        setRegisterError({ error: 'Passwords do not match' });
+        return;
+      }
+
+      const emailRegex = new RegExp("^[A-Z0-9._%+-]+@[A-Z0-9.-]+.[A-Z]{2,}$", "i");
+      if (!emailRegex.test(data.email)) {
+        setRegisterError({ error: 'Invalid email address' });
+        return;
+      }
+
+      const result: { success: boolean, message: string } = await register(formData);
+      if (result.success) {
+        enqueueSnackbar(result.message);
+        delay(500).then(() => navigate(PATH_PAGE.home));
+      } else {
+        setRegisterError({ error: result.message });
+      }
     };
 
   return (
       <Stack spacing={3}>
+        <GoogleSignIn />
+        <Divider flexItem />
         {registerError?.error && <Alert severity="error">{registerError.error}</Alert>}
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
