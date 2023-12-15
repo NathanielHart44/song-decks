@@ -147,7 +147,7 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
 
             new_users_count = profiles.filter(user__date_joined__date=current_date).count()
             if is_cumulative == 'true':
-                total_users_count = profiles.count()
+                total_users_count = profiles.count(user__date_joined__date__lte=current_date)
                 played_games_count = Game.objects.filter(created_at__date__lte=current_date).count()
                 active_users_count = profiles.filter(user__last_login__date__lte=current_date).count()
             else:
