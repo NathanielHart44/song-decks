@@ -136,21 +136,23 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
         if profile.moderator == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
 
-        profiles = Profile.objects.exclude(user__username='admin')
+        profiles = Profile.objects.exclude(user__username='admin', moderator=False)
 
         all_results = {}
         types = ['played_games', 'active_users', 'new_users']
+        if is_cumulative == 'true':
+            types.append('total_users')
         for i in range(accepted_days):
             current_date = get_last_acceptable_date(i)
 
+            new_users_count = profiles.filter(user__date_joined__date=current_date).count()
             if is_cumulative == 'true':
+                total_users_count = profiles.count()
                 played_games_count = Game.objects.filter(created_at__date__lte=current_date).count()
                 active_users_count = profiles.filter(user__last_login__date__lte=current_date).count()
-                new_users_count = profiles.filter(user__date_joined__date__lte=current_date).count()
             else:
                 played_games_count = Game.objects.filter(created_at__date=current_date).count()
                 active_users_count = profiles.filter(user__last_login__date=current_date).count()
-                new_users_count = profiles.filter(user__date_joined__date=current_date).count()
 
             for type in types:
                 if type not in all_results:
@@ -161,6 +163,8 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
                     count = active_users_count
                 elif type == 'new_users':
                     count = new_users_count
+                elif type == 'total_users':
+                    count = total_users_count
 
                 result = {
                     "date": current_date.strftime(date_format),
