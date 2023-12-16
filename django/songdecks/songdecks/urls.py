@@ -11,6 +11,7 @@ from songdecks.views import admin as admin_views
 from songdecks.views import cards as cards_views
 from songdecks.views import commanders as commanders_views
 from songdecks.views import factions as factions_views
+from songdecks.views import workbench as workbench_views
 
 # ----------------------------------------------------------------------
 
@@ -72,6 +73,25 @@ urlpatterns = [
     path('reset_password/<str:username>/', admin_views.reset_password),
     path('games_played_info/', admin_views.games_played_info),
     path('get_player_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_player_daily_stats),
+
+    # ----------------------------------------------------------------------
+
+    path('get_all_tags/', workbench_views.get_all_tags),
+    path('create_tag/', workbench_views.create_tag),
+    path('update_tag/<int:tag_id>/', workbench_views.update_tag),
+    path('delete_tag/<int:tag_id>/', workbench_views.delete_tag),
+
+    path('get_all_proposals/', workbench_views.get_all_proposals),
+    path('create_proposal/', workbench_views.create_proposal),
+    path('get_proposal/<int:proposal_id>/', workbench_views.get_proposal),
+    path('update_proposal/<int:proposal_id>/', workbench_views.update_proposal),
+    path('delete_proposal/<int:proposal_id>/', workbench_views.delete_proposal),
+
+    path('get_all_tasks/', workbench_views.get_all_tasks),
+    path('create_task/', workbench_views.create_task),
+    path('get_task/<int:task_id>/', workbench_views.get_task),
+    path('update_task/<int:task_id>/', workbench_views.update_task),
+    path('delete_task/<int:task_id>/', workbench_views.delete_task),
 
     # ----------------------------------------------------------------------
 

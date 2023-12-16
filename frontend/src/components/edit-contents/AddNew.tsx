@@ -32,7 +32,8 @@ export function AddNew({ isMobile, handleClick, type }: AddNewProps) {
                 icon={'eva:plus-outline'}
                 color={theme.palette.primary.main}
                 width={isMobile ? 50 : 40}
-                height={isMobile ? 50 : 40} />
+                height={isMobile ? 50 : 40}
+            />
         </Card>
     );
 }

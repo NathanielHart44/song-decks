@@ -173,3 +173,10 @@ def gen_jwt_tokens_for_user(user):
 def update_last_login(user):
     user.last_login = timezone.now()
     user.save(update_fields=['last_login'])
+
+def check_inappropriate_language(text):
+    response = requests.get("https://www.purgomalum.com/service/containsprofanity?text=" + text)
+    if response.text == "true":
+        return True
+    else:
+        return False

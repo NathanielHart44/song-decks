@@ -17,6 +17,7 @@ export const PATH_AUTH = {
 };
 
 export const PATH_PAGE = {
+  workbench: '/workbench',
   landing: '/landing',
   home: '/home',
   game: '/game',
