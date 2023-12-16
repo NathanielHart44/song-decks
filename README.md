@@ -76,3 +76,23 @@ Then, run the following command to edit the .env file:
 ```
 nano .env
 ```
+
+## Sharing Model Data Locally
+
+When setting up the project locally, you will need to load the following model data into the database:
+- Faction
+- Commander
+- CardTemplate
+
+Run the following command to dump the model data from the database into a json file:
+
+```
+docker compose run web python3 songdecks/manage.py dumpdata songdecks.<Model> > songdecks/data/<model_name>.json
+```
+(replace `<Model>` with the model name and `<model_name>` with the name of the json file)
+
+Then, run the following command to load the data into the database:
+```
+docker compose run web python3 songdecks/manage.py loaddata songdecks/data/<model_name>.json
+```
+(replace `<model_name>` with the name of the json file)
