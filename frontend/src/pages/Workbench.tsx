@@ -10,6 +10,7 @@ import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { StatusIconify } from "src/components/base/Iconify";
 
 // ----------------------------------------------------------------------
 
@@ -224,6 +225,10 @@ function ProposalLine({ proposal, updateProposal }: ProposalLineType) {
         })
     };
 
+    if (proposal.status === 'closed') {
+        return null;
+    };
+
     return (
         <>
             <TableRow
@@ -239,7 +244,12 @@ function ProposalLine({ proposal, updateProposal }: ProposalLineType) {
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                     </IconButton>
                 </TableCell>
-                <TableCell align="right">{proposal.status}</TableCell>
+                <TableCell align="right">
+                    <StatusIconify
+                        status={proposal.status}
+                        size={24}
+                    />
+                </TableCell>
                 <TableCell align="right">
                     {proposal.creator && proposal.creator.user ? proposal.creator.user.username : 'No Creator'}
                 </TableCell>
