@@ -76,6 +76,8 @@ urlpatterns = [
 
     # ----------------------------------------------------------------------
 
+    path('get_all_moderators/', workbench_views.get_all_moderators),
+
     path('get_all_tags/', workbench_views.get_all_tags),
     path('create_tag/', workbench_views.create_tag),
     path('update_tag/<int:tag_id>/', workbench_views.update_tag),

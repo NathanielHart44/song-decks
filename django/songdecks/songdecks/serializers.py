@@ -2,6 +2,12 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from songdecks.models import *
 from songdecks.views.helpers import check_inappropriate_language
+import logging
+from django.db import transaction
+
+# ----------------------------------------------------------------------
+
+logging.basicConfig(level=logging.INFO)
 
 # ----------------------------------------------------------------------
 
@@ -19,6 +25,8 @@ class UserSerializer(serializers.ModelSerializer):
             return False
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Profile
         fields = ('id', 'user')
@@ -78,6 +86,8 @@ class TagSerializer(serializers.ModelSerializer):
         return value
 
 class ProposalSerializer(serializers.ModelSerializer):
+    creator = ProfileSerializer(read_only=True)
+
     class Meta:
         model = Proposal
         fields = '__all__'
@@ -100,6 +110,11 @@ class ProposalSerializer(serializers.ModelSerializer):
 
         return value
     
+    # def to_representation(self, instance):
+    #     ret = super(ProposalSerializer, self).to_representation(instance)
+    #     ret['creator'] = ProfileSerializer(instance.creator) if instance.creator and instance.creator.user else None
+    #     return ret
+
     def validate_status(self, value):
         if value not in ['pending', 'rejected', 'closed', 'confirmed']:
             raise serializers.ValidationError("The status must be one of the following: 'pending', 'rejected', 'closed', 'confirmed'.")
@@ -111,20 +126,29 @@ class ProposalImageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TaskSerializer(serializers.ModelSerializer):
+    assigned_admins = ProfileSerializer(many=True, read_only=True)
+    assigned_admin_ids = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        write_only=True, 
+        queryset=Profile.objects.all().filter(moderator=True), 
+        required=False
+    )
+
     class Meta:
         model = Task
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(TaskSerializer, self).__init__(*args, **kwargs)
-        if 'context' in kwargs and 'request' in kwargs['context']:
-            request = kwargs['context']['request']
-            if not request.user.profile.moderator:
-                # Limit fields for non-moderators
-                allowed_fields = ('id', 'title', 'description', 'state', 'created_at', 'tags')
-                for field_name in list(self.fields):
-                    if field_name not in allowed_fields:
-                        self.fields.pop(field_name)
+        self.limit_fields_for_non_moderators(kwargs)
+
+    def limit_fields_for_non_moderators(self, kwargs):
+        request = kwargs.get('context', {}).get('request', None)
+        if request and not request.user.profile.moderator:
+            allowed_fields = ('id', 'title', 'description', 'state', 'created_at', 'tags')
+            for field_name in list(self.fields):
+                if field_name not in allowed_fields:
+                    self.fields.pop(field_name)
 
     def validate_complexity(self, value):
         if value is not None and (value < 1 or value > 3):
@@ -133,26 +157,40 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         # Check for circular dependencies
-        if 'dependencies' in data:
-            task_to_check = self.instance if self.instance else Task()  # Use existing instance or new one
+        if 'dependencies' in data and self.instance:
             for dependency in data['dependencies']:
-                if task_to_check.check_for_circular_dependency(task_to_check, dependency):
+                if self.instance.check_for_circular_dependency(self.instance, dependency):
                     raise serializers.ValidationError("Circular dependency detected.")
         return data
-    
+
+    @transaction.atomic
     def create(self, validated_data):
-        tag_ids = validated_data.pop('tag_ids', [])
-        dependency_ids = validated_data.pop('depends_on', [])
-        task = Task.objects.create(**validated_data)
+        return self._save_task(validated_data)
 
-        # Handle tags
-        for tag_id in tag_ids:
-            tag = Tag.objects.get(pk=tag_id)
-            task.tags.add(tag)
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        return self._save_task(validated_data, instance)
 
-        # Handle dependencies
-        for dependency_id in dependency_ids:
-            dependency = Task.objects.get(pk=dependency_id)
-            task.dependencies.add(dependency)
+    def _set_m2m_fields(self, task, m2m_field_data):
+        for field_name, objs in m2m_field_data.items():
+            if objs is not None:
+                getattr(task, field_name).set(objs)
 
+    def _save_task(self, validated_data, instance=None):
+        m2m_fields = {
+            'tags': validated_data.pop('tags', []),
+            'dependencies': validated_data.pop('dependencies', []),
+            'assigned_admins': validated_data.pop('assigned_admin_ids', [])
+        }
+
+        if instance:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            task = instance
+        else:
+            task = Task.objects.create(**validated_data)
+
+        self._set_m2m_fields(task, m2m_fields)
+        
         return task

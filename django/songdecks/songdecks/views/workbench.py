@@ -1,11 +1,22 @@
-from songdecks.models import (Tag, Proposal, ProposalImage, Task)
+from songdecks.models import (
+    Profile, Tag, Proposal, ProposalImage, Task
+)
 from songdecks.serializers import (
     TagSerializer, ProposalSerializer,
-    ProposalImageSerializer, TaskSerializer
+    ProposalImageSerializer, TaskSerializer,
+    ProfileSerializer
 )
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+
+# ----------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_all_moderators(request):
+    moderators = Profile.objects.filter(moderator=True)
+    serializer = ProfileSerializer(moderators, many=True)
+    return Response(serializer.data)
 
 # ----------------------------------------------------------------------
 # Tags
@@ -98,9 +109,12 @@ def get_all_proposals(request):
 @api_view(['POST'])
 def create_proposal(request):
     try:
-        serializer = ProposalSerializer(data=request.data)
+        request_data = request.data.copy()
+        request_data['creator'] = request.user.profile.id
+
+        serializer = ProposalSerializer(data=request_data)
         if serializer.is_valid():
-            serializer.save(creator=request.user.profile)  # Set the creator explicitly
+            serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:

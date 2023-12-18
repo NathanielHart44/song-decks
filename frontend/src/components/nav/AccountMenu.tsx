@@ -172,7 +172,7 @@ type AvatarDisplayProps = {
     currentUser: User | undefined;
 }
 
-function AvatarDisplay({ is_main, currentUser }: AvatarDisplayProps) {
+export function AvatarDisplay({ is_main, currentUser }: AvatarDisplayProps) {
     const theme = useTheme();
     const size = is_main ? 40 : 32;
 

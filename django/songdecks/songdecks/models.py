@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db.models import signals
 from django.core.validators import MaxValueValidator
+from django.db import transaction
 
 # ----------------------------------------------------------------------
 
@@ -167,12 +168,9 @@ class Task(models.Model):
         return False
 
     def save(self, *args, **kwargs):
-        """
-        Override the save method to validate task dependencies.
-        """
-        # Check for circular dependencies
-        for dependency in self.dependencies.all():
-            if self.check_for_circular_dependency(self, dependency):
-                raise ValueError("Circular dependency detected")
+        with transaction.atomic():
+            super(Task, self).save(*args, **kwargs)
 
-        super(Task, self).save(*args, **kwargs)
+            for dependency in self.dependencies.all():
+                if self.check_for_circular_dependency(self, dependency):
+                    raise ValueError("Circular dependency detected")

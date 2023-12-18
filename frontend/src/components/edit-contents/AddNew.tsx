@@ -36,5 +36,4 @@ export function AddNew({ isMobile, handleClick, type }: AddNewProps) {
             />
         </Card>
     );
-}
-;
+};

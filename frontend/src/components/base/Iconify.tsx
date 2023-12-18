@@ -3,7 +3,6 @@ import { Icon, IconifyIcon } from '@iconify/react';
 // @mui
 import { Box, BoxProps, SxProps, Tooltip, alpha, useTheme } from '@mui/material';
 import { capWords } from 'src/utils/capWords';
-
 // ----------------------------------------------------------------------
 
 interface Props extends BoxProps {
@@ -12,7 +11,15 @@ interface Props extends BoxProps {
 }
 
 export default function Iconify({ icon, sx, ...other }: Props) {
-    return <Box component={Icon} icon={icon} sx={{ ...sx }} {...other} />;
+
+    return (
+        <Box
+            component={Icon}
+            icon={icon}
+            sx={{ ...sx }}
+            {...other}
+        />
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -67,22 +74,30 @@ export function StatusIconify({ status, size, sx }: StatusIconifyProps) {
     const theme = useTheme();
 
     function getStatusIconInfo(type: 'icon' | 'color') {
-        if (status === 'confirmed' || status === 'finished') {
-            return type === 'icon' ? 'eva:checkmark-fill' : theme.palette.success.main;
-        }
-        if (status === 'in_progress') {
-            return type === 'icon' ? 'eva:arrow-circle-right-outline' : theme.palette.primary.main;
-        }
-        if (status === 'assigned' || status === 'pending') {
-            return type === 'icon' ? 'eva:clock-outline' : theme.palette.warning.main;
-        }
-        if (status === 'not_started') {
-            return type === 'icon' ? 'eva:alert-circle-outline' : theme.palette.secondary.main;
-        }
-        if (status === 'rejected') {
-            return type === 'icon' ? 'eva:close-fill' : theme.palette.error.main;
-        }
-        return type === 'icon' ? 'eva:clock-outline' : theme.palette.warning.main;
+        switch (status) {
+            case 'confirmed':
+            case 'finished':
+                return type === 'icon' ? 'eva:checkmark-circle-outline' : theme.palette.success.main;
+            case 'in_progress':
+                return type === 'icon' ? 'eva:arrow-circle-right-outline' : theme.palette.primary.main;
+            case 'assigned':
+            case 'pending':
+                return type === 'icon' ? 'eva:clock-outline' : theme.palette.warning.main;
+            case 'not_started':
+                return type === 'icon' ? 'eva:alert-circle-outline' : theme.palette.secondary.main;
+            case 'rejected':
+                return type === 'icon' ? 'eva:close-fill' : theme.palette.error.main;
+            case 'closed':
+                return type === 'icon' ? 'eva:minus-outline' : theme.palette.grey[500];
+            case 'low_complexity':
+                return type === 'icon' ? 'line-md:chevron-up' : theme.palette.specialIcons.bronze;
+            case 'medium_complexity':
+                return type === 'icon' ? 'line-md:chevron-double-up': theme.palette.specialIcons.silver;
+            case 'high_complexity':
+                return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.specialIcons.gold;
+            default:
+                return type === 'icon' ? 'eva:clock-outline' : theme.palette.warning.main;
+        };
     };
 
     const displayed_status = capWords(status);
