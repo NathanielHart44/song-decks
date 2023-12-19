@@ -18,7 +18,7 @@ import {
 import Iconify from "src/components/base/Iconify";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { MetadataContext } from "src/contexts/MetadataContext";
-import { WORKBENCH_SETTINGS } from "src/utils/workbench_settings";
+import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 
 // ----------------------------------------------------------------------
 
@@ -36,9 +36,14 @@ export default function WorkbenchAccordionContainer({ title, open, setOpen, tabl
     const theme = useTheme();
     const label_color = theme.palette.text.secondary;
 
-    const column_info = WORKBENCH_SETTINGS.column_info[
-        title === 'Proposals' ? 'proposals' : 'tasks' as keyof typeof WORKBENCH_SETTINGS.column_info
-    ];
+    let column_info: { id: string; label: string; align: string; }[] = [];
+    if (title.includes('Proposals')) {
+        column_info = WORKBENCH_SETTINGS.column_info.proposals;
+    } else if (title.includes('Tasks')) {
+        column_info = WORKBENCH_SETTINGS.column_info.tasks;
+    } else if (title.includes('Tags')) {
+        column_info = WORKBENCH_SETTINGS.column_info.tags;
+    }
 
     const cell_sx = {
         color: label_color,
@@ -81,7 +86,7 @@ export default function WorkbenchAccordionContainer({ title, open, setOpen, tabl
                                 {table_body}
                                 { addNew &&
                                     <TableRow>
-                                        <TableCell colSpan={6}>
+                                        <TableCell colSpan={WORKBENCH_SETTINGS.column_info.proposals.length}>
                                             <Stack direction={'row'} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                                                 <AddNew isMobile={isMobile} handleClick={addNew} />
                                             </Stack>
@@ -142,15 +147,21 @@ type AddNewProps = {
     isMobile: boolean;
     handleClick: () => void;
 };
-export function AddNew({ isMobile, handleClick }: AddNewProps) {
+function AddNew({ isMobile, handleClick }: AddNewProps) {
 
     const theme = useTheme();
+
+    let card_sizing = isMobile ? 100 : 80;
+    let icon_sizing = isMobile ? 50 : 40;
+    const size_modifier = 1;
+    card_sizing = card_sizing * size_modifier;
+    icon_sizing = icon_sizing * size_modifier;
 
     return (
         <Card
             sx={{
-                width: isMobile ? 100 : 80,
-                height: isMobile ? 100 : 80,
+                width: card_sizing,
+                height: card_sizing,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -165,8 +176,8 @@ export function AddNew({ isMobile, handleClick }: AddNewProps) {
             <Iconify
                 icon={'eva:plus-outline'}
                 color={theme.palette.primary.main}
-                width={isMobile ? 50 : 40}
-                height={isMobile ? 50 : 40}
+                width={icon_sizing}
+                height={icon_sizing}
             />
         </Card>
     );

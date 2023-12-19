@@ -69,9 +69,11 @@ class UserCardStatsSerializer(serializers.ModelSerializer):
         depth = 1
 
 class TagSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Tag
-        fields = ['name', 'created_at']
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(TagSerializer, self).__init__(*args, **kwargs)
@@ -133,6 +135,13 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=Profile.objects.all().filter(moderator=True), 
         required=False
     )
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Tag.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = Task
@@ -178,7 +187,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def _save_task(self, validated_data, instance=None):
         m2m_fields = {
-            'tags': validated_data.pop('tags', []),
+            'tags': validated_data.pop('tag_ids', []),
             'dependencies': validated_data.pop('dependencies', []),
             'assigned_admins': validated_data.pop('assigned_admin_ids', [])
         }

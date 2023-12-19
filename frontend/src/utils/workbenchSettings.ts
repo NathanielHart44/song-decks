@@ -25,8 +25,13 @@ export const WORKBENCH_SETTINGS = {
             { id: 'is_private', label: 'Public', align: 'center' },
             { id: 'complexity', label: 'Complexity', align: 'center' },
             { id: 'assigned_admins', label: 'Assigned Admins', align: 'center' },
-            { id: 'tags', label: 'Tags', align: 'center' },
+            // { id: 'tags', label: 'Tags', align: 'center' },
             { id: 'created', label: 'Created', align: 'right' },
-        ]
+        ],
+        tags: [
+            { id: 'expand', label: '', align: 'left' },
+            { id: 'name', label: 'Name', align: 'center' },
+            { id: 'created', label: 'Created', align: 'right' },
+        ],
     }
 };

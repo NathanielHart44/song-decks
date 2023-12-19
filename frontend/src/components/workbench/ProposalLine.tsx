@@ -17,7 +17,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { StatusIconify } from "../base/Iconify";
 import formatTimestamp from "src/utils/formatTimestamp";
-import { WORKBENCH_SETTINGS } from "src/utils/workbench_settings";
+import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 
 // ----------------------------------------------------------------------
 

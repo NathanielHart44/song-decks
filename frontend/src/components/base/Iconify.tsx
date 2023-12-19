@@ -90,11 +90,17 @@ export function StatusIconify({ status, size, sx }: StatusIconifyProps) {
             case 'closed':
                 return type === 'icon' ? 'eva:minus-outline' : theme.palette.grey[500];
             case 'low_complexity':
-                return type === 'icon' ? 'line-md:chevron-up' : theme.palette.specialIcons.bronze;
+                // return type === 'icon' ? 'line-md:chevron-up' : theme.palette.specialIcons.bronze;
+                // return type === 'icon' ? 'line-md:chevron-up' : theme.palette.primary.main;
+                return type === 'icon' ? 'line-md:chevron-up' : theme.palette.grey[500];
             case 'medium_complexity':
-                return type === 'icon' ? 'line-md:chevron-double-up': theme.palette.specialIcons.silver;
+                // return type === 'icon' ? 'line-md:chevron-double-up': theme.palette.specialIcons.silver;
+                // return type === 'icon' ? 'line-md:chevron-double-up' : theme.palette.primary.main;
+                return type === 'icon' ? 'line-md:chevron-double-up' : theme.palette.grey[500];
             case 'high_complexity':
-                return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.specialIcons.gold;
+                // return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.specialIcons.gold;
+                // return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.primary.main;
+                return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.grey[500];
             default:
                 return type === 'icon' ? 'eva:clock-outline' : theme.palette.warning.main;
         };

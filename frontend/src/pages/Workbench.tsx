@@ -5,7 +5,7 @@ import { processTokens } from "src/utils/jwt";
 import { useContext, useEffect, useState } from "react";
 import { Tag, Proposal, ProposalImage, Task, Profile } from "src/@types/types";
 import { useSnackbar } from "notistack";
-import { Container, Stack } from "@mui/material";
+import { Container, Stack, Theme, useMediaQuery } from "@mui/material";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
 // components
@@ -14,6 +14,7 @@ import WorkbenchMgmtDialog from "src/components/workbench/WorkbenchMgmtDialog";
 import ProposalLine from "src/components/workbench/ProposalLine";
 import TaskLine from "src/components/workbench/TaskLine";
 import { MetadataContext } from "src/contexts/MetadataContext";
+import TagLine from "src/components/workbench/TagLine";
 
 // ----------------------------------------------------------------------
 
@@ -21,20 +22,25 @@ export default function Workbench() {
 
     const { enqueueSnackbar } = useSnackbar();
     const { currentUser } = useContext(MetadataContext);
+    const is_small_screen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'));
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
-    const [allTags, setAllTags] = useState<Tag[]>();
-    const [allProposals, setAllProposals] = useState<Proposal[]>();
-    const [allTasks, setAllTasks] = useState<Task[]>();
     const [allModerators, setAllModerators] = useState<Profile[]>();
-    const [proposalsOpen, setProposalsOpen] = useState<boolean>(true);
-    const [tasksOpen, setTasksOpen] = useState<boolean>(true);
-
+    
+    const [allTasks, setAllTasks] = useState<Task[]>();
+    const [tasksOpen, setTasksOpen] = useState<boolean>(false);
     const [taskCreationOpen, setTaskCreationOpen] = useState<boolean>(false);
     const [newTask, setNewTask] = useState<Task>();
     
+    const [allProposals, setAllProposals] = useState<Proposal[]>();
+    const [proposalsOpen, setProposalsOpen] = useState<boolean>(false);
     const [proposalCreationOpen, setProposalCreationOpen] = useState<boolean>(false);
     const [newProposal, setNewProposal] = useState<Proposal>();
+
+    const [allTags, setAllTags] = useState<Tag[]>();
+    const [tagsOpen, setTagsOpen] = useState<boolean>(false);
+    const [tagCreationOpen, setTagCreationOpen] = useState<boolean>(false);
+    const [newTag, setNewTag] = useState<Tag>();
 
     const getAllContent = async (type: 'tags' | 'proposals' | 'tasks') => {
         let token = localStorage.getItem('accessToken') ?? '';
@@ -89,7 +95,9 @@ export default function Workbench() {
         task.assigned_admins.forEach((admin) => {
             formData.append('assigned_admin_ids', admin.id.toString());
         });
-        // formData.append('tags', task.tags);
+        task.tags.forEach((tag) => {
+            formData.append('tag_ids', tag.id.toString());
+        });
         // formData.append('dependencies', task.dependencies);
         
         const url = is_new ? `${MAIN_API.base_url}create_task/` : `${MAIN_API.base_url}update_task/${task.id}/`;
@@ -176,6 +184,50 @@ export default function Workbench() {
         setProposalCreationOpen(true);
     }
 
+    function beginTag() {
+        const new_tag: Tag = {
+            id: -1,
+            name: '',
+            // color: '',
+            created_at: ''
+        };
+        setNewTag(new_tag);
+        setTagCreationOpen(true);
+    }
+
+    function handleTagEdit(tag: Tag) {
+        setNewTag(tag);
+        setTagCreationOpen(true);
+    };
+
+    const handleTag = async (is_new: boolean, tag: Tag) => {
+        setAwaitingResponse(true);
+        let token = localStorage.getItem('accessToken') ?? '';
+        const formData = new FormData();
+        formData.append('name', tag.name);
+        // formData.append('color', tag.color);
+
+        const url = is_new ? `${MAIN_API.base_url}create_tag/` : `${MAIN_API.base_url}update_tag/${tag.id}/`;
+        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+            const updated_tag = response.data;
+            if (is_new) {
+                setAllTags(allTags ? [...allTags, updated_tag] : [updated_tag]);
+            } else {
+                let updated_tags = allTags?.map((tag) => {
+                    if (tag.id === updated_tag.id) {
+                        return updated_tag;
+                    }
+                    return tag;
+                });
+                setAllTags(updated_tags);
+            }
+            setAwaitingResponse(false);
+        }).catch((error) => {
+            handleSubmissionError(error);
+            setAwaitingResponse(false);
+        })
+    }
+
     useEffect(() => {
         processTokens(() => {
             getAllContent('tags');
@@ -205,6 +257,7 @@ export default function Workbench() {
                     awaitingResponse={awaitingResponse}
                     handleItem={handleTask}
                     allModerators={allModerators}
+                    allTags={allTags}
                 />
                 <WorkbenchMgmtDialog
                     type={'proposal'}
@@ -215,18 +268,35 @@ export default function Workbench() {
                     newItem={newProposal}
                     setNewItem={setNewProposal}
                     handleItem={handleProposal}
+                    allTags={allTags}
+                />
+                <WorkbenchMgmtDialog
+                    type={'tag'}
+                    is_new={(!newTag || newTag.id === -1) ? true : false}
+                    open={tagCreationOpen}
+                    setOpen={setTagCreationOpen}
+                    newItem={newTag}
+                    setNewItem={setNewTag}
+                    awaitingResponse={awaitingResponse}
+                    handleItem={handleTag}
+                    allModerators={allModerators}
                 />
                 { awaitingResponse && <LoadingBackdrop /> }
                 <Stack spacing={2} width={'100%'}>
                     <WorkbenchAccordionContainer
-                        title={'Proposals'}
+                        title={
+                            'Proposals' +
+                                (allProposals ? `
+                                    (${allProposals.filter(
+                                        (proposal: Proposal) => proposal.status === 'pending').length} Pending)` : '')
+                        }
                         open={proposalsOpen}
                         setOpen={setProposalsOpen}
                         addNew={beginProposal}
                         table_body={
                             allProposals && allProposals.map((proposal: Proposal) => (
                                 <ProposalLine
-                                    key={'proposal' + proposal.id}
+                                    key={'proposal_' + proposal.id}
                                     proposal={proposal}
                                     handleProposal={handleProposal}
                                 />
@@ -234,15 +304,36 @@ export default function Workbench() {
                         }
                     />
                     <WorkbenchAccordionContainer
-                        title={'Tasks'}
+                        title={
+                            'Tasks' +
+                                (allTasks ? `
+                                    (${allTasks.filter(
+                                        (task: Task) => task.state === 'not_started').length} Not Started)` : '')
+                        }
                         open={tasksOpen}
                         setOpen={setTasksOpen}
                         table_body={
                             allTasks && allTasks.map((task: Task) => (
                                 <TaskLine
-                                    key={'task' + task.id}
+                                    key={'task_' + task.id}
+                                    is_small_screen={is_small_screen}
                                     task={task}
                                     handleTaskEdit={handleTaskEdit}
+                                />
+                            ))
+                        }
+                    />
+                    <WorkbenchAccordionContainer
+                        title={'Tags'}
+                        open={tagsOpen}
+                        setOpen={setTagsOpen}
+                        addNew={beginTag}
+                        table_body={
+                            allTags && allTags.map((tag: Tag) => (
+                                <TagLine
+                                    key={'tag_' + tag.id}
+                                    tag={tag}
+                                    handleTagEdit={handleTagEdit}
                                 />
                             ))
                         }

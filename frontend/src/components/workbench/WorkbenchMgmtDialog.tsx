@@ -13,15 +13,16 @@ import {
     Typography,
     useTheme
 } from "@mui/material";
-import { Profile, Proposal, Task } from "src/@types/types";
+import { Profile, Proposal, Task, Tag } from "src/@types/types";
 import { StatusIconify } from "../base/Iconify";
 import { processTokens } from "src/utils/jwt";
-import { WORKBENCH_SETTINGS } from "src/utils/workbench_settings";
+import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
+import TagDisplay from "./TagDisplay";
 
 // ----------------------------------------------------------------------
 
 type TaskManagementDialogType = {
-    type: 'task' | 'proposal';
+    type: 'task' | 'proposal' | 'tag';
     is_new: boolean;
     awaitingResponse: boolean;
     open: boolean;
@@ -30,27 +31,25 @@ type TaskManagementDialogType = {
     setNewItem: React.Dispatch<React.SetStateAction<any | undefined>>;
     handleItem: (arg0: any, arg1: any) => void;
     allModerators?: Profile[];
+    allTags?: Tag[];
 };
 
-export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newItem, setNewItem, awaitingResponse, handleItem, allModerators }: TaskManagementDialogType) {
+export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newItem, setNewItem, awaitingResponse, handleItem, allModerators, allTags }: TaskManagementDialogType) {
     if (newItem === undefined) { return null };
     return (
         <Dialog
             open={open && newItem !== undefined && !awaitingResponse}
             fullWidth={true}
-            onClose={() => {
-                if (type === 'proposal' || is_new === false) {
-                    setOpen(false)
-                }
-            }}
+            onClose={() => { if (is_new === false) { setOpen(false) } }}
         >
             { type === 'proposal' &&
                 <ProposalContent
-                newProposal={newItem as Proposal}
-                setnewProposal={setNewItem as React.Dispatch<React.SetStateAction<Proposal | undefined>>}
-                setOpen={setOpen}
-                is_new={is_new}
-                handleItem={handleItem}
+                    newProposal={newItem as Proposal}
+                    setNewProposal={setNewItem as React.Dispatch<React.SetStateAction<Proposal | undefined>>}
+                    setOpen={setOpen}
+                    is_new={is_new}
+                    handleItem={handleItem}
+                    allTags={allTags}
                 />
             }
             { type === 'task' &&
@@ -61,6 +60,16 @@ export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newIt
                     is_new={is_new}
                     handleItem={handleItem}
                     allModerators={allModerators}
+                    allTags={allTags}
+                />
+            }
+            { type === 'tag' &&
+                <TagContent
+                    newTag={newItem as Tag}
+                    setNewTag={setNewItem as React.Dispatch<React.SetStateAction<Tag | undefined>>}
+                    setOpen={setOpen}
+                    is_new={is_new}
+                    handleItem={handleItem}
                 />
             }
 
@@ -71,17 +80,16 @@ export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newIt
 // ----------------------------------------------------------------------
 
 type TaskContentProps = {
-    newTask: Task | undefined;
+    newTask: Task;
     setNewTask: React.Dispatch<React.SetStateAction<Task | undefined>>;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     is_new: boolean;
     handleItem: (arg0: any, arg1: any) => void;
     allModerators?: Profile[];
+    allTags?: Tag[];
 };
 
-function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allModerators }: TaskContentProps) {
-
-    console.log('newTask', newTask);
+function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allModerators, allTags }: TaskContentProps) {
 
     const theme = useTheme();
     const title_grey = theme.palette.grey[600];
@@ -105,7 +113,6 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
                     value={newTask?.title}
                     onChange={(event) => { newTask && setNewTask({ ...newTask, title: event.target.value }); } }
                     fullWidth
-                    autoFocus
                 />
                 <ToggleButtonGroup
                     value={newTask?.state || 'not_started'}
@@ -162,7 +169,28 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
                         )
                     })}
                 </ToggleButtonGroup>
-                {/* TODO: add tags */}
+                    {allTags &&
+                    <Stack>
+                        <Typography color={title_grey} variant={'subtitle2'}>Tags</Typography>
+                        <Box
+                            sx={{
+                                width: '100%',
+                                border: 1,
+                                borderColor: outline_grey,
+                                borderRadius: 1,
+                                p: 1,
+                            }}
+                        >
+                            <TagDisplay
+                                allTags={allTags}
+                                selectedTags={newTask.tags}
+                                updateTags={
+                                    (tags: Tag[]) => { newTask && setNewTask({ ...newTask, tags: tags }) }
+                                }
+                            />
+                        </Box>
+                    </Stack>
+                }
                 {/* TODO: Dependencies */}
                 <Stack>
                     <Typography color={title_grey} variant={'subtitle2'}>Assigned Moderators</Typography>
@@ -241,18 +269,19 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
 // ----------------------------------------------------------------------
 
 type ProposalContentProps = {
-    newProposal: Proposal | undefined;
-    setnewProposal: React.Dispatch<React.SetStateAction<Proposal | undefined>>;
+    newProposal: Proposal;
+    setNewProposal: React.Dispatch<React.SetStateAction<Proposal | undefined>>;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     is_new: boolean;
     handleItem: (arg0: any, arg1: any) => void;
+    allTags?: Tag[];
 };
 
-function ProposalContent({ newProposal, setnewProposal, setOpen, is_new, handleItem }: ProposalContentProps) {
+function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleItem, allTags }: ProposalContentProps) {
 
     function cancelProposal() {
         if (is_new) {
-            setnewProposal(undefined);
+            setNewProposal(undefined);
             setOpen(false);
         } else {
             setOpen(false);
@@ -266,9 +295,8 @@ function ProposalContent({ newProposal, setnewProposal, setOpen, is_new, handleI
                     label={"Proposal"}
                     variant={"outlined"}
                     value={newProposal?.text}
-                    onChange={(event) => { newProposal && setnewProposal({ ...newProposal, text: event.target.value }); } }
+                    onChange={(event) => { newProposal && setNewProposal({ ...newProposal, text: event.target.value }); } }
                     fullWidth
-                    autoFocus
                     multiline
                     minRows={5}
                 />
@@ -276,7 +304,7 @@ function ProposalContent({ newProposal, setnewProposal, setOpen, is_new, handleI
                 <ToggleButtonGroup
                     value={newProposal?.status || 'pending'}
                     exclusive
-                    onChange={(event, value) => { newProposal && setnewProposal({ ...newProposal, status: value }); } }
+                    onChange={(event, value) => { newProposal && setNewProposal({ ...newProposal, status: value }); } }
                     fullWidth
                 >
                     {['pending', 'confirmed', 'rejected', 'closed'].map((status) => {
@@ -291,7 +319,13 @@ function ProposalContent({ newProposal, setnewProposal, setOpen, is_new, handleI
                     })}
                 </ToggleButtonGroup>
 
-                {/* Tags */}
+                {allTags &&
+                    <TagDisplay
+                        allTags={allTags}
+                        selectedTags={[]}
+                        updateTags={() => {}}
+                    />
+                }
 
                 <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
@@ -311,6 +345,68 @@ function ProposalContent({ newProposal, setnewProposal, setOpen, is_new, handleI
                             color={"secondary"}
                             variant={"contained"}
                             onClick={cancelProposal}
+                            fullWidth
+                        >
+                            Cancel
+                        </Button>
+                    </Grid>
+                </Grid>
+
+            </Stack>
+        </DialogContent>
+    );
+}
+
+// ----------------------------------------------------------------------
+
+type TagContentProps = {
+    newTag: Tag;
+    setNewTag: React.Dispatch<React.SetStateAction<Tag | undefined>>;
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    is_new: boolean;
+    handleItem: (arg0: any, arg1: any) => void;
+};
+
+function TagContent({ newTag, setNewTag, setOpen, is_new, handleItem }: TagContentProps) {
+
+    function cancelTag() {
+        if (is_new) {
+            setNewTag(undefined);
+            setOpen(false);
+        } else {
+            setOpen(false);
+        }
+    }
+
+    return (
+        <DialogContent sx={{ p: 2 }}>
+            <Stack spacing={2} width={'100%'}>
+                <TextField
+                    label={"Tag Name"}
+                    variant={"outlined"}
+                    value={newTag?.name}
+                    onChange={(event) => { newTag && setNewTag({ ...newTag, name: event.target.value }); } }
+                    fullWidth
+                />
+
+                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
+                        <Button
+                            variant={"contained"}
+                            onClick={() => {
+                                processTokens(() => { handleItem(is_new, newTag) });
+                                setOpen(false);
+                            }}
+                            fullWidth
+                        >
+                            {is_new ? 'Create Tag' : 'Edit Tag'}
+                        </Button>
+                    </Grid>
+                    <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
+                        <Button
+                            color={"secondary"}
+                            variant={"contained"}
+                            onClick={cancelTag}
                             fullWidth
                         >
                             Cancel
