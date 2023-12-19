@@ -119,38 +119,58 @@ export default function TaskLine({ line_text_color, is_small_screen, task, handl
                                     alt="green iguana"
                                 />
                             }
-                            <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                                <Grid item xs={12} sm={12} md={9}>
-                                    <Typography
-                                        paragraph
-                                        variant="body2"
-                                        color={line_text_color}
-                                        sx={{ mb: 0 }}
-                                    >
-                                        {task.description}
-                                    </Typography>
+                            <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
+                                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                                    <Grid item xs={12} sm={12} md={3}>
+                                        <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'flex-start'}>
+                                            <TagDisplay
+                                                allTags={task.tags}
+                                                selectedTags={task.tags}
+                                                updateTags={() => {}}
+                                            />
+                                        </Stack>
+                                    </Grid>
+                                    <Grid item xs={12} sm={12} md={6}>
+                                        <Typography
+                                            paragraph
+                                            variant="body2"
+                                            color={line_text_color}
+                                            sx={{ textAlign: 'center', mb: 0 }}
+                                        >
+                                            {task.description}
+                                        </Typography>
+                                    </Grid>
+                                    <Grid item xs={12} sm={12} md={3}>
+                                        <Stack justifyContent={'center'} alignItems={'flex-start'}>
+                                            <Typography
+                                                variant="body2"
+                                                color={line_text_color}
+                                            >
+                                                {task.notes.length > 0 && 'Notes:'}
+                                            </Typography>
+                                            <Typography
+                                                paragraph
+                                                variant="body2"
+                                                color={line_text_color}
+                                                sx={{ mb: 0 }}
+                                            >
+                                                {task.notes}
+                                            </Typography>
+                                        </Stack>
+                                    </Grid>
                                 </Grid>
-                                <Grid item xs={12} sm={12} md={3}>
-                                    <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
-                                        <TagDisplay
-                                            allTags={task.tags}
-                                            selectedTags={task.tags}
-                                            updateTags={() => {}}
-                                        />
-                                    </Stack>
+                                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                                    <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
+                                        <Button
+                                            variant={"contained"}
+                                            onClick={() => { handleTaskEdit(task) }}
+                                            fullWidth
+                                        >
+                                            Edit Task
+                                        </Button>
+                                    </Grid>
                                 </Grid>
-                            </Grid>
-                            <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                                <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
-                                    <Button
-                                        variant={"contained"}
-                                        onClick={() => { handleTaskEdit(task) }}
-                                        fullWidth
-                                    >
-                                        Edit Task
-                                    </Button>
-                                </Grid>
-                            </Grid>
+                            </Stack>
                         </Box>
                     </Collapse>
                 </TableCell>

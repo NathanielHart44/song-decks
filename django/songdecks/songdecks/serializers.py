@@ -4,6 +4,9 @@ from songdecks.models import *
 from songdecks.views.helpers import check_inappropriate_language
 import logging
 from django.db import transaction
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------------
 
@@ -70,10 +73,11 @@ class UserCardStatsSerializer(serializers.ModelSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
+    use_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'use_count', 'created_at')
 
     def __init__(self, *args, **kwargs):
         super(TagSerializer, self).__init__(*args, **kwargs)
@@ -87,19 +91,24 @@ class TagSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("A tag with this name already exists.")
         return value
 
+    def get_use_count(self, obj):
+        try:
+            return obj.tasks.count()
+        except AttributeError:
+            return -1
+
 class ProposalSerializer(serializers.ModelSerializer):
     creator = ProfileSerializer(read_only=True)
 
     class Meta:
         model = Proposal
         fields = '__all__'
+        read_only_fields = ('created_at', 'creator')
 
-    def __init__(self, *args, **kwargs):
-        super(ProposalSerializer, self).__init__(*args, **kwargs)
-        request = kwargs.get('context', {}).get('request', None)
-        if request and request.method in ['POST', 'PUT', 'PATCH']:
-            self.fields['created_at'].read_only = True
-            self.fields['creator'].read_only = True
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['creator'] = user.profile
+        return super(ProposalSerializer, self).create(validated_data)
 
     def validate_text(self, value):
         min_length = 10
@@ -111,11 +120,6 @@ class ProposalSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("The text contains inappropriate language.")
 
         return value
-    
-    # def to_representation(self, instance):
-    #     ret = super(ProposalSerializer, self).to_representation(instance)
-    #     ret['creator'] = ProfileSerializer(instance.creator) if instance.creator and instance.creator.user else None
-    #     return ret
 
     def validate_status(self, value):
         if value not in ['pending', 'rejected', 'closed', 'confirmed']:
@@ -140,6 +144,12 @@ class TaskSerializer(serializers.ModelSerializer):
         many=True,
         write_only=True,
         queryset=Tag.objects.all(),
+        required=False
+    )
+    dependencies_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Task.objects.all(),
         required=False
     )
 
@@ -171,9 +181,10 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         # Check for circular dependencies
-        if 'dependencies' in data and self.instance:
-            for dependency in data['dependencies']:
-                if self.instance.check_for_circular_dependency(self.instance, dependency):
+        if 'dependencies_ids' in data:
+            dependencies = Task.objects.filter(pk__in=data['dependencies_ids'])
+            for dependency in dependencies:
+                if self.instance and self.instance.check_for_circular_dependency(self.instance, dependency):
                     raise serializers.ValidationError("Circular dependency detected.")
         return data
 
@@ -193,9 +204,10 @@ class TaskSerializer(serializers.ModelSerializer):
     def _save_task(self, validated_data, instance=None):
         m2m_fields = {
             'tags': validated_data.pop('tag_ids', []),
-            'dependencies': validated_data.pop('dependencies', []),
+            'dependencies': validated_data.pop('dependencies_ids', []),
             'assigned_admins': validated_data.pop('assigned_admin_ids', [])
         }
+        validated_data.pop('dependencies', [])
 
         if instance:
             for attr, value in validated_data.items():

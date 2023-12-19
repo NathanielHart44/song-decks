@@ -26,7 +26,7 @@ type TaskManagementDialogType = {
     is_new: boolean;
     awaitingResponse: boolean;
     open: boolean;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setOpen: (isOpen: boolean) => void;
     newItem: any | undefined;
     setNewItem: React.Dispatch<React.SetStateAction<any | undefined>>;
     handleItem: (arg0: any, arg1: any) => void;
@@ -35,12 +35,14 @@ type TaskManagementDialogType = {
 };
 
 export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newItem, setNewItem, awaitingResponse, handleItem, allModerators, allTags }: TaskManagementDialogType) {
+
     if (newItem === undefined) { return null };
+
     return (
         <Dialog
             open={open && newItem !== undefined && !awaitingResponse}
             fullWidth={true}
-            onClose={() => { if (is_new === false) { setOpen(false) } }}
+            onClose={() => { setOpen(false) }}
         >
             { type === 'proposal' &&
                 <ProposalContent
@@ -49,7 +51,6 @@ export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newIt
                     setOpen={setOpen}
                     is_new={is_new}
                     handleItem={handleItem}
-                    allTags={allTags}
                 />
             }
             { type === 'task' &&
@@ -82,7 +83,7 @@ export default function WorkbenchMgmtDialog({ type, is_new, open, setOpen, newIt
 type TaskContentProps = {
     newTask: Task;
     setNewTask: React.Dispatch<React.SetStateAction<Task | undefined>>;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setOpen: (isOpen: boolean) => void;
     is_new: boolean;
     handleItem: (arg0: any, arg1: any) => void;
     allModerators?: Profile[];
@@ -270,16 +271,16 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
 
                 <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
-                    <Button
-                        variant={"contained"}
-                        onClick={() => {
-                            processTokens(() => { handleItem(is_new, newTask) });
-                            setOpen(false);
-                        }}
-                        fullWidth
-                    >
-                        {is_new ? 'Create Task' : 'Save'}
-                    </Button>
+                        <Button
+                            variant={"contained"}
+                            onClick={() => {
+                                processTokens(() => { handleItem(is_new, newTask) });
+                                setOpen(false);
+                            }}
+                            fullWidth
+                        >
+                            {is_new ? 'Create Task' : 'Save'}
+                        </Button>
                     </Grid>
                     <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
                         <Button
@@ -302,13 +303,12 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
 type ProposalContentProps = {
     newProposal: Proposal;
     setNewProposal: React.Dispatch<React.SetStateAction<Proposal | undefined>>;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setOpen: (isOpen: boolean) => void;
     is_new: boolean;
     handleItem: (arg0: any, arg1: any) => void;
-    allTags?: Tag[];
 };
 
-function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleItem, allTags }: ProposalContentProps) {
+function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleItem }: ProposalContentProps) {
 
     function cancelProposal() {
         if (is_new) {
@@ -331,33 +331,6 @@ function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleI
                     multiline
                     minRows={5}
                 />
-
-                <ToggleButtonGroup
-                    color={'primary'}
-                    value={newProposal?.status || 'pending'}
-                    exclusive
-                    onChange={(event, value) => { newProposal && setNewProposal({ ...newProposal, status: value }); } }
-                    fullWidth
-                >
-                    {['pending', 'confirmed', 'rejected', 'closed'].map((status) => {
-                        return (
-                            <ToggleButton key={'status_select_' + status} value={status}>
-                                <StatusIconify
-                                    status={status}
-                                    size={24}
-                                />
-                            </ToggleButton>
-                        )
-                    })}
-                </ToggleButtonGroup>
-
-                {allTags &&
-                    <TagDisplay
-                        allTags={allTags}
-                        selectedTags={[]}
-                        updateTags={() => {}}
-                    />
-                }
 
                 <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
@@ -394,7 +367,7 @@ function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleI
 type TagContentProps = {
     newTag: Tag;
     setNewTag: React.Dispatch<React.SetStateAction<Tag | undefined>>;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setOpen: (isOpen: boolean) => void;
     is_new: boolean;
     handleItem: (arg0: any, arg1: any) => void;
 };

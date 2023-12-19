@@ -1,10 +1,7 @@
 import Page from "src/components/base/Page";
-import axios from "axios";
-import { MAIN_API } from "src/config";
 import { processTokens } from "src/utils/jwt";
 import { useContext, useEffect, useState } from "react";
-import { Tag, Proposal, Task, Profile } from "src/@types/types";
-import { useSnackbar } from "notistack";
+import { Tag, Proposal, Task } from "src/@types/types";
 import { Container, Stack, Theme, useMediaQuery, useTheme } from "@mui/material";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
@@ -16,6 +13,24 @@ import TaskLine from "src/components/workbench/TaskLine";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import TagLine from "src/components/workbench/TagLine";
 
+// hooks
+import useWorkbenchState from 'src/hooks/useWorkbenchState';
+import { useApiCall, objectToFormData } from "src/hooks/useApiCall";
+
+// ----------------------------------------------------------------------
+
+type ModalState = {
+    taskCreationOpen: boolean;
+    proposalCreationOpen: boolean;
+    tagCreationOpen: boolean;
+};
+
+const initialModalState: ModalState = {
+    taskCreationOpen: false,
+    proposalCreationOpen: false,
+    tagCreationOpen: false
+};
+
 // ----------------------------------------------------------------------
 
 export default function Workbench() {
@@ -23,131 +38,86 @@ export default function Workbench() {
     const theme = useTheme();
     const line_text_color = theme.palette.grey[500];
 
-    const { enqueueSnackbar } = useSnackbar();
     const { currentUser } = useContext(MetadataContext);
+    const { apiCall } = useApiCall();
     const is_small_screen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'));
+    const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
-    const [allModerators, setAllModerators] = useState<Profile[]>();
-    
-    const [allTasks, setAllTasks] = useState<Task[]>();
-    const [tasksOpen, setTasksOpen] = useState<boolean>(false);
-    const [taskCreationOpen, setTaskCreationOpen] = useState<boolean>(false);
-    const [newTask, setNewTask] = useState<Task>();
-    
-    const [allProposals, setAllProposals] = useState<Proposal[]>();
-    const [proposalsOpen, setProposalsOpen] = useState<boolean>(false);
-    const [proposalCreationOpen, setProposalCreationOpen] = useState<boolean>(false);
-    const [newProposal, setNewProposal] = useState<Proposal>();
 
-    const [allTags, setAllTags] = useState<Tag[]>();
-    const [tagsOpen, setTagsOpen] = useState<boolean>(false);
-    const [tagCreationOpen, setTagCreationOpen] = useState<boolean>(false);
-    const [newTag, setNewTag] = useState<Tag>();
+    const {
+        allTasks, setAllTasks, newTask, setNewTask,
+        allProposals, setAllProposals, newProposal, setNewProposal,
+        allTags, setAllTags, newTag, setNewTag,
+        allModerators, setAllModerators
+    } = useWorkbenchState();
+
+    function setModalVisibility(modalName: keyof ModalState, isOpen: boolean) {
+        setModalState(prevState => ({ ...prevState, [modalName]: isOpen }));
+    };
 
     const getAllContent = async (type: 'tags' | 'proposals' | 'tasks') => {
-        let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}get_all_${type}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (type === 'tags') { setAllTags(response.data) }
-            if (type === 'proposals') { setAllProposals(response.data) }
-            if (type === 'tasks') { setAllTasks(response.data) }
-        }).catch((error) => {
-            console.error(error);
-            enqueueSnackbar(error.data.detail);
-        })
+        apiCall(`get_all_${type}`, 'GET', null, (data) => {
+            if (type === 'tags') setAllTags(data);
+            if (type === 'proposals') setAllProposals(data);
+            if (type === 'tasks') setAllTasks(data);
+        });
     };
 
     const getAllModerators = async () => {
-        let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}get_all_moderators/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            setAllModerators(response.data);
-        }).catch((error) => {
-            console.error(error);
-            enqueueSnackbar(error.data.detail);
-        })
+        apiCall('get_all_moderators', 'GET', null, (data) => {
+            setAllModerators(data);
+        });
     };
-
-    function handleSubmissionError(error: any) {
-        const error_data = error.response.data;
-        if (error_data.text) {
-            let error_msg = '';
-            for (const key in error_data.text) {
-                error_msg += `Error ${parseInt(key) + 1}: ${error_data.text[key]}\n`;
-            }
-            enqueueSnackbar(error_msg);
-        } else {
-            enqueueSnackbar(error_data.detail);
-        }
-    }
 
     function handleTaskEdit(task: Task) {
         setNewTask(task);
-        setTaskCreationOpen(true);
+        setModalState(prevState => ({ ...prevState, taskCreationOpen: true }));
     };
 
     const handleTask = async (is_new: boolean, task: Task) => {
         setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-        const formData = new FormData();
-        formData.append('title', task.title);
-        formData.append('description', task.description);
-        formData.append('state', task.state);
-        formData.append('complexity', task.complexity.toString());
-        formData.append('priority', task.priority.toString());
-        formData.append('is_private', task.is_private.toString());
-        formData.append('notes', task.notes);
-        task.assigned_admins.forEach((admin) => {
-            formData.append('assigned_admin_ids', admin.id.toString());
-        });
-        task.tags.forEach((tag) => {
-            formData.append('tag_ids', tag.id.toString());
-        });
-        // formData.append('dependencies', task.dependencies);
-        
-        const url = is_new ? `${MAIN_API.base_url}create_task/` : `${MAIN_API.base_url}update_task/${task.id}/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            const updated_task = response.data;
+        const formData = objectToFormData(task);
+        const url_path = is_new ? 'create_task' : `update_task/${task.id}`;
+        apiCall(url_path, 'POST', formData, (data) => {
             if (is_new) {
-                setAllTasks(allTasks ? [...allTasks, updated_task] : [updated_task]);
+                setAllTasks(allTasks ? [...allTasks, data] : [data]);
             } else {
                 let updated_tasks = allTasks?.map((task) => {
-                    if (task.id === updated_task.id) {
-                        return updated_task;
+                    if (task.id === data.id) {
+                        return data;
                     }
                     return task;
                 });
                 setAllTasks(updated_tasks);
             }
-            setAwaitingResponse(false);
-        }).catch((error) => {
-            handleSubmissionError(error);
-            setAwaitingResponse(false);
-        })
-    }
+            getAllContent('tags').then(() => {
+                setAwaitingResponse(false);
+            });
+        });
+        setAwaitingResponse(false);
+    };
 
     const handleProposal = async (is_new: boolean, proposal: Proposal) => {
         setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-        const formData = new FormData();
-        formData.append('text', proposal.text);
-        // formData.append('images', proposal.images);
-        // formData.append('tags', proposal.tags);
-        formData.append('status', proposal.status);
-
-        const url = is_new ? `${MAIN_API.base_url}create_proposal/` : `${MAIN_API.base_url}update_proposal/${proposal.id}/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            const updated_proposal = response.data;
-
+        const formData = objectToFormData(proposal);
+        const url_path = is_new ? 'create_proposal' : `update_proposal/${proposal.id}`;
+    
+        apiCall(url_path, 'POST', formData, (data) => {
+            const updated_proposal = data;
+    
             if (is_new) {
                 setAllProposals(allProposals ? [...allProposals, updated_proposal] : [updated_proposal]);
             } else {
-                let updated_proposals = allProposals?.map((proposal) => {
-                    if (proposal.id === updated_proposal.id) {
+                let updated_proposals = allProposals?.map((existingProposal) => {
+                    if (existingProposal.id === updated_proposal.id) {
                         return updated_proposal;
                     }
-                    return proposal;
+                    return existingProposal;
                 });
                 setAllProposals(updated_proposals);
+                
+                // Logic to create a new task if the proposal is confirmed
                 if (updated_proposal.status === 'confirmed') {
                     const new_task: Task = {
                         id: -1,
@@ -164,14 +134,11 @@ export default function Workbench() {
                         created_at: ''
                     };
                     setNewTask(new_task);
-                    setTaskCreationOpen(true);
+                    setModalState(prevState => ({ ...prevState, taskCreationOpen: true }));
                 }
             }
-            setAwaitingResponse(false);
-        }).catch((error) => {
-            handleSubmissionError(error);
-            setAwaitingResponse(false);
-        })
+        });
+        setAwaitingResponse(false);
     };
 
     function beginProposal() {
@@ -186,51 +153,45 @@ export default function Workbench() {
             created_at: ''
         };
         setNewProposal(new_proposal);
-        setProposalCreationOpen(true);
+        setModalState(prevState => ({ ...prevState, proposalCreationOpen: true }));
     }
 
     function beginTag() {
         const new_tag: Tag = {
             id: -1,
             name: '',
+            use_count: 0,
             // color: '',
             created_at: ''
         };
         setNewTag(new_tag);
-        setTagCreationOpen(true);
+        setModalState(prevState => ({ ...prevState, tagCreationOpen: true }));
     }
 
     function handleTagEdit(tag: Tag) {
         setNewTag(tag);
-        setTagCreationOpen(true);
+        setModalState(prevState => ({ ...prevState, tagCreationOpen: true }));
     };
 
     const handleTag = async (is_new: boolean, tag: Tag) => {
         setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-        const formData = new FormData();
-        formData.append('name', tag.name);
-        // formData.append('color', tag.color);
 
-        const url = is_new ? `${MAIN_API.base_url}create_tag/` : `${MAIN_API.base_url}update_tag/${tag.id}/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            const updated_tag = response.data;
+        const formData = objectToFormData(tag);
+        const url_path = is_new ? 'create_tag' : `update_tag/${tag.id}`;
+        apiCall(url_path, 'POST', formData, (data) => {
             if (is_new) {
-                setAllTags(allTags ? [...allTags, updated_tag] : [updated_tag]);
+                setAllTags(allTags ? [...allTags, data] : [data]);
             } else {
-                let updated_tags = allTags?.map((tag) => {
-                    if (tag.id === updated_tag.id) {
-                        return updated_tag;
+                let updated_tags = allTags?.map((existingTag) => {
+                    if (existingTag.id === data.id) {
+                        return data;
                     }
-                    return tag;
+                    return existingTag;
                 });
                 setAllTags(updated_tags);
             }
-            setAwaitingResponse(false);
-        }).catch((error) => {
-            handleSubmissionError(error);
-            setAwaitingResponse(false);
-        })
+        });
+        setAwaitingResponse(false);
     }
 
     useEffect(() => {
@@ -248,15 +209,27 @@ export default function Workbench() {
             setAwaitingResponse(false);
         }
     }, [allTags, allProposals, allTasks, allModerators]);
-
+    
     return (
         <Page title="Workbench">
+            { awaitingResponse && <LoadingBackdrop /> }
             <Container maxWidth={false}>
                 <WorkbenchMgmtDialog
+                    type={'proposal'}
+                    is_new={true}
+                    open={modalState.proposalCreationOpen}
+                    setOpen={(isOpen) => setModalVisibility('proposalCreationOpen', isOpen)}
+                    awaitingResponse={awaitingResponse}
+                    newItem={newProposal}
+                    setNewItem={setNewProposal}
+                    handleItem={handleProposal}
+                    allTags={allTags}
+                />
+                <WorkbenchMgmtDialog
                     type={'task'}
-                    is_new={(!newTask || newTask.id === -1) ? true : false}
-                    open={taskCreationOpen}
-                    setOpen={setTaskCreationOpen}
+                    is_new={newTask?.id === -1}
+                    open={modalState.taskCreationOpen}
+                    setOpen={(isOpen) => setModalVisibility('taskCreationOpen', isOpen)}
                     newItem={newTask}
                     setNewItem={setNewTask}
                     awaitingResponse={awaitingResponse}
@@ -265,79 +238,71 @@ export default function Workbench() {
                     allTags={allTags}
                 />
                 <WorkbenchMgmtDialog
-                    type={'proposal'}
-                    is_new={true}
-                    open={proposalCreationOpen}
-                    setOpen={setProposalCreationOpen}
-                    awaitingResponse={awaitingResponse}
-                    newItem={newProposal}
-                    setNewItem={setNewProposal}
-                    handleItem={handleProposal}
-                    allTags={allTags}
-                />
-                <WorkbenchMgmtDialog
                     type={'tag'}
-                    is_new={(!newTag || newTag.id === -1) ? true : false}
-                    open={tagCreationOpen}
-                    setOpen={setTagCreationOpen}
+                    is_new={newTag?.id === -1}
+                    open={modalState.tagCreationOpen}
+                    setOpen={(isOpen) => setModalVisibility('tagCreationOpen', isOpen)}
                     newItem={newTag}
                     setNewItem={setNewTag}
                     awaitingResponse={awaitingResponse}
                     handleItem={handleTag}
                     allModerators={allModerators}
                 />
-                { awaitingResponse && <LoadingBackdrop /> }
                 <Stack spacing={2} width={'100%'}>
-                    <WorkbenchAccordionContainer
-                        title={'Proposals'}
-                        open={proposalsOpen}
-                        setOpen={setProposalsOpen}
-                        addNew={beginProposal}
-                        table_body={
-                            allProposals && allProposals.map((proposal: Proposal) => (
-                                <ProposalLine
-                                    key={'proposal_' + proposal.id}
-                                    line_text_color={line_text_color}
-                                    proposal={proposal}
-                                    handleProposal={handleProposal}
-                                />
-                            ))
-                        }
-                    />
-                    <WorkbenchAccordionContainer
-                        title={'Tasks'}
-                        open={tasksOpen}
-                        setOpen={setTasksOpen}
-                        table_body={
-                            allTasks && allTasks.map((task: Task) => (
-                                <TaskLine
-                                    key={'task_' + task.id}
-                                    line_text_color={line_text_color}
-                                    is_small_screen={is_small_screen}
-                                    task={task}
-                                    handleTaskEdit={handleTaskEdit}
-                                />
-                            ))
-                        }
-                    />
-                    <WorkbenchAccordionContainer
-                        title={'Tags'}
-                        open={tagsOpen}
-                        setOpen={setTagsOpen}
-                        addNew={beginTag}
-                        table_body={
-                            allTags && allTags.map((tag: Tag) => (
-                                <TagLine
-                                    key={'tag_' + tag.id}
-                                    line_text_color={line_text_color}
-                                    tag={tag}
-                                    handleTagEdit={handleTagEdit}
-                                />
-                            ))
-                        }
-                    />
+                    {renderAccordionContainer({
+                        title: 'Proposals',
+                        addNew: beginProposal,
+                        children: allProposals && allProposals.map((proposal: Proposal) => (
+                            <ProposalLine
+                                key={'proposal_' + proposal.id}
+                                line_text_color={line_text_color}
+                                proposal={proposal}
+                                handleProposal={handleProposal}
+                            />
+                        ))
+                    })}
+                    {renderAccordionContainer({
+                        title: 'Tasks',
+                        children: allTasks && allTasks.map((task: Task) => (
+                            <TaskLine
+                                key={'task_' + task.id}
+                                line_text_color={line_text_color}
+                                is_small_screen={is_small_screen}
+                                task={task}
+                                handleTaskEdit={handleTaskEdit}
+                            />
+                        ))
+                    })}
+                    {renderAccordionContainer({
+                        title: 'Tags',
+                        addNew: beginTag,
+                        children: allTags && allTags.map((tag: Tag) => (
+                            <TagLine
+                                key={'tag_' + tag.id}
+                                line_text_color={line_text_color}
+                                tag={tag}
+                                handleTagEdit={handleTagEdit}
+                            />
+                        ))
+                    })}
                 </Stack>
             </Container>
         </Page>
     );
 };
+
+// ----------------------------------------------------------------------
+
+type AccordionContainerProps = {
+    title: string;
+    addNew?: () => void;
+    children: React.ReactNode;
+};
+
+const renderAccordionContainer = ({ title, addNew, children }: AccordionContainerProps) => (
+    <WorkbenchAccordionContainer
+        title={title}
+        addNew={addNew}
+        table_body={children}
+    />
+);

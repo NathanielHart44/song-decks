@@ -47,6 +47,11 @@ export default function TagLine({ line_text_color, tag, handleTagEdit }: TagLine
                         {tag.name}
                     </Typography>
                 </TableCell>
+                <TableCell align={'center'}>
+                    <Typography variant={'body2'} color={line_text_color}>
+                        {tag.use_count}
+                    </Typography>
+                </TableCell>
                 <TableCell align={'right'}>
                     <Typography variant={'body2'} color={line_text_color}>
                         {formatTimestamp(tag.created_at)}

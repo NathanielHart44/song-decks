@@ -101,6 +101,7 @@ export type ChartDataCohort = {
 export type Tag = {
     id: number;
     name: string;
+    use_count: number;
     created_at: string;
 };
 

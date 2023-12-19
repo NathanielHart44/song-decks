@@ -9,6 +9,9 @@ from songdecks.serializers import (
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------------
 
@@ -112,7 +115,7 @@ def create_proposal(request):
         request_data = request.data.copy()
         request_data['creator'] = request.user.profile.id
 
-        serializer = ProposalSerializer(data=request_data)
+        serializer = ProposalSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -142,7 +145,7 @@ def update_proposal(request, proposal_id):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        serializer = ProposalSerializer(proposal, data=request.data, partial=True)
+        serializer = ProposalSerializer(proposal, data=request.data, context={'request': request}, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

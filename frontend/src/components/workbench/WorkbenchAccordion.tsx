@@ -1,4 +1,4 @@
-import { ReactNode, useContext } from "react";
+import { ReactNode, useContext, useState } from "react";
 import {
     Accordion,
     AccordionDetails,
@@ -24,17 +24,17 @@ import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 
 type WorkbenchAccordionContainerType = {
     title: string;
-    open: boolean;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     table_body: ReactNode | undefined;
     addNew?: () => void;
 };
 
-export default function WorkbenchAccordionContainer({ title, open, setOpen, table_body, addNew }: WorkbenchAccordionContainerType) {
+export default function WorkbenchAccordionContainer({ title, table_body, addNew }: WorkbenchAccordionContainerType) {
 
     const { isMobile } = useContext(MetadataContext);
     const theme = useTheme();
     const label_color = theme.palette.text.secondary;
+
+    const [accordionOpen, setAccordionOpen] = useState<boolean>(false);
 
     let column_info: { id: string; label: string; align: string; }[] = [];
     if (title.includes('Proposals')) {
@@ -57,11 +57,11 @@ export default function WorkbenchAccordionContainer({ title, open, setOpen, tabl
         <Stack width={'100%'}>
             <Accordion
                 disableGutters={true}
-                expanded={open}
-                sx={{ ...(open && { bgcolor: 'transparent' }) }}
+                expanded={accordionOpen}
+                sx={{ ...(accordionOpen && { bgcolor: 'transparent' }) }}
                 TransitionProps={{ unmountOnExit: true }}
             >
-                <AccordionSummaryDiv open={open} setOpen={setOpen} title={title} />
+                <AccordionSummaryDiv accordionOpen={accordionOpen} setAccordionOpen={setAccordionOpen} title={title} />
                 <AccordionDetails sx={{ pt: 3 }}>
                     <TableContainer>
                         <Table stickyHeader size="small">
@@ -105,12 +105,12 @@ export default function WorkbenchAccordionContainer({ title, open, setOpen, tabl
 // ----------------------------------------------------------------------
 
 type AccordionSummaryDivType = {
-    open: boolean;
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    accordionOpen: boolean;
+    setAccordionOpen: (isOpen: boolean) => void;
     title: string;
 };
 
-function AccordionSummaryDiv({ open, setOpen, title }: AccordionSummaryDivType) {
+function AccordionSummaryDiv({ accordionOpen, setAccordionOpen, title }: AccordionSummaryDivType) {
 
     const theme = useTheme();
 
@@ -120,19 +120,19 @@ function AccordionSummaryDiv({ open, setOpen, title }: AccordionSummaryDivType) 
 
     return (
         <AccordionSummary
-            onClick={() => { setOpen(!open) }}
+            onClick={() => { setAccordionOpen(!accordionOpen) }}
             expandIcon={<ExpandMoreIcon />}
             sx={{
                 borderRadius: '8px',
                 transition: accordian_transition,
                 color: theme.palette.text.secondary,
-                ...(open && { bgcolor: open_background_color }),
+                ...(accordionOpen && { bgcolor: open_background_color }),
             }}
         >
             <Typography
                 sx={{
                     transition: text_transition,
-                    ...(open && { color: theme.palette.primary.main })
+                    ...(accordionOpen && { color: theme.palette.primary.main })
                 }}
             >
                 {title}
