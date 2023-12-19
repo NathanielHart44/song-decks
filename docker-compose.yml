@@ -22,14 +22,14 @@ services:
       - '3306:3306'
     expose:
       - '3306'
-  prometheus:
-      build: ./prometheus
-      ports:
-        - 9090:9090
-  grafana:
-    build: ./grafana
-    restart: 'no'
-    ports:
-      - 3001:3001
-    depends_on:
-      - prometheus
+  # prometheus:
+  #     build: ./prometheus
+  #     ports:
+  #       - 9090:9090
+  # grafana:
+  #   build: ./grafana
+  #   restart: 'no'
+  #   ports:
+  #     - 3001:3001
+  #   depends_on:
+  #     - prometheus
