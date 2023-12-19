@@ -1,9 +1,9 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Avatar, Menu, MenuItem, Divider, IconButton, Typography, ListItemIcon, useTheme } from '@mui/material';
+import { Box, Avatar, Menu, MenuItem, Divider, IconButton, Typography, ListItemIcon, useTheme, Stack, Button, Tooltip } from '@mui/material';
 import { MetadataContext } from 'src/contexts/MetadataContext';
 import { logout } from 'src/utils/jwt';
-import { PATH_PAGE } from 'src/routes/paths';
+import { PATH_AUTH, PATH_PAGE } from 'src/routes/paths';
 import { User } from 'src/@types/types';
 import Iconify from '../base/Iconify';
 
@@ -57,110 +57,196 @@ export default function AccountMenu() {
         setAnchorEl(null);
     };
 
+    if (!currentUser) return (
+        <Stack direction={'row'} spacing={1}>
+            <Button
+                color="inherit"
+                onClick={() => { navigate(PATH_AUTH.register) }}
+            >
+                Sign Up
+            </Button>
+            <Button
+                variant={'contained'}
+                onClick={() => { navigate(PATH_AUTH.login) }}
+            >
+                Login
+            </Button>
+        </Stack>
+    );
+
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
-            <IconButton
-                onClick={handleClick}
-                size="small"
-                sx={{ ml: 2 }}
-                aria-controls={open ? 'account-menu' : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-            >
-                <Iconify
-                    icon={'eva:menu-outline'}
-                    color={theme.palette.text.primary}
-                    width={30}
-                    height={30}
-                />
-            </IconButton>
-
-            <Menu
-                anchorEl={anchorEl}
-                id="account-menu"
-                open={open}
-                onClose={handleClose}
-                onClick={ ()=> handleClose('default') }
-                PaperProps={{
-                    elevation: 0,
-                    sx: {
-                        overflow: 'visible',
-                        filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                        mt: 1.5,
-                        ml: isMobile ? 1.5 : 0,
-                        bgcolor: theme.palette.background.paper,
-                        '& .MuiAvatar-root': {
-                            width: 32,
-                            height: 32,
-                            ml: -0.5,
-                            mr: 1,
-                        },
-                        '&:before': {
-                            content: '""',
-                            display: 'block',
-                            position: 'absolute',
-                            top: 0,
-                            right: 15,
-                            width: 10,
-                            height: 10,
-                            bgcolor: 'background.paper',
-                            transform: 'translateY(-50%) rotate(45deg)',
-                            zIndex: 0,
-                        },
-                    },
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-                <MenuItem onClick={ ()=> handleClose('profile') } disabled>
-                    <ListItemIcon>
-                        <AvatarDisplay is_main={false} currentUser={currentUser} />
-                    </ListItemIcon>
-                    {currentUser ? currentUser.username : '--'}
-                </MenuItem>
-                <MenuItem onClick={ ()=> handleClose('home')} disabled>
-                    <ListItemIcon>
-                        <HelpIcon fontSize="small" />
-                    </ListItemIcon>
-                    How To Use
-                </MenuItem>
-                <Divider />
-                { is_moderator &&
-                    [
-                        <MenuItem key={"moderator"} onClick={ ()=> handleClose('moderator') }>
+            { isMobile ?
+                <>
+                    <IconButton
+                        onClick={handleClick}
+                        size="small"
+                        sx={{ ml: 2 }}
+                        aria-controls={open ? 'account-menu' : undefined}
+                        aria-haspopup="true"
+                        aria-expanded={open ? 'true' : undefined}
+                    >
+                        <Iconify
+                            icon={'eva:menu-outline'}
+                            color={theme.palette.text.primary}
+                            width={30}
+                            height={30}
+                        />
+                    </IconButton>
+                    <Menu
+                        anchorEl={anchorEl}
+                        id="account-menu"
+                        open={open}
+                        onClose={handleClose}
+                        onClick={ ()=> handleClose('default') }
+                        PaperProps={{
+                            elevation: 0,
+                            sx: {
+                                overflow: 'visible',
+                                filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                                mt: 1.5,
+                                ml: isMobile ? 1.5 : 0,
+                                bgcolor: theme.palette.background.paper,
+                                '& .MuiAvatar-root': {
+                                    width: 32,
+                                    height: 32,
+                                    ml: -0.5,
+                                    mr: 1,
+                                },
+                                '&:before': {
+                                    content: '""',
+                                    display: 'block',
+                                    position: 'absolute',
+                                    top: 0,
+                                    right: 15,
+                                    width: 10,
+                                    height: 10,
+                                    bgcolor: 'background.paper',
+                                    transform: 'translateY(-50%) rotate(45deg)',
+                                    zIndex: 0,
+                                },
+                            },
+                        }}
+                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                        <MenuItem onClick={ ()=> handleClose('profile') } disabled>
                             <ListItemIcon>
-                                <AdminPanelSettingsIcon fontSize="small" />
+                                <AvatarDisplay is_main={false} currentUser={currentUser} />
                             </ListItemIcon>
-                            Moderators
-                        </MenuItem>,
-                        <MenuItem key={"manage_content"} onClick={ ()=> handleClose('manage_content') }>
+                            {currentUser ? currentUser.username : '--'}
+                        </MenuItem>
+                        <MenuItem onClick={ ()=> handleClose('home')} disabled>
                             <ListItemIcon>
-                                <Settings fontSize="small" />
+                                <HelpIcon fontSize="small" />
                             </ListItemIcon>
-                            Manage Content
-                        </MenuItem>,
-                        <MenuItem key={"workbench"} onClick={ ()=> handleClose('workbench') }>
+                            How To Use
+                        </MenuItem>
+                        <Divider />
+                        { is_moderator &&
+                            [
+                                <MenuItem key={"moderator"} onClick={ ()=> handleClose('moderator') }>
+                                    <ListItemIcon>
+                                        <AdminPanelSettingsIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    Moderators
+                                </MenuItem>,
+                                <MenuItem key={"manage_content"} onClick={ ()=> handleClose('manage_content') }>
+                                    <ListItemIcon>
+                                        <Settings fontSize="small" />
+                                    </ListItemIcon>
+                                    Manage Content
+                                </MenuItem>,
+                                <MenuItem key={"workbench"} onClick={ ()=> handleClose('workbench') }>
+                                    <ListItemIcon>
+                                        <ConstructionIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    Workbench
+                                </MenuItem>,
+                                <Divider key={"divider"} />
+                            ]
+                        }
+                        <MenuItem onClick={ ()=> handleClose('home')}>
                             <ListItemIcon>
-                                <ConstructionIcon fontSize="small" />
+                                <HomeIcon fontSize="small" />
                             </ListItemIcon>
-                            Workbench
-                        </MenuItem>,
-                        <Divider key={"divider"} />
-                    ]
-                }
-                <MenuItem onClick={ ()=> handleClose('home')}>
-                    <ListItemIcon>
-                        <HomeIcon fontSize="small" />
-                    </ListItemIcon>
-                    Home
-                </MenuItem>
-                <MenuItem onClick={ ()=> handleClose('logout') }>
-                    <ListItemIcon>
-                        <Logout fontSize="small" />
-                    </ListItemIcon>
-                    Logout
-                </MenuItem>
-            </Menu>
+                            Home
+                        </MenuItem>
+                        <MenuItem onClick={ ()=> handleClose('logout') }>
+                            <ListItemIcon>
+                                <Logout fontSize="small" />
+                            </ListItemIcon>
+                            Logout
+                        </MenuItem>
+                    </Menu>
+                </> :
+                <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                    { is_moderator &&
+                        <>
+                            <Tooltip title={"Workbench"} placement={"bottom"} arrow>
+                                <IconButton
+                                    onClick={ () => handleClose('workbench') }
+                                    size="small"
+                                >
+                                    <ConstructionIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title={"Manage Content"} placement={"bottom"} arrow>
+                                <IconButton
+                                    onClick={ () => handleClose('manage_content') }
+                                    size="small"
+                                >
+                                    <Settings fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title={"Moderator Page"} placement={"bottom"} arrow>
+                                <IconButton
+                                    onClick={ () => handleClose('moderator') }
+                                    size="small"
+                                >
+                                    <AdminPanelSettingsIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Divider orientation="vertical" flexItem />
+                        </>
+                    }
+                    <Tooltip title={"How To Use"} placement={"bottom"} arrow>
+                        <IconButton
+                            onClick={ () => handleClose('home') }
+                            size="small"
+                            disabled
+                        >
+                            <HelpIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={"Home"} placement={"bottom"} arrow>
+                        <IconButton
+                            onClick={ () => handleClose('home') }
+                            size="small"
+                        >
+                            <HomeIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={"Logout"} placement={"bottom"} arrow>
+                        <IconButton
+                            onClick={ () => handleClose('logout') }
+                            size="small"
+                        >
+                            <Logout fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                    <Divider orientation="vertical" flexItem />
+                    <Tooltip title={"User Settings"} placement={"bottom"} arrow>
+                        <IconButton
+                            onClick={ () => handleClose('profile') }
+                            size="small"
+                            disabled
+                        >
+                            <AvatarDisplay is_main={false} currentUser={currentUser} />
+                        </IconButton>
+                    </Tooltip>
+                </Stack>
+            }
         </Box>
     );
 }
