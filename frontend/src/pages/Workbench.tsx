@@ -3,9 +3,9 @@ import axios from "axios";
 import { MAIN_API } from "src/config";
 import { processTokens } from "src/utils/jwt";
 import { useContext, useEffect, useState } from "react";
-import { Tag, Proposal, ProposalImage, Task, Profile } from "src/@types/types";
+import { Tag, Proposal, Task, Profile } from "src/@types/types";
 import { useSnackbar } from "notistack";
-import { Container, Stack, Theme, useMediaQuery } from "@mui/material";
+import { Container, Stack, Theme, useMediaQuery, useTheme } from "@mui/material";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
 // components
@@ -19,6 +19,9 @@ import TagLine from "src/components/workbench/TagLine";
 // ----------------------------------------------------------------------
 
 export default function Workbench() {
+
+    const theme = useTheme();
+    const line_text_color = theme.palette.grey[500];
 
     const { enqueueSnackbar } = useSnackbar();
     const { currentUser } = useContext(MetadataContext);
@@ -90,6 +93,7 @@ export default function Workbench() {
         formData.append('description', task.description);
         formData.append('state', task.state);
         formData.append('complexity', task.complexity.toString());
+        formData.append('priority', task.priority.toString());
         formData.append('is_private', task.is_private.toString());
         formData.append('notes', task.notes);
         task.assigned_admins.forEach((admin) => {
@@ -151,6 +155,7 @@ export default function Workbench() {
                         description: updated_proposal.text,
                         state: 'not_started',
                         complexity: 1,
+                        priority: 1,
                         is_private: false,
                         notes: '',
                         tags: [],
@@ -284,12 +289,7 @@ export default function Workbench() {
                 { awaitingResponse && <LoadingBackdrop /> }
                 <Stack spacing={2} width={'100%'}>
                     <WorkbenchAccordionContainer
-                        title={
-                            'Proposals' +
-                                (allProposals ? `
-                                    (${allProposals.filter(
-                                        (proposal: Proposal) => proposal.status === 'pending').length} Pending)` : '')
-                        }
+                        title={'Proposals'}
                         open={proposalsOpen}
                         setOpen={setProposalsOpen}
                         addNew={beginProposal}
@@ -297,6 +297,7 @@ export default function Workbench() {
                             allProposals && allProposals.map((proposal: Proposal) => (
                                 <ProposalLine
                                     key={'proposal_' + proposal.id}
+                                    line_text_color={line_text_color}
                                     proposal={proposal}
                                     handleProposal={handleProposal}
                                 />
@@ -304,18 +305,14 @@ export default function Workbench() {
                         }
                     />
                     <WorkbenchAccordionContainer
-                        title={
-                            'Tasks' +
-                                (allTasks ? `
-                                    (${allTasks.filter(
-                                        (task: Task) => task.state === 'not_started').length} Not Started)` : '')
-                        }
+                        title={'Tasks'}
                         open={tasksOpen}
                         setOpen={setTasksOpen}
                         table_body={
                             allTasks && allTasks.map((task: Task) => (
                                 <TaskLine
                                     key={'task_' + task.id}
+                                    line_text_color={line_text_color}
                                     is_small_screen={is_small_screen}
                                     task={task}
                                     handleTaskEdit={handleTaskEdit}
@@ -332,6 +329,7 @@ export default function Workbench() {
                             allTags && allTags.map((tag: Tag) => (
                                 <TagLine
                                     key={'tag_' + tag.id}
+                                    line_text_color={line_text_color}
                                     tag={tag}
                                     handleTagEdit={handleTagEdit}
                                 />

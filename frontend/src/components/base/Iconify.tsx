@@ -101,6 +101,16 @@ export function StatusIconify({ status, size, sx }: StatusIconifyProps) {
                 // return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.specialIcons.gold;
                 // return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.primary.main;
                 return type === 'icon' ? 'line-md:chevron-triple-up' : theme.palette.grey[500];
+            case 'low_priority':
+                return type === 'icon' ? 'iconoir:priority-down' : theme.palette.primary.main;
+            case 'medium_priority':
+                return type === 'icon' ? 'iconoir:priority-medium' : theme.palette.grey[500];
+            case 'high_priority':
+                return type === 'icon' ? 'iconoir:priority-high' : theme.palette.error.main;
+            case 'private':
+                return type === 'icon' ? 'eva:lock-outline' : theme.palette.grey[500];
+            case 'public':
+                return type === 'icon' ? 'eva:globe-outline' : theme.palette.grey[500];
             default:
                 return type === 'icon' ? 'eva:clock-outline' : theme.palette.warning.main;
         };

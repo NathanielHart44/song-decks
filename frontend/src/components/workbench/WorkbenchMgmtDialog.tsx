@@ -114,23 +114,6 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
                     onChange={(event) => { newTask && setNewTask({ ...newTask, title: event.target.value }); } }
                     fullWidth
                 />
-                <ToggleButtonGroup
-                    value={newTask?.state || 'not_started'}
-                    exclusive
-                    onChange={(event, value) => { newTask && setNewTask({ ...newTask, state: value }); } }
-                    fullWidth
-                >
-                    {['not_started', 'assigned', 'in_progress', 'finished'].map((status) => {
-                        return (
-                            <ToggleButton key={'state_select_' + status} value={status}>
-                                <StatusIconify
-                                    status={status}
-                                    size={24}
-                                />
-                            </ToggleButton>
-                        )
-                    })}
-                </ToggleButtonGroup>
                 <TextField
                     label={"Task Description"}
                     variant={"outlined"}
@@ -149,27 +132,76 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
                     multiline
                     minRows={2}
                 />
-                <ToggleButtonGroup
-                    value={newTask?.complexity || 'low'}
-                    exclusive
-                    onChange={(event, value) => { newTask && setNewTask({ ...newTask, complexity: value }); } }
-                    fullWidth
-                >
-                    {Object.keys(WORKBENCH_SETTINGS.complexity_map).map((complexity) => {
-                        return (
-                            <ToggleButton
-                                key={'complexity_select_' + complexity}
-                                value={WORKBENCH_SETTINGS.complexity_map[complexity as keyof typeof WORKBENCH_SETTINGS.complexity_map]}
-                            >
-                                <StatusIconify
-                                    status={complexity + '_complexity'}
-                                    size={24}
-                                />
-                            </ToggleButton>
-                        )
-                    })}
-                </ToggleButtonGroup>
-                    {allTags &&
+                <Stack>
+                    <Typography color={title_grey} variant={'subtitle2'}>Status</Typography>
+                    <ToggleButtonGroup
+                        color={'primary'}
+                        value={newTask?.state || 'not_started'}
+                        exclusive
+                        onChange={(event, value) => { newTask && setNewTask({ ...newTask, state: value }); } }
+                        fullWidth
+                    >
+                        {['not_started', 'assigned', 'in_progress', 'finished'].map((status) => {
+                            return (
+                                <ToggleButton key={'state_select_' + status} value={status}>
+                                    <StatusIconify
+                                        status={status}
+                                        size={24}
+                                    />
+                                </ToggleButton>
+                            )
+                        })}
+                    </ToggleButtonGroup>
+                </Stack>
+                <Stack>
+                    <Typography color={title_grey} variant={'subtitle2'}>Complexity</Typography>
+                    <ToggleButtonGroup
+                        color={'primary'}
+                        value={newTask?.complexity || 'low'}
+                        exclusive
+                        onChange={(event, value) => { newTask && setNewTask({ ...newTask, complexity: value }); } }
+                        fullWidth
+                    >
+                        {Object.keys(WORKBENCH_SETTINGS.complex_priority_map).map((complexity) => {
+                            return (
+                                <ToggleButton
+                                    key={'complexity_select_' + complexity}
+                                    value={WORKBENCH_SETTINGS.complex_priority_map[complexity as keyof typeof WORKBENCH_SETTINGS.complex_priority_map]}
+                                >
+                                    <StatusIconify
+                                        status={complexity + '_complexity'}
+                                        size={24}
+                                    />
+                                </ToggleButton>
+                            )
+                        })}
+                    </ToggleButtonGroup>
+                </Stack>
+                <Stack>
+                    <Typography color={title_grey} variant={'subtitle2'}>Priority</Typography>
+                    <ToggleButtonGroup
+                        color={'primary'}
+                        value={newTask?.priority || 'low'}
+                        exclusive
+                        onChange={(event, value) => { newTask && setNewTask({ ...newTask, priority: value }); } }
+                        fullWidth
+                    >
+                        {Object.keys(WORKBENCH_SETTINGS.complex_priority_map).map((priority) => {
+                            return (
+                                <ToggleButton
+                                    key={'priorityy_select_' + priority}
+                                    value={WORKBENCH_SETTINGS.complex_priority_map[priority as keyof typeof WORKBENCH_SETTINGS.complex_priority_map]}
+                                >
+                                    <StatusIconify
+                                        status={priority + '_priority'}
+                                        size={24}
+                                    />
+                                </ToggleButton>
+                            )
+                        })}
+                    </ToggleButtonGroup>
+                </Stack>
+                {allTags &&
                     <Stack>
                         <Typography color={title_grey} variant={'subtitle2'}>Tags</Typography>
                         <Box
@@ -191,7 +223,6 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
                         </Box>
                     </Stack>
                 }
-                {/* TODO: Dependencies */}
                 <Stack>
                     <Typography color={title_grey} variant={'subtitle2'}>Assigned Moderators</Typography>
                     <Box
@@ -302,6 +333,7 @@ function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleI
                 />
 
                 <ToggleButtonGroup
+                    color={'primary'}
                     value={newProposal?.status || 'pending'}
                     exclusive
                     onChange={(event, value) => { newProposal && setNewProposal({ ...newProposal, status: value }); } }

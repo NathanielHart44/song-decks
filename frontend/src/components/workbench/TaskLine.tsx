@@ -1,4 +1,4 @@
-import { Box, Button, CardMedia, Collapse, Grid, IconButton, Stack, TableCell, TableRow, Theme, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, CardMedia, Collapse, Grid, IconButton, Stack, TableCell, TableRow, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import { Task } from "src/@types/types";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -13,12 +13,13 @@ import truncateText from "src/utils/truncateText";
 // ----------------------------------------------------------------------
 
 type TaskLineType = {
+    line_text_color: string;
     is_small_screen: boolean;
     task: Task;
     handleTaskEdit: (task: Task) => void;
 };
 
-export default function TaskLine({ is_small_screen, task, handleTaskEdit }: TaskLineType) {
+export default function TaskLine({ line_text_color, is_small_screen, task, handleTaskEdit }: TaskLineType) {
 
     const [open, setOpen] = useState<boolean>(false);
     const has_image = false;
@@ -47,22 +48,41 @@ export default function TaskLine({ is_small_screen, task, handleTaskEdit }: Task
                     </Stack>
                 </TableCell>
                 <TableCell align={'center'}>
-                    <Typography variant={'body2'}>
+                    <Typography variant={'body2'} color={line_text_color}>
                         {truncateText(task.title, is_small_screen ? 24 : 50)}
                     </Typography>
                 </TableCell>
                 <TableCell align={'center'}>
-                    {task.is_private ? 'Private' : 'Public'}
+                    <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                        <StatusIconify
+                            status={task.is_private ? 'private' : 'public'}
+                            size={24}
+                        />
+                    </Stack>
                 </TableCell>
                 <TableCell align={'center'}>
                     <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
                         <StatusIconify
                             status={
-                                Object.keys(WORKBENCH_SETTINGS.complexity_map).find(
-                                    key => WORKBENCH_SETTINGS.complexity_map[
-                                        key as keyof typeof WORKBENCH_SETTINGS.complexity_map
+                                Object.keys(WORKBENCH_SETTINGS.complex_priority_map).find(
+                                    key => WORKBENCH_SETTINGS.complex_priority_map[
+                                        key as keyof typeof WORKBENCH_SETTINGS.complex_priority_map
                                     ] === task.complexity
                                 ) + '_complexity'
+                            }
+                            size={24}
+                        />
+                    </Stack>
+                </TableCell>
+                <TableCell align={'center'}>
+                    <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                        <StatusIconify
+                            status={
+                                Object.keys(WORKBENCH_SETTINGS.complex_priority_map).find(
+                                    key => WORKBENCH_SETTINGS.complex_priority_map[
+                                        key as keyof typeof WORKBENCH_SETTINGS.complex_priority_map
+                                    ] === task.priority
+                                ) + '_priority'
                             }
                             size={24}
                         />
@@ -81,7 +101,11 @@ export default function TaskLine({ is_small_screen, task, handleTaskEdit }: Task
                         )}
                     </Stack>
                 </TableCell>
-                <TableCell align={'right'}>{formatTimestamp(task.created_at)}</TableCell>
+                <TableCell align={'right'}>
+                    <Typography variant={'body2'} color={line_text_color}>
+                        {formatTimestamp(task.created_at)}
+                    </Typography>
+                </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={WORKBENCH_SETTINGS.column_info.tasks.length}>
@@ -100,7 +124,7 @@ export default function TaskLine({ is_small_screen, task, handleTaskEdit }: Task
                                     <Typography
                                         paragraph
                                         variant="body2"
-                                        color="text.secondary"
+                                        color={line_text_color}
                                         sx={{ mb: 0 }}
                                     >
                                         {task.description}

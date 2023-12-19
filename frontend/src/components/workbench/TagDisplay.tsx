@@ -13,6 +13,8 @@ export default function TagDisplay({ allTags, selectedTags, updateTags }: Props)
 
     const icon_transition_duration = 300;
     const theme = useTheme();
+    const default_color = theme.palette.grey[500];
+    const selected_color = theme.palette.primary.main;
 
     const icon_transition = `
         width ${icon_transition_duration}ms,
@@ -24,9 +26,6 @@ export default function TagDisplay({ allTags, selectedTags, updateTags }: Props)
         color ${icon_transition_duration}ms
     `;
 
-    const button_color = theme.palette.primary.lighter;
-
-    const isLight = theme.palette.mode === 'light';
     // const color_list: string[] = getGameStyleColor((game.game_style).length);
     const hover_ratio = '1.02';
     const tap_ratio = '0.98';
@@ -59,23 +58,23 @@ export default function TagDisplay({ allTags, selectedTags, updateTags }: Props)
                         sx={{
                             pt: 0.2, pb: 0.2, pl: 0.75, pr: 0.75,
                             border: 1,
-                            borderColor: isLight ? 'white' : theme.palette.grey[800],
+                            borderColor: getTagSelected(tag) ? 'transparent' : default_color,
                             backgroundColor: getTagSelected(tag) ? 
-                                button_color : theme.palette.grey[700],
+                                selected_color : 'transparent',
                             justifyContent: 'center',
                             alignItems: 'center',
                             display: 'flex',
                             // transition: '0.25s background-color; border; borderColor;',
                             transition: icon_transition,
-                            color: getTagSelected(tag) ? 'black' : 'white',
+                            color: getTagSelected(tag) ? 'white' : default_color,
                             // backgroundColor: color_list[index],
                             '&:hover': {
                                 cursor: 'pointer',
                                 border: 1,
                                 backgroundColor: 'transparent',
                                 textDecorationColor: theme.palette.primary.main,
-                                borderColor: button_color,
-                                color: 'white',
+                                borderColor: selected_color,
+                                color: theme.palette.primary.main,
                                 scale: hover_ratio
                             },
                             '&:tap': {

@@ -22,11 +22,12 @@ import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 // ----------------------------------------------------------------------
 
 type ProposalLineType = {
+    line_text_color: string;
     proposal: Proposal;
     handleProposal: (is_new: boolean, proposal: Proposal) => void;
 };
 
-export default function ProposalLine({ proposal, handleProposal }: ProposalLineType) {
+export default function ProposalLine({ line_text_color, proposal, handleProposal }: ProposalLineType) {
 
     const [open, setOpen] = useState<boolean>(false);
     const has_image = false;
@@ -71,9 +72,15 @@ export default function ProposalLine({ proposal, handleProposal }: ProposalLineT
                     </Stack>
                 </TableCell>
                 <TableCell align={'center'}>
-                    {proposal.creator && proposal.creator.user ? proposal.creator.user.username : 'No Creator'}
+                    <Typography variant={'body2'} color={line_text_color}>
+                        {proposal.creator && proposal.creator.user ? proposal.creator.user.username : 'No Creator'}
+                    </Typography>
                 </TableCell>
-                <TableCell align={'right'}>{formatTimestamp(proposal.created_at)}</TableCell>
+                <TableCell align={'right'}>
+                    <Typography variant={'body2'} color={line_text_color}>
+                        {formatTimestamp(proposal.created_at)}
+                    </Typography>
+                </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -90,7 +97,7 @@ export default function ProposalLine({ proposal, handleProposal }: ProposalLineT
                             <Typography
                                 paragraph
                                 variant="body2"
-                                color="text.secondary"
+                                color={line_text_color}
                             >
                                 {proposal.text}
                             </Typography>

@@ -163,6 +163,11 @@ class TaskSerializer(serializers.ModelSerializer):
         if value is not None and (value < 1 or value > 3):
             raise serializers.ValidationError("Complexity must be between 1 and 3.")
         return value
+    
+    def validate_priority(self, value):
+        if value is not None and (value < 1 or value > 3):
+            raise serializers.ValidationError("Priority must be between 1 and 3.")
+        return value
 
     def validate(self, data):
         # Check for circular dependencies

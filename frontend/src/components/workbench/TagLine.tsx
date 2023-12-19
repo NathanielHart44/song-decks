@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { Tag } from "src/@types/types";
-import { processTokens } from "src/utils/jwt";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import formatTimestamp from "src/utils/formatTimestamp";
@@ -19,11 +18,12 @@ import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 // ----------------------------------------------------------------------
 
 type TagLineType = {
+    line_text_color: string;
     tag: Tag;
     handleTagEdit: (tag: Tag) => void;
 };
 
-export default function TagLine({ tag, handleTagEdit }: TagLineType) {
+export default function TagLine({ line_text_color, tag, handleTagEdit }: TagLineType) {
 
     const [open, setOpen] = useState<boolean>(false);
 
@@ -43,11 +43,15 @@ export default function TagLine({ tag, handleTagEdit }: TagLineType) {
                     </IconButton>
                 </TableCell>
                 <TableCell align={'center'}>
-                    <Typography variant={'body2'}>
+                    <Typography variant={'body2'} color={line_text_color}>
                         {tag.name}
                     </Typography>
                 </TableCell>
-                <TableCell align={'right'}>{formatTimestamp(tag.created_at)}</TableCell>
+                <TableCell align={'right'}>
+                    <Typography variant={'body2'} color={line_text_color}>
+                        {formatTimestamp(tag.created_at)}
+                    </Typography>
+                </TableCell>
             </TableRow>
             <TableRow>
                 <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>

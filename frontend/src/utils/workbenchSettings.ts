@@ -1,5 +1,5 @@
 export const WORKBENCH_SETTINGS = {
-    complexity_map: {
+    complex_priority_map: {
         'low': 1,
         'medium': 2,
         'high': 3
@@ -24,6 +24,7 @@ export const WORKBENCH_SETTINGS = {
             { id: 'title', label: 'Title', align: 'center' },
             { id: 'is_private', label: 'Public', align: 'center' },
             { id: 'complexity', label: 'Complexity', align: 'center' },
+            { id: 'priority', label: 'Priority', align: 'center' },
             { id: 'assigned_admins', label: 'Assigned Admins', align: 'center' },
             // { id: 'tags', label: 'Tags', align: 'center' },
             { id: 'created', label: 'Created', align: 'right' },

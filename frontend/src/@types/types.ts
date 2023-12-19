@@ -126,6 +126,7 @@ export type Task = {
     description: string;
     state: 'not_started' | 'assigned' | 'in_progress' | 'finished';
     complexity: number;
+    priority: number;
     is_private: boolean;
     notes: string;
     tags: Tag[];

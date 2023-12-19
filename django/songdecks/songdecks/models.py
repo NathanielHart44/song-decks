@@ -149,6 +149,12 @@ class Task(models.Model):
         blank=True,
         default=None
     )
+    priority = models.PositiveIntegerField(
+        validators=[MaxValueValidator(3)],
+        null=True,
+        blank=True,
+        default=None
+    )
     is_private = models.BooleanField(default=False)
     notes = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='tasks', blank=True)
