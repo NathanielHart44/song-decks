@@ -35,7 +35,7 @@ export default function Router() {
       path: '',
       children: [
         // { element: withAuthGuard(<Navigate to={PATH_AFTER_LOGIN} replace />), index: true },
-        { path: 'workbench', element: withAuthGuard(<Workbench />) },
+        // { path: 'workbench', element: withAuthGuard(<Workbench />) },
         { path: 'landing', element: withGuestGuard(<LandingPage />) },
         { path: 'home', element: withAuthGuard(<Home />) },
         { path: 'game', element: withAuthGuard(<Game />) },
@@ -65,4 +65,4 @@ const Register = Loadable(lazy(() => import('src/pages/Register')));
 const SelectDeck = Loadable(lazy(() => import('src/pages/SelectDeck')));
 const ManageContent = Loadable(lazy(() => import('src/pages/ManageContent')));
 const AdminPage = Loadable(lazy(() => import('src/pages/AdminPage')));
-const Workbench = Loadable(lazy(() => import('src/pages/Workbench')));
+// const Workbench = Loadable(lazy(() => import('src/pages/Workbench')));

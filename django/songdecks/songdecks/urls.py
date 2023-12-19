@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework_simplejwt import views as jwt_views
@@ -18,7 +18,7 @@ from songdecks.views import workbench as workbench_views
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-
+    path('', include('django_prometheus.urls')),
     # path('token_obtain/', jwt_views.TokenObtainPairView.as_view()),
     path('token_obtain/', views.get_jwt_token),
     path('token_refresh/', jwt_views.TokenRefreshView.as_view()),
