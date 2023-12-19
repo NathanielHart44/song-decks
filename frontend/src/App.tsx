@@ -1,5 +1,5 @@
 import MainStyle from './components/MainStyle';
-import NavBar from './components/NavBar';
+import NavBar from './components/nav/NavBar';
 import NotistackProvider from './components/NotistackProvider';
 import ThemeLocalization from './components/ThemeLocalization';
 import HotJar from './components/user-tracking/HotJar';

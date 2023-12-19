@@ -4,8 +4,8 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db.models import signals
 from django.core.validators import MaxValueValidator
+from django.db import transaction
 from django_prometheus.models import ExportModelOperationsMixin
-
 
 # ----------------------------------------------------------------------
 
@@ -149,6 +149,12 @@ class Task(ExportModelOperationsMixin('task'), models.Model):
         blank=True,
         default=None
     )
+    priority = models.PositiveIntegerField(
+        validators=[MaxValueValidator(3)],
+        null=True,
+        blank=True,
+        default=None
+    )
     is_private = models.BooleanField(default=False)
     notes = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='tasks', blank=True)
@@ -168,12 +174,9 @@ class Task(ExportModelOperationsMixin('task'), models.Model):
         return False
 
     def save(self, *args, **kwargs):
-        """
-        Override the save method to validate task dependencies.
-        """
-        # Check for circular dependencies
-        for dependency in self.dependencies.all():
-            if self.check_for_circular_dependency(self, dependency):
-                raise ValueError("Circular dependency detected")
+        with transaction.atomic():
+            super(Task, self).save(*args, **kwargs)
 
-        super(Task, self).save(*args, **kwargs)
+            for dependency in self.dependencies.all():
+                if self.check_for_circular_dependency(self, dependency):
+                    raise ValueError("Circular dependency detected")

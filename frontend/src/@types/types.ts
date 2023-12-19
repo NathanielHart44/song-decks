@@ -98,5 +98,43 @@ export type ChartDataCohort = {
     graphType?: string;
 };
 
+export type Tag = {
+    id: number;
+    name: string;
+    use_count: number;
+    created_at: string;
+};
+
+export type Proposal = {
+    id: number;
+    creator: Profile;
+    status: 'pending' | 'rejected' | 'closed' | 'confirmed';
+    text: string;
+    tags: Tag[];
+    created_at: string;
+};
+
+export type ProposalImage = {
+    id: number;
+    proposal: Proposal;
+    img_url: string;
+    created_at: string;
+};
+
+export type Task = {
+    id: number;
+    title: string;
+    description: string;
+    state: 'not_started' | 'assigned' | 'in_progress' | 'finished';
+    complexity: number;
+    priority: number;
+    is_private: boolean;
+    notes: string;
+    tags: Tag[];
+    assigned_admins: Profile[];
+    dependencies: Task[];
+    created_at: string;
+};
+
 export type ACTION_TYPE =  'draw' | 'place_in_deck' | 'place_in_hand' | 'discard' | 'play' | 'leave_note' | 'update_play_notes' ;
 export const allSteps = ['Deck', 'Hand', 'In Play', 'Discard'];

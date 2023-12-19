@@ -16,6 +16,12 @@ interface GradientsPaletteOptions {
   error: string;
 }
 
+interface SpecialIconColorOptions {
+  bronze: string;
+  silver: string;
+  gold: string;
+}
+
 interface ChartPaletteOptions {
   violet: string[];
   blue: string[];
@@ -39,6 +45,7 @@ declare module '@mui/material/styles/createPalette' {
   interface Palette {
     gradients: GradientsPaletteOptions;
     chart: ChartPaletteOptions;
+    specialIcons: SpecialIconColorOptions;
   }
   interface PaletteOptions {
     gradients: GradientsPaletteOptions;
@@ -105,6 +112,12 @@ const ERROR = {
   darker: '#7A0C2E',
 };
 
+const SPECIAL_ICONS = {
+  bronze: '#CD7F32',
+  silver: '#C0C0C0',
+  gold: '#BDA41A',
+};
+
 const GREY = {
   0: '#FFFFFF',
   100: '#F9FAFB',
@@ -144,7 +157,7 @@ const CHART_COLORS = {
 };
 
 const COMMON = {
-  common: { black: '#000', white: '#fff' },
+  common: { black: '#000', white: '#fff', bronze: SPECIAL_ICONS.bronze, silver: SPECIAL_ICONS.silver, gold: SPECIAL_ICONS.gold },
   primary: { ...PRIMARY, contrastText: '#fff' },
   secondary: { ...SECONDARY, contrastText: '#fff' },
   info: { ...INFO, contrastText: '#fff' },
@@ -165,6 +178,7 @@ const COMMON = {
     hoverOpacity: 0.08,
     disabledOpacity: 0.48,
   },
+  specialIcons: SPECIAL_ICONS,
 };
 
 const palette = {
