@@ -40,7 +40,7 @@ export default function Workbench() {
 
     const { currentUser } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
-    const is_small_screen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'));
+    const is_large_screen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'));
     const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
@@ -266,7 +266,7 @@ export default function Workbench() {
                             <TaskLine
                                 key={'task_' + task.id}
                                 line_text_color={line_text_color}
-                                is_small_screen={is_small_screen}
+                                is_small_screen={!is_large_screen}
                                 task={task}
                                 handleTaskEdit={handleTaskEdit}
                             />
