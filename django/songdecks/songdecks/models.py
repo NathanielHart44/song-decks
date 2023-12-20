@@ -5,11 +5,12 @@ from django.db.models.signals import post_save
 from django.db.models import signals
 from django.core.validators import MaxValueValidator
 from django.db import transaction
-from django_prometheus.models import ExportModelOperationsMixin
+# from django_prometheus.models import ExportModelOperationsMixin
 
 # ----------------------------------------------------------------------
 
-class Profile(ExportModelOperationsMixin('profile'), models.Model):
+# class Profile(ExportModelOperationsMixin('profile'), models.Model):
+class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
     moderator = models.BooleanField(default=False)
 
@@ -34,7 +35,8 @@ def delete_user(sender, instance=None, **kwargs):
     else:
         instance.user.delete()
 
-class Faction(ExportModelOperationsMixin('faction'), models.Model):
+# class Faction(ExportModelOperationsMixin('faction'), models.Model):
+class Faction(models.Model):
     name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
     neutral = models.BooleanField(default=False)
@@ -42,7 +44,8 @@ class Faction(ExportModelOperationsMixin('faction'), models.Model):
     def __str__(self):
         return self.name
 
-class Commander(ExportModelOperationsMixin('commander'), models.Model):
+# class Commander(ExportModelOperationsMixin('commander'), models.Model):
+class Commander(models.Model):
     name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
@@ -50,7 +53,8 @@ class Commander(ExportModelOperationsMixin('commander'), models.Model):
     def __str__(self):
         return self.name
 
-class CardTemplate(ExportModelOperationsMixin('card_template'), models.Model):
+# class CardTemplate(ExportModelOperationsMixin('card_template'), models.Model):
+class CardTemplate(models.Model):
     card_name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
     faction = models.ForeignKey(Faction, null=True, blank=True, on_delete=models.CASCADE)
@@ -63,7 +67,8 @@ class CardTemplate(ExportModelOperationsMixin('card_template'), models.Model):
     def __str__(self):
         return self.card_name
 
-class Game(ExportModelOperationsMixin('game'), models.Model):
+# class Game(ExportModelOperationsMixin('game'), models.Model):
+class Game(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
     commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
@@ -75,7 +80,8 @@ class Game(ExportModelOperationsMixin('game'), models.Model):
     def __str__(self):
         return f'{self.owner.user.username} - {self.commander.name}'
 
-class PlayerCard(ExportModelOperationsMixin('player_card'), models.Model):
+# class PlayerCard(ExportModelOperationsMixin('player_card'), models.Model):
+class PlayerCard(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     card_template = models.ForeignKey(CardTemplate, on_delete=models.CASCADE)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
@@ -87,7 +93,8 @@ class PlayerCard(ExportModelOperationsMixin('player_card'), models.Model):
     def __str__(self):
         return f'{self.card_template.card_name} - {self.owner.user.username}'
 
-class UserCardStats(ExportModelOperationsMixin('user_card_stats'), models.Model):
+# class UserCardStats(ExportModelOperationsMixin('user_card_stats'), models.Model):
+class UserCardStats(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE)
     card_template = models.ForeignKey(CardTemplate, on_delete=models.CASCADE)
     times_included = models.PositiveIntegerField(default=0)
@@ -101,15 +108,18 @@ class UserCardStats(ExportModelOperationsMixin('user_card_stats'), models.Model)
         return f'{self.card_template.card_name} - {self.user.user.username}'
 
 # ----------------------------------------------------------------------
+    
 # Workbench
-class Tag(ExportModelOperationsMixin('tag'), models.Model):
+# class Tag(ExportModelOperationsMixin('tag'), models.Model):
+class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
-class ProposalImage(ExportModelOperationsMixin('proposal_image'), models.Model):
+# class ProposalImage(ExportModelOperationsMixin('proposal_image'), models.Model):
+class ProposalImage(models.Model):
     proposal = models.ForeignKey('Proposal', on_delete=models.CASCADE)
     img_url = models.URLField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -117,7 +127,8 @@ class ProposalImage(ExportModelOperationsMixin('proposal_image'), models.Model):
     def __str__(self):
         return f'{self.proposal.id} - {self.img_url}'
     
-class Proposal(ExportModelOperationsMixin('proposal'), models.Model):
+# class Proposal(ExportModelOperationsMixin('proposal'), models.Model):
+class Proposal(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('rejected', 'Rejected'),
@@ -132,7 +143,8 @@ class Proposal(ExportModelOperationsMixin('proposal'), models.Model):
     tags = models.ManyToManyField(Tag, related_name='proposals', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-class Task(ExportModelOperationsMixin('task'), models.Model):
+# class Task(ExportModelOperationsMixin('task'), models.Model):
+class Task(models.Model):
     STATE_CHOICES = [
         ('not_started', 'Not Started'),
         ('assigned', 'Assigned'),

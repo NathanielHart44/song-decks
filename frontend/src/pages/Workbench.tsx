@@ -117,7 +117,6 @@ export default function Workbench() {
                 });
                 setAllProposals(updated_proposals);
                 
-                // Logic to create a new task if the proposal is confirmed
                 if (updated_proposal.status === 'confirmed') {
                     const new_task: Task = {
                         id: -1,
