@@ -1,7 +1,7 @@
 version: "3"
 services:
   frontend:
-    image: cmajorb/asoiaf-decks:latest
+    image: cmajorb/asoiaf-decks:latest-amd64
     ports:
         - "80:80"
     depends_on:
