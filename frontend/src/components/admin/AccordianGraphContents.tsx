@@ -39,12 +39,6 @@ export function AccordianGraphContents({ chartDataGroups, setChartDataGroups }: 
     const [alignment, setAlignment] = useState<'vertical' | 'grid'>('vertical');
 
     const getInfo = async (is_cumulative: boolean) => {
-        const request_type = is_cumulative ? 'cumulative' : 'day_by_day';
-        if (chartDataGroups.filter((group) => group.dataLabel === request_type).length > 0) {
-            const group = chartDataGroups.filter((group) => group.dataLabel === request_type)[0];
-            if (group.data.length > 0) return;
-        }
-
         setAwaitingResponse(true);
         const url = `get_player_daily_stats/${daysCount}/${is_cumulative ? 'true' : 'false'}`;
         apiCall(url, 'GET', null, (data) => {
