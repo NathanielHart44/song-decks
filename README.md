@@ -63,6 +63,11 @@ git pull
 docker compose up --build -d
 ```
 
+To migrate, navigate inside of the main directory (song-decks) and run the following command:
+```
+docker compose run web python3 /songdecks/manage.py migrate
+```
+
 ## Updating .env files in Production
 
 Navigate to the correct directory and run the following command, which will show the hidden files:

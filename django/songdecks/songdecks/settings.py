@@ -37,7 +37,7 @@ REACT_APP_GOOGLE_CLIENT_SECRET = env('REACT_APP_GOOGLE_CLIENT_SECRET')
 REACT_APP_URI_REDIRECT = env('REACT_APP_URI_REDIRECT')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

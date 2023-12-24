@@ -71,6 +71,7 @@ urlpatterns = [
 
     path('get_all_users/', admin_views.get_all_users),
     path('toggle_moderator/<str:username>/', admin_views.toggle_moderator),
+    path('toggle_admin/<str:username>/', admin_views.toggle_admin),
     path('reset_password/<str:username>/', admin_views.reset_password),
     path('games_played_info/', admin_views.games_played_info),
     path('get_player_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_player_daily_stats),
