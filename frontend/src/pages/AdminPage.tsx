@@ -9,9 +9,9 @@ import {
     Typography,
     useTheme
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Page from 'src/components/base/Page';
-import { ChartDataCohort } from 'src/@types/types';
+import { ChartDataCohortGroup } from 'src/@types/types';
 import { MAIN_API } from 'src/config';
 // sections
 import AdminTask from '../components/admin/AdminTask';
@@ -20,9 +20,22 @@ import { AccordianGraphContents } from '../components/admin/AccordianGraphConten
 
 // ----------------------------------------------------------------------
 
+export const default_chart_data_groups: ChartDataCohortGroup[] = [
+    {
+        data: [],
+        dataLabel: 'cumulative',
+    },
+    {
+        data: [],
+        dataLabel: 'day_by_day',
+    }
+];
+
+// ----------------------------------------------------------------------
+
 export default function AdminPage() {
 
-    const [chartDataGroups, setChartDataGroups] = useState<ChartDataCohort[][]>([]);
+    const [chartDataGroups, setChartDataGroups] = useState<ChartDataCohortGroup[]>(default_chart_data_groups);
 
     return (
     <Page title="Admin">
@@ -45,8 +58,8 @@ export default function AdminPage() {
 type AccordianType = {
     title: string;
     tasks?: Array<{ title: string, url: string, placeholder: string }>;
-    chartDataGroups?: ChartDataCohort[][];
-    setChartDataGroups?: React.Dispatch<React.SetStateAction<ChartDataCohort[][]>>;
+    chartDataGroups?: ChartDataCohortGroup[];
+    setChartDataGroups?: React.Dispatch<React.SetStateAction<ChartDataCohortGroup[]>>;
 };
 
 function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: AccordianType) {
@@ -58,6 +71,12 @@ function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: Acc
     const accordian_transition: string = '0.5s background-color;';
     const text_transition: string = '0.5s color;';
     const open_background_color = alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity);
+
+    useEffect(() => {
+        if (!setChartDataGroups) return;
+        setChartDataGroups(default_chart_data_groups);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
     return (
         <Stack sx={{ width: '100%' }}>

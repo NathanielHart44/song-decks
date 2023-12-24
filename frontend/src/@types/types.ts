@@ -99,6 +99,11 @@ export type ChartDataCohort = {
     graphType?: string;
 };
 
+export type ChartDataCohortGroup = {
+    data: ChartDataCohort[];
+    dataLabel: string;
+};
+
 export type Tag = {
     id: number;
     name: string;

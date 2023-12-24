@@ -5,35 +5,31 @@ import {
 } from "@mui/material";
 import { useContext } from "react";
 import ReactApexChart from 'react-apexcharts';
-import { ChartDataCohort } from "src/@types/types";
+import { ChartDataCohort, ChartDataCohortGroup } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
+import { capWords } from "src/utils/capWords";
 import { fShortenNumber, fNumber } from "src/utils/formatNumber";
 
 // ----------------------------------------------------------------------
 
 type GraphAllSectionsProps = {
     single?: boolean,
-    titles: string[],
-    graph_groups: ChartDataCohort[][],
+    graph_groups: ChartDataCohortGroup[],
     grid_sizes: { xs: number; sm: number; md: number; lg: number; xl: number; }
 };
 
-export default function ApexLineGraphAllSections({ single, titles, graph_groups, grid_sizes }: GraphAllSectionsProps) {
-
-    const { isMobile } = useContext(MetadataContext);
+export default function ApexLineGraphAllSections({ single, graph_groups, grid_sizes }: GraphAllSectionsProps) {
 
     return (
         <Grid container spacing={2} alignItems={'center'} justifyContent={'center'} sx={{ width: '100%' }}>
             { graph_groups.map((group, index) => {
-                if (index >= titles.length) return null;
 
                 return (
                     <ApexLineGraphSection
                         key={'graph' + index}
-                        single={single || titles.length === 1}
-                        title={titles[index]}
-                        graph_group={group}
-                        isMobile={isMobile}
+                        single={single}
+                        title={capWords(group.dataLabel)}
+                        graph_group={group.data}
                         grid_sizes={grid_sizes}
                     />
                 )
@@ -48,11 +44,10 @@ type GraphSectionProps = {
     single?: boolean,
     title: string,
     graph_group: ChartDataCohort[],
-    isMobile: boolean,
     grid_sizes: { xs: number; sm: number; md: number; lg: number; xl: number; }
 };
 
-export function ApexLineGraphSection({ single, title, graph_group, isMobile, grid_sizes }: GraphSectionProps) {
+export function ApexLineGraphSection({ single, title, graph_group, grid_sizes }: GraphSectionProps) {
 
     if (single) {
         grid_sizes = { xs: 12, sm: 12, md: 10, lg: 10, xl: 8 };
@@ -61,7 +56,7 @@ export function ApexLineGraphSection({ single, title, graph_group, isMobile, gri
     return (
         <Grid item {...grid_sizes}>
             <Typography variant={'h6'}>{title}</Typography>
-            <ApexLineGraph group_cohorts={graph_group} isMobile={isMobile} />
+            <ApexLineGraph group_cohorts={graph_group} />
         </Grid>
     )
 };
@@ -70,12 +65,12 @@ export function ApexLineGraphSection({ single, title, graph_group, isMobile, gri
 
 type MomentumGraphProps = {
     group_cohorts: ChartDataCohort[],
-    isMobile: boolean
 };
 
-export function ApexLineGraph({ group_cohorts, isMobile }: MomentumGraphProps) {
+export function ApexLineGraph({ group_cohorts }: MomentumGraphProps) {
 
     const theme = useTheme();
+    const { isMobile } = useContext(MetadataContext);
     
     const chartOptions = {
         colors: [theme.palette.primary.main, theme.palette.primary.lighter, theme.palette.primary.darker],
@@ -151,7 +146,8 @@ export function ApexLineGraph({ group_cohorts, isMobile }: MomentumGraphProps) {
 
     if (!series_data[0] || !series_data[0].data) return null;
 
-    const max_detailed_display = isMobile ? 1 : 20;
+    // const max_detailed_display = isMobile ? 1 : 20;
+    const max_detailed_display = 1;
     const detailed_display = series_data[0].data.length <= max_detailed_display;
 
     return (
@@ -191,4 +187,4 @@ function sortData(cohort: ChartDataCohort) {
         return dateA.getTime() - dateB.getTime();
     });
     return sortedData;
-}
+};

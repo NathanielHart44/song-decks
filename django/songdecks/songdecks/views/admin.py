@@ -5,6 +5,8 @@ from django.utils import timezone
 from datetime import timedelta
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
 from songdecks.serializers import (UserSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Game)
@@ -134,7 +136,10 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
     try:
         profile = request.user.profile
         if profile.admin == False:
-            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         profiles = Profile.objects.exclude(user__username='admin', moderator=False)
 
@@ -172,7 +177,9 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
                 }
                 all_results[type].append(result)
 
-        return JsonResponse({'success': True, 'response': all_results})
+        return Response(all_results, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-        
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

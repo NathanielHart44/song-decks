@@ -1,6 +1,8 @@
 import {
-    AccordionDetails, Box,
-    CircularProgress, Grid,
+    AccordionDetails,
+    Box,
+    CircularProgress,
+    Grid,
     MenuItem,
     Select,
     Stack,
@@ -8,21 +10,20 @@ import {
     ToggleButtonGroup,
     Typography
 } from '@mui/material';
-import axios from "axios";
 import { useEffect, useState } from 'react';
-import { ChartData, ChartDataCohort } from 'src/@types/types';
-import { MAIN_API } from 'src/config';
+import { ChartData, ChartDataCohort, ChartDataCohortGroup } from 'src/@types/types';
 import ApexLineGraphAllSections from 'src/components/graphs/ApexLineGraph';
-import { useSnackbar } from 'notistack';
 import { processTokens } from 'src/utils/jwt';
 import { capWords } from 'src/utils/capWords';
 import Iconify from 'src/components/base/Iconify';
+import { default_chart_data_groups } from 'src/pages/AdminPage';
+import { useApiCall } from 'src/hooks/useApiCall';
 
 // ----------------------------------------------------------------------
 
 type AccordianGraphContentsProps = {
-    chartDataGroups: ChartDataCohort[][];
-    setChartDataGroups: React.Dispatch<React.SetStateAction<ChartDataCohort[][]>>;
+    chartDataGroups: ChartDataCohortGroup[];
+    setChartDataGroups: React.Dispatch<React.SetStateAction<ChartDataCohortGroup[]>>;
 };
 
 // ----------------------------------------------------------------------
@@ -31,43 +32,49 @@ export function AccordianGraphContents({ chartDataGroups, setChartDataGroups }: 
 
     const grid_sizes = { xs: 12, sm: 12, md: 6, lg: 6, xl: 6 };
     const days_range = [7, 10, 14, 30, 90, 365];
-    const { enqueueSnackbar } = useSnackbar();
+    const { apiCall } = useApiCall();
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
     const [daysCount, setDaysCount] = useState<number>(10);
     const [alignment, setAlignment] = useState<'vertical' | 'grid'>('vertical');
 
     const getInfo = async (is_cumulative: boolean) => {
-        if (chartDataGroups.length >= 2) { setChartDataGroups([]) };
+        const request_type = is_cumulative ? 'cumulative' : 'day_by_day';
+        if (chartDataGroups.filter((group) => group.dataLabel === request_type).length > 0) {
+            const group = chartDataGroups.filter((group) => group.dataLabel === request_type)[0];
+            if (group.data.length > 0) return;
+        }
+
         setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}get_player_daily_stats/${daysCount}/${is_cumulative ? 'true' : 'false'}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
+        const url = `get_player_daily_stats/${daysCount}/${is_cumulative ? 'true' : 'false'}`;
+        apiCall(url, 'GET', null, (data) => {
+            let chart_data_group: ChartDataCohort[] = [];
 
-                let chart_data_group: ChartDataCohort[] = [];
+            for (const type in data) {
+                const chart_data: ChartData[] = data[type];
+                const formatted_data: ChartDataCohort = {
+                    data: chart_data,
+                    dataLabel: capWords(type),
+                    graphType: is_cumulative ? 'line' : 'bar'
+                };
+                chart_data_group.push(formatted_data);
+            }
 
-                for (const type in res) {
-                    const chart_data: ChartData[] = res[type];
-
-                    const formatted_data: ChartDataCohort = { data: chart_data, dataLabel: capWords(type), graphType: is_cumulative ? 'line' : 'bar' };
-
-                    chart_data_group.push(formatted_data);
-                }
-
-                setChartDataGroups((chartDataGroups) => [...chartDataGroups, chart_data_group]);
-
-                setAwaitingResponse(false);
-            } else { enqueueSnackbar(response.data.response) };
-            setAwaitingResponse(false);
-        }).catch((error) => {
-            console.error(error);
+            let new_group: ChartDataCohortGroup = {
+                data: chart_data_group,
+                dataLabel: is_cumulative ? 'cumulative' : 'day_by_day',
+            };
+            setChartDataGroups((chartDataGroups) => chartDataGroups.filter((group) => group.dataLabel !== new_group.dataLabel).concat(new_group));
         });
+        setAwaitingResponse(false);
     };
 
     useEffect(() => {
-        processTokens(getInfo, true);
-        processTokens(getInfo, false);
+        setChartDataGroups(default_chart_data_groups);
+        processTokens(() => {
+            getInfo(true);
+            getInfo(false);
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [daysCount]);
 
@@ -118,13 +125,11 @@ export function AccordianGraphContents({ chartDataGroups, setChartDataGroups }: 
             }
             {!awaitingResponse &&
                 <ApexLineGraphAllSections
-                    single={alignment === 'vertical'}
-                    titles={['Cumulative', 'Day By Day']}
+                    single={alignment === 'vertical' || chartDataGroups.length === 1}
                     graph_groups={chartDataGroups}
                     grid_sizes={grid_sizes}
                 />
             }
         </AccordionDetails>
     );
-}
-;
+};
