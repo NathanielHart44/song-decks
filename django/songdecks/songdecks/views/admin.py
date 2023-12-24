@@ -16,7 +16,7 @@ from songdecks.views.helpers import get_last_acceptable_date
 def get_all_users(request):
     try:
         profile = request.user.profile
-        if profile.moderator == False:
+        if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         users = User.objects.all()
         users = users.exclude(username='admin')
@@ -32,13 +32,13 @@ def get_all_users(request):
 def toggle_moderator(request, username):
     try:
         profile = request.user.profile
-        if profile.moderator == False:
+        if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permisdsion to perform this action."})
         user_search = User.objects.filter(username=username)
         if user_search.count() == 0:
             return JsonResponse({"success": False, "response": "User not found."})
         user = user_search.first()
-        user.profile.moderator = not user.profile.moderator
+        user.profile.admin = not user.profile.admin
         user.profile.save()
         updated_profile_status = Profile.objects.filter(user=user).first().moderator
         return JsonResponse({"success": True, "response": f"Successfully toggled moderator status to {updated_profile_status} for {user.username}."})
@@ -49,7 +49,7 @@ def toggle_moderator(request, username):
 def reset_password(request, username):
     try:
         profile = request.user.profile
-        if profile.moderator == False:
+        if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         user_search = User.objects.filter(username=username)
         if user_search.count() == 0:
@@ -66,7 +66,7 @@ def reset_password(request, username):
 def games_played_info(request):
     try:
         profile = request.user.profile
-        if profile.moderator == False:
+        if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
 
         now = timezone.now()
@@ -133,7 +133,7 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
     date_format = '%m-%d-%Y'
     try:
         profile = request.user.profile
-        if profile.moderator == False:
+        if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
 
         profiles = Profile.objects.exclude(user__username='admin', moderator=False)

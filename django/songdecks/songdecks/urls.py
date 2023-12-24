@@ -25,6 +25,7 @@ urlpatterns = [
     path('google_auth/', views.google_auth),
 
     path('current_user/', views.current_user),
+    path('update_user/<int:user_id>/', views.update_user),
     path('register/', permission_classes([AllowAny])(views.register)),
     path('submit_feedback/', views.submit_feedback),
     path('download_img/', views.download_img),

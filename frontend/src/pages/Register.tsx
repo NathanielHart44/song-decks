@@ -12,7 +12,6 @@ import { RegisterForm } from 'src/forms/auth/register';
 // ----------------------------------------------------------------------
 
 export default function Register() {
-  // const { signInWithGoogle } = useAuth();
 
   return (
     <Page title="Register">

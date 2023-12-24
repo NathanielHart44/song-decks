@@ -5,7 +5,8 @@ from rest_framework.permissions import AllowAny
 from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from songdecks.serializers import (PlayerCardSerializer,
-    UserSerializer, UserCardStatsSerializer, GameSerializer)
+    UserSerializer, UserCardStatsSerializer, GameSerializer,
+    ChangePasswordSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
     Game, PlayerCard, UserCardStats)
@@ -14,6 +15,7 @@ from songdecks.views.helpers import (handle_card_updates, send_email_notificatio
 import requests
 from django.utils import timezone
 from rest_framework import status
+from django.db import transaction
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
@@ -149,6 +151,41 @@ def current_user(request):
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
+
+@api_view(['POST'])
+def update_user(request, user_id):
+    try:
+        if request.user.id != int(user_id) or request.user.profile.admin == False:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "User not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        with transaction.atomic():
+            post_data = request.data
+            user_serializer = UserSerializer(user, data=post_data, partial=True)
+            user_serializer.is_valid(raise_exception=True)
+            user_serializer.save()
+
+            if 'old_password' in post_data:
+                password_serializer = ChangePasswordSerializer(data=post_data, context={'request': request})
+                password_serializer.is_valid(raise_exception=True)
+                user.set_password(post_data['new_password'])
+                user.save()
+
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 # ----------------------------------------------------------------------
 # Game Actions

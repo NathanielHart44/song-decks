@@ -5,7 +5,8 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import NotFound from 'src/pages/NotFound';
 import GuestGuard from 'src/guards/GuestGuard';
 import AuthGuard from 'src/guards/AuthGuard';
-import ModeratorGuard from 'src/guards/ModeratorGuard';
+import { ModeratorGuard, AdminGuard } from 'src/guards/ModeratorGuard';
+
 import LoadingScreen from 'src/components/base/LoadingScreen';
 
 // ----------------------------------------------------------------------
@@ -20,6 +21,7 @@ const Loadable = (Component: ElementType) => (props: any) => {
 
 function withAuthGuard(element: JSX.Element) { return <AuthGuard>{element}</AuthGuard> };
 function withModeratorGuard(element: JSX.Element) { return <ModeratorGuard>{element}</ModeratorGuard> };
+function withAdminGuard(element: JSX.Element) { return <AdminGuard>{element}</AdminGuard> };
 function withGuestGuard(element: JSX.Element) { return <GuestGuard>{element}</GuestGuard> }
 
 export default function Router() {
@@ -40,7 +42,8 @@ export default function Router() {
         { path: 'home', element: withAuthGuard(<Home />) },
         { path: 'game', element: withAuthGuard(<Game />) },
         { path: 'manage', element: withModeratorGuard(<ManageContent />) },
-        { path: 'moderator', element: withModeratorGuard(<AdminPage />) },
+        { path: 'admin', element: withAdminGuard(<AdminPage />) },
+        { path: 'profile', element: withAuthGuard(<ProfilePage />) },
         { path: 'game/:gameID', element: withAuthGuard(<Game />) },
         { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         { path: '404', element: <NotFound /> },
@@ -66,3 +69,4 @@ const SelectDeck = Loadable(lazy(() => import('src/pages/SelectDeck')));
 const ManageContent = Loadable(lazy(() => import('src/pages/ManageContent')));
 const AdminPage = Loadable(lazy(() => import('src/pages/AdminPage')));
 const Workbench = Loadable(lazy(() => import('src/pages/Workbench')));
+const ProfilePage = Loadable(lazy(() => import('src/pages/ProfilePage')));

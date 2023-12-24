@@ -20,6 +20,7 @@ export default function AccountMenu() {
 
     const { isMobile, currentUser } = useContext(MetadataContext);
     const is_moderator = currentUser?.moderator;
+    const is_admin = currentUser?.admin;
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -41,11 +42,11 @@ export default function AccountMenu() {
             case 'manage_content':
                 navigate(PATH_PAGE.manage);
                 break;
-            case 'moderator':
-                navigate(PATH_PAGE.moderator)
+            case 'admin':
+                navigate(PATH_PAGE.admin);
                 break;
             case 'profile':
-                // navigate(`/profile/${currentUser?.id}`);
+                navigate(PATH_PAGE.profile);
                 break;
             case 'logout':
                 logout();
@@ -129,7 +130,7 @@ export default function AccountMenu() {
                         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                     >
-                        <MenuItem onClick={ ()=> handleClose('profile') } disabled>
+                        <MenuItem onClick={ ()=> handleClose('profile') }>
                             <ListItemIcon>
                                 <AvatarDisplay is_main={false} currentUser={currentUser} />
                             </ListItemIcon>
@@ -142,9 +143,9 @@ export default function AccountMenu() {
                             How To Use
                         </MenuItem>
                         <Divider />
-                        { is_moderator &&
+                        { is_admin &&
                             [
-                                <MenuItem key={"moderator"} onClick={ ()=> handleClose('moderator') }>
+                                <MenuItem key={"admin"} onClick={ ()=> handleClose('admin') }>
                                     <ListItemIcon>
                                         <Iconify
                                             icon={'eos-icons:admin-outlined'}
@@ -152,8 +153,13 @@ export default function AccountMenu() {
                                             height={24}
                                         />
                                     </ListItemIcon>
-                                    Moderators
+                                    Admin Page
                                 </MenuItem>,
+                                <Divider key={"divider_1"} />
+                            ]                        
+                        }
+                        { is_moderator &&
+                            [
                                 <MenuItem key={"manage_content"} onClick={ ()=> handleClose('manage_content') }>
                                     <ListItemIcon>
                                         <Settings fontSize="small" />
@@ -166,7 +172,7 @@ export default function AccountMenu() {
                                     </ListItemIcon>
                                     Workbench
                                 </MenuItem>,
-                                <Divider key={"divider"} />
+                                <Divider key={"divider_2"} />
                             ]
                         }
                         <MenuItem onClick={ ()=> handleClose('home')}>
@@ -184,6 +190,23 @@ export default function AccountMenu() {
                     </Menu>
                 </> :
                 <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                    { is_admin &&
+                        <>
+                            <Tooltip title={"Admin Page"} placement={"bottom"} arrow>
+                                <IconButton
+                                    onClick={ () => handleClose('admin') }
+                                    size="small"
+                                >
+                                    <Iconify
+                                        icon={'eos-icons:admin-outlined'}
+                                        width={24}
+                                        height={24}
+                                    />
+                                </IconButton>
+                            </Tooltip>
+                            <Divider orientation="vertical" flexItem />
+                        </>
+                    }
                     { is_moderator &&
                         <>
                             <Tooltip title={"Workbench"} placement={"bottom"} arrow>
@@ -200,18 +223,6 @@ export default function AccountMenu() {
                                     size="small"
                                 >
                                     <Settings fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title={"Moderator Page"} placement={"bottom"} arrow>
-                                <IconButton
-                                    onClick={ () => handleClose('moderator') }
-                                    size="small"
-                                >
-                                    <Iconify
-                                        icon={'eos-icons:admin-outlined'}
-                                        width={24}
-                                        height={24}
-                                    />
                                 </IconButton>
                             </Tooltip>
                             <Divider orientation="vertical" flexItem />
@@ -243,11 +254,10 @@ export default function AccountMenu() {
                         </IconButton>
                     </Tooltip>
                     <Divider orientation="vertical" flexItem />
-                    <Tooltip title={"User Settings"} placement={"bottom"} arrow>
+                    <Tooltip title={"Profile Settings"} placement={"bottom"} arrow>
                         <IconButton
                             onClick={ () => handleClose('profile') }
                             size="small"
-                            disabled
                         >
                             <AvatarDisplay is_main={false} currentUser={currentUser} />
                         </IconButton>

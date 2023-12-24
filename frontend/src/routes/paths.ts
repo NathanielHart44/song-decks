@@ -22,7 +22,8 @@ export const PATH_PAGE = {
   home: '/home',
   game: '/game',
   manage: '/manage',
-  moderator: '/moderator',
+  admin: '/admin',
+  profile: '/profile',
   select_deck: '/select-deck',
   page404: '/404',
 };

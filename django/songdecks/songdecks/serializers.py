@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from songdecks.models import *
 from songdecks.views.helpers import check_inappropriate_language
 import logging
@@ -16,14 +19,21 @@ logging.basicConfig(level=logging.INFO)
 
 class UserSerializer(serializers.ModelSerializer):
     moderator = serializers.SerializerMethodField(read_only=True)
+    admin = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile', 'moderator')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile', 'moderator', 'admin')
 
     def get_moderator(self, obj):
         try:
             return obj.profile.moderator
+        except Profile.DoesNotExist or AttributeError:
+            return False
+        
+    def get_admin(self, obj):
+        try:
+            return obj.profile.admin
         except Profile.DoesNotExist or AttributeError:
             return False
 
@@ -32,8 +42,45 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'user')
+        fields = ('id', 'user', 'moderator', 'admin')
         depth = 2
+
+    def validate_admin(self, value):
+        request_user = self.context['request'].user
+        if not request_user.profile.admin:
+            raise serializers.ValidationError("Only admins can change the admin status.")
+        return value
+
+    def validate_moderator(self, value):
+        request_user = self.context['request'].user
+        if not request_user.profile.admin:
+            raise serializers.ValidationError("Only admins can change the moderator status.")
+        return value
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not check_password(value, user.password):
+            raise serializers.ValidationError("Old password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "New passwords must match."})
+        return data
+    
+# ----------------------------------------------------------------------
 
 class FactionSerializer(serializers.ModelSerializer):
     class Meta:

@@ -32,6 +32,11 @@ def get_all_tags(request):
     
 @api_view(['POST'])
 def create_tag(request):
+    if not request.user.profile.moderator:
+        return Response(
+            {"detail": "You are not authorized to create tags."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     try:
         serializer = TagSerializer(data=request.data)
         if serializer.is_valid():
@@ -50,6 +55,11 @@ def create_tag(request):
     
 @api_view(['POST'])
 def update_tag(request, tag_id):
+    if not request.user.profile.moderator:
+        return Response(
+            {"detail": "You are not authorized to update tags."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     try:
         tag = Tag.objects.get(pk=tag_id)
         serializer = TagSerializer(tag, data=request.data, partial=True)

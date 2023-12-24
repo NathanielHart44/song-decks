@@ -10,10 +10,12 @@ type Props = { children: ReactNode };
 export const MetadataContext = createContext<{
     isMobile: boolean;
     currentUser: User | undefined;
+    getCurrentUser: () => void;
 }>
 ({
     isMobile: true,
     currentUser: undefined,
+    getCurrentUser: () => {},
 });
 
 export default function MetadataProvider({ children }: Props) {
@@ -26,7 +28,7 @@ export default function MetadataProvider({ children }: Props) {
     let user = undefined;
     const local_user = localStorage.getItem('currentUser') ?? '';
     if (local_user !== 'undefined' && local_user !== '') { user = JSON.parse(local_user) };
-    const [currentUser, setCurrentUser] = useState<User>(user);
+    const [currentUser, setCurrentUser] = useState<User | undefined>(user);
 
     const getCurrentUser = async () => {
         let token = localStorage.getItem('accessToken') ?? '';
@@ -47,6 +49,7 @@ export default function MetadataProvider({ children }: Props) {
             value={{
                 isMobile,
                 currentUser,
+                getCurrentUser
             }}
         >
             {children}
