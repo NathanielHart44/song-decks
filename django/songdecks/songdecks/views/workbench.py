@@ -105,7 +105,7 @@ def delete_tag(request, tag_id):
 def get_all_proposals(request):
     proposals = Proposal.objects.all()
     if request.user.profile.moderator == False:
-        proposals = proposals.filter(status='approved', creator=request.user.profile)
+        proposals = proposals.filter(is_private=False)
     serializer = ProposalSerializer(proposals, many=True)
     return Response(serializer.data)
 
@@ -178,12 +178,33 @@ def delete_proposal(request, proposal_id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+@api_view(['POST'])
+def handle_favorite_proposal(request, proposal_id):
+    try:
+        proposal = Proposal.objects.get(pk=proposal_id)
+        if request.user.profile in proposal.favorited_by.all():
+            proposal.favorited_by.remove(request.user.profile)
+        else:
+            proposal.favorited_by.add(request.user.profile)
+        proposal.save()
+        serializer = ProposalSerializer(proposal)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Proposal.DoesNotExist:
+        return Response({"detail": "Proposal not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
 # ----------------------------------------------------------------------
 # Tasks
 
 @api_view(['GET'])
 def get_all_tasks(request):
     tasks = Task.objects.all()
+    if request.user.profile.moderator == False:
+        tasks = tasks.filter(is_private=False)
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data)
 
@@ -246,3 +267,22 @@ def delete_task(request, task_id):
         return Response({"detail": "Task deleted successfully."}, status=status.HTTP_200_OK)
     except Task.DoesNotExist:
         return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+def handle_favorite_task(request, task_id):
+    try:
+        task = Task.objects.get(pk=task_id)
+        if request.user.profile in task.favorited_by.all():
+            task.favorited_by.remove(request.user.profile)
+        else:
+            task.favorited_by.add(request.user.profile)
+        task.save()
+        serializer = TaskSerializer(task)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Task.DoesNotExist:
+        return Response({"detail": "Task not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

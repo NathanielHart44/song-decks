@@ -88,12 +88,14 @@ urlpatterns = [
     path('get_proposal/<int:proposal_id>/', workbench_views.get_proposal),
     path('update_proposal/<int:proposal_id>/', workbench_views.update_proposal),
     path('delete_proposal/<int:proposal_id>/', workbench_views.delete_proposal),
+    path('handle_favorite_proposal/<int:proposal_id>/', workbench_views.handle_favorite_proposal),
 
     path('get_all_tasks/', workbench_views.get_all_tasks),
     path('create_task/', workbench_views.create_task),
     path('get_task/<int:task_id>/', workbench_views.get_task),
     path('update_task/<int:task_id>/', workbench_views.update_task),
     path('delete_task/<int:task_id>/', workbench_views.delete_task),
+    path('handle_favorite_task/<int:task_id>/', workbench_views.handle_favorite_task),
 
     # ----------------------------------------------------------------------
 

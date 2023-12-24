@@ -7,7 +7,6 @@ import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
 // components
 import WorkbenchAccordionContainer from "src/components/workbench/WorkbenchAccordion";
-import WorkbenchMgmtDialog from "src/components/workbench/WorkbenchMgmtDialog";
 import ProposalLine from "src/components/workbench/ProposalLine";
 import TaskLine from "src/components/workbench/TaskLine";
 import { MetadataContext } from "src/contexts/MetadataContext";
@@ -16,16 +15,17 @@ import TagLine from "src/components/workbench/TagLine";
 // hooks
 import useWorkbenchState from 'src/hooks/useWorkbenchState';
 import { useApiCall, objectToFormData } from "src/hooks/useApiCall";
+import WBMgmtDialogGroup from "../components/workbench/WBMgmtDialogGroup";
 
 // ----------------------------------------------------------------------
 
-type ModalState = {
+export type ModalState = {
     taskCreationOpen: boolean;
     proposalCreationOpen: boolean;
     tagCreationOpen: boolean;
 };
 
-const initialModalState: ModalState = {
+export const initialModalState: ModalState = {
     taskCreationOpen: false,
     proposalCreationOpen: false,
     tagCreationOpen: false
@@ -128,6 +128,7 @@ export default function Workbench() {
                         is_private: false,
                         notes: '',
                         tags: [],
+                        favorited_by: [],
                         assigned_admins: [],
                         dependencies: [],
                         created_at: ''
@@ -149,6 +150,7 @@ export default function Workbench() {
             text: '',
             tags: [],
             status: 'pending',
+            favorited_by: [],
             created_at: ''
         };
         setNewProposal(new_proposal);
@@ -213,39 +215,21 @@ export default function Workbench() {
         <Page title="Workbench">
             { awaitingResponse && <LoadingBackdrop /> }
             <Container maxWidth={false}>
-                <WorkbenchMgmtDialog
-                    type={'proposal'}
-                    is_new={true}
-                    open={modalState.proposalCreationOpen}
-                    setOpen={(isOpen) => setModalVisibility('proposalCreationOpen', isOpen)}
+                <WBMgmtDialogGroup
+                    modalState={modalState}
+                    setModalVisibility={setModalVisibility}
                     awaitingResponse={awaitingResponse}
-                    newItem={newProposal}
-                    setNewItem={setNewProposal}
-                    handleItem={handleProposal}
-                    allTags={allTags}
-                />
-                <WorkbenchMgmtDialog
-                    type={'task'}
-                    is_new={newTask?.id === -1}
-                    open={modalState.taskCreationOpen}
-                    setOpen={(isOpen) => setModalVisibility('taskCreationOpen', isOpen)}
-                    newItem={newTask}
-                    setNewItem={setNewTask}
-                    awaitingResponse={awaitingResponse}
-                    handleItem={handleTask}
+                    newProposal={newProposal}
+                    setNewProposal={setNewProposal}
+                    handleProposal={handleProposal}
+                    newTask={newTask}
+                    setNewTask={setNewTask}
+                    handleTask={handleTask}
+                    newTag={newTag}
+                    setNewTag={setNewTag}
+                    handleTag={handleTag}
                     allModerators={allModerators}
                     allTags={allTags}
-                />
-                <WorkbenchMgmtDialog
-                    type={'tag'}
-                    is_new={newTag?.id === -1}
-                    open={modalState.tagCreationOpen}
-                    setOpen={(isOpen) => setModalVisibility('tagCreationOpen', isOpen)}
-                    newItem={newTag}
-                    setNewItem={setNewTag}
-                    awaitingResponse={awaitingResponse}
-                    handleItem={handleTag}
-                    allModerators={allModerators}
                 />
                 <Stack spacing={2} width={'100%'}>
                     {renderAccordionContainer({

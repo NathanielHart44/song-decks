@@ -128,7 +128,9 @@ class Proposal(ExportModelOperationsMixin('proposal'), models.Model):
 
     creator = models.ForeignKey(Profile, on_delete=models.CASCADE)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    is_private = models.BooleanField(default=False)
     text = models.TextField()
+    favorited_by = models.ManyToManyField(Profile, related_name='favorited_proposals', blank=True)
     related_images = models.ManyToManyField(ProposalImage, related_name='proposals', blank=True)
     tags = models.ManyToManyField(Tag, related_name='proposals', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -160,6 +162,7 @@ class Task(ExportModelOperationsMixin('task'), models.Model):
     notes = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='tasks', blank=True)
     assigned_admins = models.ManyToManyField(Profile, related_name='assigned_tasks', blank=True)
+    favorited_by = models.ManyToManyField(Profile, related_name='favorited_tasks', blank=True)
     dependencies = models.ManyToManyField('self', symmetrical=False, related_name='dependent_tasks', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

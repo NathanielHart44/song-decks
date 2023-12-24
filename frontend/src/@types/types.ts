@@ -111,6 +111,7 @@ export type Proposal = {
     status: 'pending' | 'rejected' | 'closed' | 'confirmed';
     text: string;
     tags: Tag[];
+    favorited_by: number[];
     created_at: string;
 };
 
@@ -131,6 +132,7 @@ export type Task = {
     is_private: boolean;
     notes: string;
     tags: Tag[];
+    favorited_by: number[];
     assigned_admins: Profile[];
     dependencies: Task[];
     created_at: string;

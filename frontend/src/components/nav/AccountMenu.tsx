@@ -9,7 +9,6 @@ import Iconify from '../base/Iconify';
 
 // icons
 import HomeIcon from '@mui/icons-material/Home';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import HelpIcon from '@mui/icons-material/Help';
@@ -147,7 +146,11 @@ export default function AccountMenu() {
                             [
                                 <MenuItem key={"moderator"} onClick={ ()=> handleClose('moderator') }>
                                     <ListItemIcon>
-                                        <AdminPanelSettingsIcon fontSize="small" />
+                                        <Iconify
+                                            icon={'eos-icons:admin-outlined'}
+                                            width={24}
+                                            height={24}
+                                        />
                                     </ListItemIcon>
                                     Moderators
                                 </MenuItem>,
@@ -204,7 +207,11 @@ export default function AccountMenu() {
                                     onClick={ () => handleClose('moderator') }
                                     size="small"
                                 >
-                                    <AdminPanelSettingsIcon fontSize="small" />
+                                    <Iconify
+                                        icon={'eos-icons:admin-outlined'}
+                                        width={24}
+                                        height={24}
+                                    />
                                 </IconButton>
                             </Tooltip>
                             <Divider orientation="vertical" flexItem />

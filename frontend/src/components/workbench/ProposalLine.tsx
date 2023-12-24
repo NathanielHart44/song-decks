@@ -76,6 +76,14 @@ export default function ProposalLine({ line_text_color, proposal, handleProposal
                         {proposal.creator && proposal.creator.user ? proposal.creator.user.username : 'No Creator'}
                     </Typography>
                 </TableCell>
+                <TableCell align={'center'}>
+                    <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                        <StatusIconify
+                            status={proposal.creator.user.moderator ? 'moderator' : 'user'}
+                            size={24}
+                        />
+                    </Stack>
+                </TableCell>
                 <TableCell align={'right'}>
                     <Typography variant={'body2'} color={line_text_color}>
                         {formatTimestamp(proposal.created_at)}

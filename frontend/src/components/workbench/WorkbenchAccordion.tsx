@@ -2,8 +2,6 @@ import { ReactNode, useContext, useState } from "react";
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary,
-    Card,
     Stack,
     Table,
     TableBody,
@@ -11,14 +9,13 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Typography,
     alpha,
     useTheme
 } from "@mui/material";
-import Iconify from "src/components/base/Iconify";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
+import AccordionSummaryDiv from "./AccordionSummaryDiv";
+import AddNewWB from "./AddNewWB";
 
 // ----------------------------------------------------------------------
 
@@ -88,7 +85,7 @@ export default function WorkbenchAccordionContainer({ title, table_body, addNew 
                                     <TableRow>
                                         <TableCell colSpan={WORKBENCH_SETTINGS.column_info.proposals.length}>
                                             <Stack direction={'row'} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                                                <AddNew isMobile={isMobile} handleClick={addNew} />
+                                                <AddNewWB isMobile={isMobile} handleClick={addNew} />
                                             </Stack>
                                         </TableCell>
                                     </TableRow>
@@ -101,84 +98,3 @@ export default function WorkbenchAccordionContainer({ title, table_body, addNew 
         </Stack>
     );
 }
-
-// ----------------------------------------------------------------------
-
-type AccordionSummaryDivType = {
-    accordionOpen: boolean;
-    setAccordionOpen: (isOpen: boolean) => void;
-    title: string;
-};
-
-function AccordionSummaryDiv({ accordionOpen, setAccordionOpen, title }: AccordionSummaryDivType) {
-
-    const theme = useTheme();
-
-    const accordian_transition: string = '0.5s background-color;';
-    const text_transition: string = '0.5s color;';
-    const open_background_color = alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity);
-
-    return (
-        <AccordionSummary
-            onClick={() => { setAccordionOpen(!accordionOpen) }}
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-                borderRadius: '8px',
-                transition: accordian_transition,
-                color: theme.palette.text.secondary,
-                ...(accordionOpen && { bgcolor: open_background_color }),
-            }}
-        >
-            <Typography
-                sx={{
-                    transition: text_transition,
-                    ...(accordionOpen && { color: theme.palette.primary.main })
-                }}
-            >
-                {title}
-            </Typography>
-        </AccordionSummary>
-    )
-}
-
-// ----------------------------------------------------------------------
-
-type AddNewProps = {
-    isMobile: boolean;
-    handleClick: () => void;
-};
-function AddNew({ isMobile, handleClick }: AddNewProps) {
-
-    const theme = useTheme();
-
-    let card_sizing = isMobile ? 100 : 80;
-    let icon_sizing = isMobile ? 50 : 40;
-    const size_modifier = 1;
-    card_sizing = card_sizing * size_modifier;
-    icon_sizing = icon_sizing * size_modifier;
-
-    return (
-        <Card
-            sx={{
-                width: card_sizing,
-                height: card_sizing,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                ...!isMobile ? {
-                    transition: 'transform 0.3s',
-                    cursor: 'pointer',
-                    '&:hover': { transform: 'scale(1.1)' },
-                } : {},
-            }}
-            onClick={handleClick}
-        >
-            <Iconify
-                icon={'eva:plus-outline'}
-                color={theme.palette.primary.main}
-                width={icon_sizing}
-                height={icon_sizing}
-            />
-        </Card>
-    );
-};
