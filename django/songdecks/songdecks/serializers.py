@@ -249,6 +249,13 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         required=False
     )
+    favorited_by = ProfileSerializer(many=True, read_only=True)
+    favorited_by_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Profile.objects.all(),
+        required=False
+    )
     subtasks = SubTaskSerializer(many=True, read_only=True)
 
     class Meta:
@@ -297,6 +304,7 @@ class TaskSerializer(serializers.ModelSerializer):
     def _save_task(self, validated_data, instance=None):
         m2m_fields = {
             'tags': validated_data.pop('tag_ids', []),
+            'favorited_by': validated_data.pop('favorited_by_ids', []),
             'assigned_admins': validated_data.pop('assigned_admin_ids', [])
         }
 
