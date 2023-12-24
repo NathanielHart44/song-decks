@@ -1,10 +1,10 @@
 from songdecks.models import (
-    Profile, Tag, Proposal, ProposalImage, Task
+    Profile, Tag, Proposal, ProposalImage, Task, SubTask
 )
 from songdecks.serializers import (
     TagSerializer, ProposalSerializer,
     ProposalImageSerializer, TaskSerializer,
-    ProfileSerializer
+    ProfileSerializer, SubTaskSerializer
 )
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -296,3 +296,76 @@ def handle_favorite_task(request, task_id):
             {"detail": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+# ----------------------------------------------------------------------
+# SubTasks
+    
+@api_view(['POST'])
+def create_subtask(request):
+    try:
+        if not request.user.profile.moderator:
+            return Response(
+                {"detail": "You are not authorized to create subtasks."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        serializer = SubTaskSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            task = Task.objects.get(pk=request.data['task'])
+            task_serializer = TaskSerializer(task)
+            return Response(task_serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def update_subtask(request, subtask_id):
+    try:
+        if not request.user.profile.moderator:
+            return Response(
+                {"detail": "You are not authorized to update subtasks."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            subtask = SubTask.objects.get(pk=subtask_id)
+        except SubTask.DoesNotExist:
+            return Response({"detail": "SubTask not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SubTaskSerializer(subtask, data=request.data, context={'request': request}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            task = Task.objects.get(pk=request.data['task'])
+            task_serializer = TaskSerializer(task)
+            return Response(task_serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['DELETE'])
+def delete_subtask(request, subtask_id):
+    try:
+        if not request.user.profile.moderator:
+            return Response(
+                {"detail": "You are not authorized to delete subtasks."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            subtask = SubTask.objects.get(pk=subtask_id)
+            subtask.delete()
+            return Response({"detail": "SubTask deleted successfully."}, status=status.HTTP_200_OK)
+        except SubTask.DoesNotExist:
+            return Response({"detail": "SubTask not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+# ----------------------------------------------------------------------

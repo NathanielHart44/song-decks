@@ -164,24 +164,26 @@ class Task(ExportModelOperationsMixin('task'), models.Model):
     tags = models.ManyToManyField(Tag, related_name='tasks', blank=True)
     assigned_admins = models.ManyToManyField(Profile, related_name='assigned_tasks', blank=True)
     favorited_by = models.ManyToManyField(Profile, related_name='favorited_tasks', blank=True)
-    dependencies = models.ManyToManyField('self', symmetrical=False, related_name='dependent_tasks', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def check_for_circular_dependency(self, task_to_check, task_being_checked):
-        """
-        Recursively checks for circular dependency.
-        """
-        if task_to_check == task_being_checked:
-            return True
-        for dependency in task_being_checked.dependencies.all():
-            if self.check_for_circular_dependency(task_to_check, dependency):
-                return True
-        return False
-
-    def save(self, *args, **kwargs):
-        with transaction.atomic():
-            super(Task, self).save(*args, **kwargs)
-
-            for dependency in self.dependencies.all():
-                if self.check_for_circular_dependency(self, dependency):
-                    raise ValueError("Circular dependency detected")
+class SubTask(ExportModelOperationsMixin('sub_task'), models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='subtasks')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    state = models.CharField(max_length=20, choices=Task.STATE_CHOICES, default='not_started')
+    complexity = models.PositiveIntegerField(
+        validators=[MaxValueValidator(3)],
+        null=True,
+        blank=True,
+        default=None
+    )
+    priority = models.PositiveIntegerField(
+        validators=[MaxValueValidator(3)],
+        null=True,
+        blank=True,
+        default=None
+    )
+    is_private = models.BooleanField(default=True)
+    notes = models.TextField(null=True, blank=True)
+    assigned_admins = models.ManyToManyField(Profile, related_name='assigned_sub_tasks', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

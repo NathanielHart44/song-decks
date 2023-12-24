@@ -98,6 +98,10 @@ urlpatterns = [
     path('delete_task/<int:task_id>/', workbench_views.delete_task),
     path('handle_favorite_task/<int:task_id>/', workbench_views.handle_favorite_task),
 
+    path('create_subtask/', workbench_views.create_subtask),
+    path('update_subtask/<int:subtask_id>/', workbench_views.update_subtask),
+    path('delete_subtask/<int:subtask_id>/', workbench_views.delete_subtask),
+
     # ----------------------------------------------------------------------
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

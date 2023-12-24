@@ -1,7 +1,7 @@
 import Page from "src/components/base/Page";
 import { processTokens } from "src/utils/jwt";
 import { useContext, useEffect, useState } from "react";
-import { Tag, Proposal, Task } from "src/@types/types";
+import { Tag, Proposal, Task, Subtask } from "src/@types/types";
 import { Container, Stack, Theme, useMediaQuery, useTheme } from "@mui/material";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
@@ -21,12 +21,14 @@ import WBMgmtDialogGroup from "../components/workbench/WBMgmtDialogGroup";
 
 export type ModalState = {
     taskCreationOpen: boolean;
+    subtaskCreationOpen: boolean;
     proposalCreationOpen: boolean;
     tagCreationOpen: boolean;
 };
 
 export const initialModalState: ModalState = {
     taskCreationOpen: false,
+    subtaskCreationOpen: false,
     proposalCreationOpen: false,
     tagCreationOpen: false
 };
@@ -49,7 +51,8 @@ export default function Workbench() {
         allTasks, setAllTasks, newTask, setNewTask,
         allProposals, setAllProposals, newProposal, setNewProposal,
         allTags, setAllTags, newTag, setNewTag,
-        allModerators, setAllModerators
+        allModerators, setAllModerators,
+        newSubtask, setNewSubtask
     } = useWorkbenchState();
 
     function setModalVisibility(modalName: keyof ModalState, isOpen: boolean) {
@@ -74,6 +77,44 @@ export default function Workbench() {
         setNewTask(task);
         setModalState(prevState => ({ ...prevState, taskCreationOpen: true }));
     };
+
+    function beginSubtask(task: Task, subtask: Subtask | null) {
+        const default_subtask: Subtask = {
+            id: -1,
+            task: task,
+            title: '',
+            description: '',
+            state: 'not_started',
+            complexity: 1,
+            priority: 1,
+            is_private: false,
+            notes: '',
+            assigned_admins: [],
+            created_at: ''
+        };
+        setNewSubtask(subtask ? subtask : default_subtask);
+        setModalState(prevState => ({ ...prevState, subtaskCreationOpen: true }));
+    };
+
+    const handleSubtask = async (is_new: boolean, subtask: Subtask) => {
+        setAwaitingResponse(true);
+        const formData = objectToFormData(subtask);
+        const url_path = is_new ? 'create_subtask' : `update_subtask/${subtask.id}`;
+        apiCall(url_path, 'POST', formData, (data) => {
+            if (is_new) {
+                setAllTasks(allTasks ? [...allTasks, data] : [data]);
+            } else {
+                let updated_tasks = allTasks?.map((task) => {
+                    if (task.id === data.id) {
+                        return data;
+                    }
+                    return task;
+                });
+                setAllTasks(updated_tasks);
+            }
+        });
+        setAwaitingResponse(false);
+    }
 
     const handleTask = async (is_new: boolean, task: Task) => {
         setAwaitingResponse(true);
@@ -130,7 +171,7 @@ export default function Workbench() {
                         tags: [],
                         favorited_by: [],
                         assigned_admins: [],
-                        dependencies: [],
+                        subtasks: [],
                         created_at: ''
                     };
                     setNewTask(new_task);
@@ -230,6 +271,9 @@ export default function Workbench() {
                     handleTag={handleTag}
                     allModerators={allModerators}
                     allTags={allTags}
+                    newSubtask={newSubtask}
+                    setNewSubtask={setNewSubtask}
+                    handleSubtask={handleSubtask}
                 />
                 <Stack spacing={2} width={'100%'}>
                     {renderAccordionContainer({
@@ -253,6 +297,7 @@ export default function Workbench() {
                                 is_small_screen={!is_large_screen}
                                 task={task}
                                 handleTaskEdit={handleTaskEdit}
+                                beginSubtask={beginSubtask}
                             />
                         ))
                     })}

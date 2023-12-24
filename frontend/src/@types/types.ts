@@ -135,7 +135,21 @@ export type Task = {
     tags: Tag[];
     favorited_by: number[];
     assigned_admins: Profile[];
-    dependencies: Task[];
+    subtasks: Subtask[];
+    created_at: string;
+};
+
+export type Subtask = {
+    id: number;
+    task: Task;
+    title: string;
+    description: string;
+    state: 'not_started' | 'assigned' | 'in_progress' | 'finished';
+    complexity: number;
+    priority: number;
+    is_private: boolean;
+    notes: string;
+    assigned_admins: Profile[];
     created_at: string;
 };
 

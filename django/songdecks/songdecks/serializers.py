@@ -178,6 +178,62 @@ class ProposalImageSerializer(serializers.ModelSerializer):
         model = ProposalImage
         fields = '__all__'
 
+class SubTaskSerializer(serializers.ModelSerializer):
+    assigned_admins = ProfileSerializer(many=True, read_only=True)
+    assigned_admin_ids = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        write_only=True, 
+        queryset=Profile.objects.all().filter(moderator=True), 
+        required=False
+    )
+
+    class Meta:
+        model = SubTask
+        fields = '__all__'
+
+    def validate_complexity(self, value):
+        if value is not None and (value < 1 or value > 3):
+            raise serializers.ValidationError("Complexity must be between 1 and 3.")
+        return value
+    
+    def validate_priority(self, value):
+        if value is not None and (value < 1 or value > 3):
+            raise serializers.ValidationError("Priority must be between 1 and 3.")
+        return value
+
+    def validate(self, data):
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        return self._save_task(validated_data)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        return self._save_task(validated_data, instance)
+
+    def _set_m2m_fields(self, task, m2m_field_data):
+        for field_name, objs in m2m_field_data.items():
+            if objs is not None:
+                getattr(task, field_name).set(objs)
+
+    def _save_task(self, validated_data, instance=None):
+        m2m_fields = {
+            'assigned_admins': validated_data.pop('assigned_admin_ids', [])
+        }
+
+        if instance:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            task = instance
+        else:
+            task = Task.objects.create(**validated_data)
+
+        self._set_m2m_fields(task, m2m_fields)
+        
+        return task
+
 class TaskSerializer(serializers.ModelSerializer):
     assigned_admins = ProfileSerializer(many=True, read_only=True)
     assigned_admin_ids = serializers.PrimaryKeyRelatedField(
@@ -193,16 +249,12 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         required=False
     )
-    dependencies_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Task.objects.all(),
-        required=False
-    )
+    subtasks = SubTaskSerializer(many=True, read_only=True)
 
     class Meta:
         model = Task
         fields = '__all__'
+        read_only_fields = ('created_at', 'subtasks')
 
     def __init__(self, *args, **kwargs):
         super(TaskSerializer, self).__init__(*args, **kwargs)
@@ -227,12 +279,6 @@ class TaskSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        # Check for circular dependencies
-        if 'dependencies_ids' in data:
-            dependencies = Task.objects.filter(pk__in=data['dependencies_ids'])
-            for dependency in dependencies:
-                if self.instance and self.instance.check_for_circular_dependency(self.instance, dependency):
-                    raise serializers.ValidationError("Circular dependency detected.")
         return data
 
     @transaction.atomic
@@ -251,10 +297,8 @@ class TaskSerializer(serializers.ModelSerializer):
     def _save_task(self, validated_data, instance=None):
         m2m_fields = {
             'tags': validated_data.pop('tag_ids', []),
-            'dependencies': validated_data.pop('dependencies_ids', []),
             'assigned_admins': validated_data.pop('assigned_admin_ids', [])
         }
-        validated_data.pop('dependencies', [])
 
         if instance:
             for attr, value in validated_data.items():

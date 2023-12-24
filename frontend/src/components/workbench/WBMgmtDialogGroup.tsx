@@ -16,7 +16,10 @@ type Props = {
     setNewTag: any,
     handleTag: any,
     allModerators: any,
-    allTags: any
+    allTags: any,
+    newSubtask: any,
+    setNewSubtask: any,
+    handleSubtask: any,
 }
 
 export default function WBMgmtDialogGroup(
@@ -34,7 +37,10 @@ export default function WBMgmtDialogGroup(
         setNewTag,
         handleTag,
         allModerators,
-        allTags
+        allTags,
+        newSubtask,
+        setNewSubtask,
+        handleSubtask,
     }: Props
 ) {
     return (
@@ -61,6 +67,17 @@ export default function WBMgmtDialogGroup(
                 handleItem={handleTask}
                 allModerators={allModerators}
                 allTags={allTags}
+            />
+            <WorkbenchMgmtDialog
+                type={'subtask'}
+                is_new={newSubtask?.id === -1}
+                open={modalState.subtaskCreationOpen}
+                setOpen={(isOpen) => setModalVisibility('subtaskCreationOpen', isOpen)}
+                newItem={newSubtask}
+                setNewItem={setNewSubtask}
+                awaitingResponse={awaitingResponse}
+                handleItem={handleSubtask}
+                allModerators={allModerators}
             />
             <WorkbenchMgmtDialog
                 type={'tag'}

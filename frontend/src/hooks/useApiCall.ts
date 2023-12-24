@@ -54,7 +54,9 @@ export const objectToFormData = (obj: any): FormData => {
     const formData = new FormData();
 
     const appendFormData = (key: string, value: any) => {
-        if (Array.isArray(value)) {
+        if (typeof value === 'object' && Array.isArray(value) === false) {
+            formData.append(key, value.id);
+        } else if (Array.isArray(value)) {
             value.forEach(item => {
                 if (typeof item === 'object') {
                     let formatted_key = key.endsWith('s') ? key.slice(0, -1) : key;

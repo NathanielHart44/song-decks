@@ -12,8 +12,9 @@ type AccordionSummaryDivType = {
     setAccordionOpen: (isOpen: boolean) => void;
     title: string;
     icon?: JSX.Element;
+    disabled?: boolean;
 };
-export default function AccordionSummaryDiv({ accordionOpen, setAccordionOpen, title, icon }: AccordionSummaryDivType) {
+export default function AccordionSummaryDiv({ accordionOpen, setAccordionOpen, title, icon, disabled }: AccordionSummaryDivType) {
 
     const theme = useTheme();
 
@@ -31,6 +32,7 @@ export default function AccordionSummaryDiv({ accordionOpen, setAccordionOpen, t
                 color: theme.palette.text.secondary,
                 ...(accordionOpen && { bgcolor: open_background_color }),
             }}
+            disabled={disabled}
         >
             <Stack direction="row" alignItems="flex-start" spacing={1}>
                 {icon}

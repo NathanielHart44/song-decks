@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Task, Proposal, Tag, Profile } from 'src/@types/types';
+import { Task, Subtask, Proposal, Tag, Profile } from 'src/@types/types';
 
 // ----------------------------------------------------------------------
 
@@ -8,6 +8,9 @@ type WorkbenchState = {
     setAllTasks: React.Dispatch<React.SetStateAction<Task[] | undefined>>;
     newTask: Task | undefined;
     setNewTask: React.Dispatch<React.SetStateAction<Task | undefined>>;
+
+    newSubtask: Subtask | undefined;
+    setNewSubtask: React.Dispatch<React.SetStateAction<Subtask | undefined>>;
 
     allProposals: Proposal[] | undefined;
     setAllProposals: React.Dispatch<React.SetStateAction<Proposal[] | undefined>>;
@@ -29,6 +32,8 @@ const useWorkbenchState = (): WorkbenchState => {
     const [allTasks, setAllTasks] = useState<Task[]>();
     const [newTask, setNewTask] = useState<Task>();
 
+    const [newSubtask, setNewSubtask] = useState<Subtask>();
+
     const [allProposals, setAllProposals] = useState<Proposal[]>();
     const [newProposal, setNewProposal] = useState<Proposal>();
 
@@ -41,7 +46,8 @@ const useWorkbenchState = (): WorkbenchState => {
         allTasks, setAllTasks, newTask, setNewTask,
         allProposals, setAllProposals, newProposal, setNewProposal,
         allTags, setAllTags, newTag, setNewTag,
-        allModerators, setAllModerators
+        allModerators, setAllModerators,
+        newSubtask, setNewSubtask
     };
 };
 

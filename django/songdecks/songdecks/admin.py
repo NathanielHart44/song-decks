@@ -1,6 +1,6 @@
 from django.contrib import admin
 from songdecks.models import (Profile, Game, Faction, Commander,
-    CardTemplate, PlayerCard, UserCardStats, Tag, Proposal, ProposalImage, Task)
+    CardTemplate, PlayerCard, UserCardStats, Tag, Proposal, ProposalImage, Task, SubTask)
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = [f.name for f in Profile._meta.fields]
@@ -35,6 +35,9 @@ class ProposalImageAdmin(admin.ModelAdmin):
 class TaskAdmin(admin.ModelAdmin):
     list_display = [f.name for f in Task._meta.fields]
 
+class SubTaskAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in SubTask._meta.fields]
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Game, GameAdmin)
 admin.site.register(Faction, FactionAdmin)
@@ -46,3 +49,4 @@ admin.site.register(Tag, TagAdmin)
 admin.site.register(Proposal, ProposalAdmin)
 admin.site.register(ProposalImage, ProposalImageAdmin)
 admin.site.register(Task, TaskAdmin)
+admin.site.register(SubTask, SubTaskAdmin)
