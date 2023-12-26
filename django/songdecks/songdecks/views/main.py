@@ -6,19 +6,25 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from songdecks.serializers import (PlayerCardSerializer,
     UserSerializer, UserCardStatsSerializer, GameSerializer,
-    ChangePasswordSerializer, KeywordPairSerializer)
+    ChangePasswordSerializer, KeywordPairSerializer, KeywordTypeSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
-    Game, PlayerCard, UserCardStats, KeywordPair)
+    Game, PlayerCard, UserCardStats, KeywordPair, KeywordType)
 from songdecks.views.helpers import (handle_card_updates, send_email_notification,
     update_last_login, gen_jwt_tokens_for_user, create_user_from_google)
 import requests
 from django.utils import timezone
 from rest_framework import status
 from django.db import transaction
+import logging
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+
+# ----------------------------------------------------------------------
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # ----------------------------------------------------------------------
 # Game setup/general views
@@ -155,7 +161,7 @@ def current_user(request):
 @api_view(['POST'])
 def update_user(request, user_id):
     try:
-        if request.user.id != int(user_id) or request.user.profile.admin == False:
+        if request.user.id != int(user_id) and request.user.profile.admin == False:
             return Response(
                 {"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN
@@ -392,8 +398,7 @@ def edit_keyword_pair(request, keyword_pair_id):
             {"detail": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    
-# delete keyword pair
+
 @api_view(['DELETE'])
 def delete_keyword_pair(request, keyword_pair_id):
     try:
@@ -412,6 +417,89 @@ def delete_keyword_pair(request, keyword_pair_id):
         keyword_pair.delete()
         return Response(
             {"detail": "Keyword pair deleted."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['GET'])
+def get_keyword_types(request):
+    try:
+        keyword_types = KeywordType.objects.all()
+        serializer = KeywordTypeSerializer(keyword_types, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['POST'])
+def create_keyword_type(request):
+    try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to create keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        post_data = request.data
+        serializer = KeywordTypeSerializer(data=post_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['POST'])
+def edit_keyword_type(request, keyword_type_id):
+    try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to edit keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            keyword_type = KeywordType.objects.get(id=keyword_type_id)
+        except KeywordType.DoesNotExist:
+            return Response(
+                {"detail": "Keyword type not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        post_data = request.data
+        serializer = KeywordTypeSerializer(keyword_type, data=post_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['DELETE'])
+def delete_keyword_type(request, keyword_type_id):
+    try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to delete keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            keyword_type = KeywordType.objects.get(id=keyword_type_id)
+        except KeywordType.DoesNotExist:
+            return Response(
+                {"detail": "Keyword type not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        keyword_type.delete()
+        return Response(
+            {"detail": "Keyword type deleted."},
             status=status.HTTP_200_OK
         )
     except Exception as e:

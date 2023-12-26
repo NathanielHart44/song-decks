@@ -191,8 +191,16 @@ class SubTask(ExportModelOperationsMixin('sub_task'), models.Model):
 # ----------------------------------------------------------------------
 # Keyword Search
 
+class KeywordType(ExportModelOperationsMixin('keyword_type'), models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return f'{self.name}'
+
 class KeywordPair(ExportModelOperationsMixin('keyword_pair'), models.Model):
-    keyword = models.CharField(max_length=100)
+    keyword = models.CharField(max_length=100, unique=True)
+    keyword_type = models.ForeignKey(KeywordType, on_delete=models.CASCADE, null=True)
     description = models.TextField()
 
     def __str__(self):

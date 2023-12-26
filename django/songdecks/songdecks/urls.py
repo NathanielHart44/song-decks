@@ -35,6 +35,11 @@ urlpatterns = [
     path('edit_keyword_pair/<int:keyword_pair_id>/', views.edit_keyword_pair),
     path('delete_keyword_pair/<int:keyword_pair_id>/', views.delete_keyword_pair),
 
+    path('get_keyword_types/', views.get_keyword_types),
+    path('create_keyword_type/', views.create_keyword_type),
+    path('edit_keyword_type/<int:keyword_id>/', views.edit_keyword_type),
+    path('delete_keyword_type/<int:keyword_id>/', views.delete_keyword_type),
+
     # ----------------------------------------------------------------------
 
     path('start_game/<int:faction_id>/<int:commander_id>/', views.start_game),

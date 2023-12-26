@@ -323,7 +323,22 @@ class TaskSerializer(serializers.ModelSerializer):
 # ----------------------------------------------------------------------
 # Keyword Search
     
+class KeywordTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KeywordType
+        fields = '__all__'
+
 class KeywordPairSerializer(serializers.ModelSerializer):
+    keyword_type = serializers.SerializerMethodField(read_only=True)
+    keyword_type_id = serializers.PrimaryKeyRelatedField(
+        queryset=KeywordType.objects.all(),
+        source='keyword_type',
+        write_only=True
+    )
+
     class Meta:
         model = KeywordPair
         fields = '__all__'
+
+    def get_keyword_type(self, obj):
+        return KeywordTypeSerializer(obj.keyword_type).data

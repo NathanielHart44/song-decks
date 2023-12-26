@@ -158,9 +158,16 @@ export type Subtask = {
     created_at: string;
 };
 
+export type KeywordType = {
+    id: number;
+    name: string;
+    description: string;
+};
+
 export type KeywordPairType = {
     id: number;
     keyword: string;
+    keyword_type: KeywordType;
     description: string;
 };
 

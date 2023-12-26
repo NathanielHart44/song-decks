@@ -9,25 +9,56 @@ import {
     InputAdornment,
     Stack,
     TextField,
-    Typography
+    Typography,
+    useTheme
 } from "@mui/material";
 import AccordionSummaryDiv from "./workbench/AccordionSummaryDiv";
 import { useContext, useEffect, useState } from "react";
-import { KeywordPairType } from "src/@types/types";
+import { KeywordPairType, KeywordType } from "src/@types/types";
 import Iconify from "./base/Iconify";
 import { objectToFormData, useApiCall } from "src/hooks/useApiCall";
 import { processTokens } from "src/utils/jwt";
 import AddNewWB from "./workbench/AddNewWB";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
+import { TagDiv } from "./workbench/TagDisplay";
 
 // ----------------------------------------------------------------------
 
+const default_type: KeywordType = {
+    id: -1,
+    name: '',
+    description: '',
+};
+
 const default_pair: KeywordPairType = {
     id: -1,
+    keyword_type: default_type,
     keyword: '',
     description: '',
 };
+
+type ContentStateType = {
+    setting: 'type' | 'pair';
+    selected_type: KeywordType;
+    used_types: KeywordType[];
+    selected_pair: KeywordPairType;
+    create_open: boolean;
+    edit_open: boolean;
+    delete_open: boolean;
+};
+
+const default_state: ContentStateType = {
+    setting: 'pair',
+    selected_type: default_type,
+    used_types: [],
+    selected_pair: default_pair,
+    create_open: false,
+    edit_open: false,
+    delete_open: false,
+};
+
+// ----------------------------------------------------------------------
 
 type Props = {
     is_game: boolean;
@@ -38,70 +69,108 @@ type Props = {
 export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingResponse }: Props) {
 
     const { isMobile } = useContext(MetadataContext);
-    const [allPairs, setAllPairs] = useState<KeywordPairType[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [selectedPair, setSelectedPair] = useState<KeywordPairType>(default_pair);
-    const [createPairOpen, setCreatePairOpen] = useState<boolean>(false);
-    const [editPairOpen, setEditPairOpen] = useState<boolean>(false);
-    const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
+    const [allTypes, setAllTypes] = useState<KeywordType[]>([default_type]);
+    const [allPairs, setAllPairs] = useState<KeywordPairType[]>([]);
+    
+    const [contentState, setContentState] = useState<ContentStateType>(default_state);
 
     const { apiCall } = useApiCall();
 
-    const filteredPairs = allPairs.filter((keyword_pair) => searchTerm ?
-        keyword_pair.keyword.toLowerCase().includes(searchTerm.toLowerCase()) :
-        keyword_pair
-    );
-
-    const getKeywordPairs = async () => {
-        if (awaitingResponse) { return };
+    const getContent = async (type: 'types' | 'pairs') => {
         setAwaitingResponse(true);
-        apiCall('get_keyword_pairs', 'GET', null, (data) => {
-            setAllPairs(data);
+        const url = type === 'types' ? 'get_keyword_types' : 'get_keyword_pairs';
+        apiCall(url, 'GET', null, (data) => {
+            if (type === 'types') { setAllTypes(data) };
+            if (type === 'pairs') { setAllPairs(data) };
         });
-        setAwaitingResponse(false);
     };
 
+    useEffect(() => { processTokens(() => {
+        getContent('types');
+        getContent('pairs');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { processTokens(getKeywordPairs) }, []);
+    )}, []);
 
-    const handleCreate = async (type: 'edit' | 'create') => {
+    useEffect(() => {
+        if (allTypes && allPairs) { setAwaitingResponse(false) };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allTypes, allPairs]);
+
+    const handleCreate = async (type: 'type' | 'pair', action: 'edit' | 'create') => {
         if (awaitingResponse) { return };
         setAwaitingResponse(true);
-        const url = type === 'edit' ? `edit_keyword_pair/${selectedPair?.id}` : 'create_keyword_pair';
-        const formData = objectToFormData(selectedPair);
+        let url = '';
+        let formData = new FormData();
+        if (action === 'edit') {
+            url = type === 'type' ? `edit_keyword_type/${contentState.selected_type.id}` : `edit_keyword_pair/${contentState.selected_pair.id}`;
+            formData = objectToFormData(type === 'type' ? contentState.selected_type : contentState.selected_pair);
+        } else if (action === 'create') {
+            url = type === 'type' ? 'create_keyword_type' : 'create_keyword_pair';
+            formData = objectToFormData(type === 'type' ? contentState.selected_type : contentState.selected_pair);
+        }
         apiCall(url, 'POST', formData, () => {
-            getKeywordPairs();
-            setSelectedPair(default_pair);
+            processTokens(() => {
+                getContent('types');
+                getContent('pairs');
+            });
+            setContentState(default_state);
         });
         setAwaitingResponse(false);
     };
 
-    const deleteKeywordPair = async (keyword_pair: KeywordPairType) => {
+    const handleDelete = async (type: 'type' | 'pair', item: KeywordPairType | KeywordType) => {
         if (awaitingResponse) { return };
         setAwaitingResponse(true);
-        apiCall(`delete_keyword_pair/${keyword_pair.id}`, 'DELETE', null, () => {
-            getKeywordPairs();
+        apiCall(`delete_keyword_${type}/${item.id}`, 'DELETE', null, () => {
+            processTokens(() => {
+                getContent('types');
+                getContent('pairs');
+            });
         });
         setAwaitingResponse(false);
     };
 
-    function handleEditStart(keyword_pair: KeywordPairType) {
-        setSelectedPair(keyword_pair);
-        setEditPairOpen(true);
+    function handleEditStart(type: 'type' | 'pair', item: KeywordPairType | KeywordType) {
+        if (type === 'type') { setContentState({ ...contentState, selected_type: item as KeywordType, edit_open: true }) };
+        if (type === 'pair') { setContentState({ ...contentState, selected_pair: item as KeywordPairType, edit_open: true }) };
     };
 
-    function handleDeleteStart(keyword_pair: KeywordPairType) {
-        setSelectedPair(keyword_pair);
-        setDeleteOpen(true);
+    function handleDeleteStart(type: 'type' | 'pair', item: KeywordPairType | KeywordType) {
+        if (type === 'type') { setContentState({ ...contentState, selected_type: item as KeywordType, delete_open: true }) };
+        if (type === 'pair') { setContentState({ ...contentState, selected_pair: item as KeywordPairType, delete_open: true }) };
     };
+
+    const filteredPairs = allPairs.filter((keyword_pair) => {
+        const searchTermMatch = searchTerm ?
+            keyword_pair.keyword.toLowerCase().includes(searchTerm.toLowerCase()) :
+            true;
+    
+        const keywordTypeMatch = contentState.used_types.length > 0 ?
+            keyword_pair.keyword_type &&
+            contentState.used_types.map((t: KeywordType) => t.id).includes(keyword_pair.keyword_type.id) :
+            true;
+    
+        return searchTermMatch && keywordTypeMatch;
+    });
 
     return (
         <Stack spacing={2} width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
             <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-            {filteredPairs.map((keyword_pair) => (
+            <KeywordTypeDisplay
+                is_main={true}
+                view_only={is_game}
+                allTypes={allTypes}
+                contentState={contentState}
+                setContentState={setContentState}
+            />
+
+            { filteredPairs.map((keyword_pair) => (
                 <KeywordPair
                     key={keyword_pair.id}
                     keyword_pair={keyword_pair}
+                    contentState={contentState}
                     onlySearched={filteredPairs.length === 1 ? true : false}
                     is_game={is_game}
                     handleEditStart={handleEditStart}
@@ -112,26 +181,29 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
                 <>
                     <AddNewWB
                         isMobile={isMobile}
-                        handleClick={() => { setSelectedPair(default_pair); setCreatePairOpen(true) }}
+                        handleClick={() => {
+                            setContentState({
+                                ...contentState,
+                                selected_pair: default_pair,
+                                create_open: true,
+                                setting: 'pair'
+                            });
+                        }}
                     />
                     <CreationPair
-                        is_new={createPairOpen ? true :
-                            editPairOpen ? false : false
+                        is_new={contentState.create_open ? true :
+                            contentState.edit_open ? false : false
                         }
-                        selectedPair={selectedPair}
-                        setSelectedPair={setSelectedPair}
-                        open={createPairOpen || editPairOpen}
-                        setOpen={
-                            createPairOpen ? setCreatePairOpen :
-                            editPairOpen ? setEditPairOpen : () => { }
-                        }
+                        allTypes={allTypes}
+                        contentState={contentState}
+                        setContentState={setContentState}
                         handleCreate={handleCreate}
                     />
                     <DeleteDialog
-                        keyword_pair={selectedPair}
-                        open={deleteOpen}
-                        setOpen={setDeleteOpen}
-                        deleteKeywordPair={deleteKeywordPair}
+                        keyword_pair={contentState.selected_pair}
+                        contentState={contentState}
+                        setContentState={setContentState}
+                        handleDelete={handleDelete}
                     />
                 </>
             }
@@ -144,13 +216,14 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
 
 type KeywordPairProps = {
     keyword_pair: KeywordPairType;
+    contentState: ContentStateType;
     onlySearched: boolean;
     is_game: boolean;
-    handleEditStart: (arg0: KeywordPairType) => void;
-    handleDeleteStart: (arg0: KeywordPairType) => void;
+    handleEditStart: (type: 'type' | 'pair', item: KeywordPairType | KeywordType) => void;
+    handleDeleteStart: (type: 'type' | 'pair', item: KeywordPairType | KeywordType) => void;
 };
 
-function KeywordPair({ keyword_pair, onlySearched, is_game, handleEditStart, handleDeleteStart }: KeywordPairProps) {
+function KeywordPair({ keyword_pair, contentState, onlySearched, is_game, handleEditStart, handleDeleteStart }: KeywordPairProps) {
 
     const [accordionOpen, setAccordionOpen] = useState<boolean>(false);
 
@@ -173,13 +246,22 @@ function KeywordPair({ keyword_pair, onlySearched, is_game, handleEditStart, han
                     title={keyword_pair.keyword}
                 />
                 <AccordionDetails sx={{ pt: 3 }}>
+                    { keyword_pair.keyword_type.name &&
+                        <KeywordTypeDisplay
+                            is_main={false}
+                            view_only={true}
+                            allTypes={[keyword_pair.keyword_type]}
+                            contentState={contentState}
+                            setContentState={() => {}}
+                        />
+                    }
                     <Typography paragraph>{keyword_pair.description}</Typography>
                     { !is_game &&
                         <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                             <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
                                 <Button
                                     variant={"contained"}
-                                    onClick={() => { handleEditStart(keyword_pair) }}
+                                    onClick={() => { handleEditStart('pair', keyword_pair) }}
                                     fullWidth
                                 >
                                     Edit Keyword
@@ -189,7 +271,7 @@ function KeywordPair({ keyword_pair, onlySearched, is_game, handleEditStart, han
                                 <Button
                                     color={"secondary"}
                                     variant={"contained"}
-                                    onClick={() => { handleDeleteStart(keyword_pair) }}
+                                    onClick={() => { handleDeleteStart('pair', keyword_pair) }}
                                     fullWidth
                                 >
                                     Delete Keyword
@@ -241,55 +323,95 @@ function Searchbar({ searchTerm, setSearchTerm }: SearchbarProps) {
 
 type CreationDialogProps = {
     is_new: boolean;
-    selectedPair: KeywordPairType;
-    setSelectedPair: (arg0: KeywordPairType) => void;
-    open: boolean;
-    setOpen: (arg0: boolean) => void;
-    handleCreate: (type: 'edit' | 'create') => void;
+    allTypes: KeywordType[];
+    contentState: ContentStateType;
+    setContentState: (arg0: ContentStateType) => void;
+    handleCreate: (type: 'type' | 'pair', action: 'edit' | 'create') => void;
 };
 
-function CreationPair({ is_new, selectedPair, setSelectedPair, open, setOpen, handleCreate }: CreationDialogProps) {
+function CreationPair({ is_new, allTypes, contentState, setContentState, handleCreate }: CreationDialogProps) {
 
     function handleCancel() {
-        setSelectedPair(default_pair);
-        setOpen(false);
+        setContentState({
+            ...contentState,
+            selected_pair: default_pair,
+            selected_type: default_type,
+            used_types: [],
+            create_open: false,
+            edit_open: false
+        });
     };
+
+    const creating_pair = contentState.setting === 'pair';
 
     return (
         <Dialog
-            open={open}
+            open={is_new ? contentState.create_open : contentState.edit_open}
             fullWidth={true}
-            onClose={() => { setOpen(false) }}
+            onClose={handleCancel}
         >
             <DialogContent sx={{ p: 2 }}>
                 <Stack spacing={2} width={'100%'}>
                     <TextField
-                        label={"Keyword"}
+                        label={creating_pair ? "Keyword" : "Name"}
                         variant={"outlined"}
-                        value={selectedPair?.keyword}
-                        onChange={(event) => { setSelectedPair({ ...selectedPair, keyword: event.target.value }); } }
+                        value={creating_pair ? contentState.selected_pair?.keyword : contentState.selected_type?.name}
+                        onChange={(event) => {
+                            if (creating_pair) {
+                                setContentState({ ...contentState, selected_pair: { ...contentState.selected_pair, keyword: event.target.value } });
+                            } else {
+                                setContentState({ ...contentState, selected_type: { ...contentState.selected_type, name: event.target.value } });
+                            }
+                        } }
                         fullWidth
                     />
                     <TextField
                         label={"Description"}
                         variant={"outlined"}
-                        value={selectedPair?.description}
-                        onChange={(event) => { setSelectedPair({ ...selectedPair, description: event.target.value }); } }
+                        value={creating_pair ? contentState.selected_pair?.description : contentState.selected_type?.description}
+                        onChange={(event) => {
+                            if (creating_pair) {
+                                setContentState({ ...contentState, selected_pair: { ...contentState.selected_pair, description: event.target.value } });
+                            } else {
+                                setContentState({ ...contentState, selected_type: { ...contentState.selected_type, description: event.target.value } });
+                            }
+                        } }
                         fullWidth
                         multiline
                         rows={4}
                     />
+                    { creating_pair &&
+                        <KeywordTypeDisplay
+                            is_main={false}
+                            view_only={false}
+                            allTypes={allTypes}
+                            contentState={contentState}
+                            setContentState={setContentState}
+                        />
+                    }
                     <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                         <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
                             <Button
                                 variant={"contained"}
                                 onClick={() => {
-                                    processTokens(() => { handleCreate(is_new ? 'create' : 'edit') });
-                                    setOpen(false);
+                                    processTokens(() => {
+                                        if (creating_pair) {
+                                            handleCreate('pair', is_new ? 'create' : 'edit');
+                                        } else {
+                                            handleCreate('type', is_new ? 'create' : 'edit');
+                                        }
+                                    });
+                                    setContentState({
+                                        ...contentState,
+                                        selected_pair: default_pair,
+                                        selected_type: default_type,
+                                        create_open: false,
+                                        edit_open: false
+                                    });
                                 }}
                                 fullWidth
                             >
-                                {is_new ? 'Create Keyword' : 'Edit Keyword'}
+                                {is_new ? `Create ${creating_pair ? 'Keyword' : 'Type'}` : `Edit ${creating_pair ? 'Keyword' : 'Type'}`}
                             </Button>
                         </Grid>
                         <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
@@ -313,18 +435,23 @@ function CreationPair({ is_new, selectedPair, setSelectedPair, open, setOpen, ha
 
 type DeleteDialogProps = {
     keyword_pair: KeywordPairType;
-    open: boolean;
-    setOpen: (arg0: boolean) => void;
-    deleteKeywordPair: (arg0: KeywordPairType) => void;
+    contentState: ContentStateType;
+    setContentState: (arg0: ContentStateType) => void;
+    handleDelete: (type: 'type' | 'pair', item: KeywordPairType | KeywordType) => void;
 };
 
-function DeleteDialog({ keyword_pair, open, setOpen, deleteKeywordPair }: DeleteDialogProps) {
+function DeleteDialog({ keyword_pair, contentState, setContentState, handleDelete }: DeleteDialogProps) {
 
     return (
         <Dialog
-            open={open}
+            open={contentState.delete_open}
             fullWidth={true}
-            onClose={() => { setOpen(false) }}
+            onClose={() => {
+                setContentState({
+                    ...contentState,
+                    delete_open: false
+                });
+            }}
         >
             <DialogContent sx={{ p: 2 }}>
                 <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
@@ -334,8 +461,11 @@ function DeleteDialog({ keyword_pair, open, setOpen, deleteKeywordPair }: Delete
                             <Button
                                 variant={"contained"}
                                 onClick={() => {
-                                    deleteKeywordPair(keyword_pair);
-                                    setOpen(false);
+                                    handleDelete('pair', keyword_pair);
+                                    setContentState({
+                                        ...contentState,
+                                        delete_open: false
+                                    });
                                 }}
                                 fullWidth
                             >
@@ -346,7 +476,12 @@ function DeleteDialog({ keyword_pair, open, setOpen, deleteKeywordPair }: Delete
                             <Button
                                 color={"secondary"}
                                 variant={"contained"}
-                                onClick={() => { setOpen(false) }}
+                                onClick={() => {
+                                    setContentState({
+                                        ...contentState,
+                                        delete_open: false
+                                    });
+                                }}
                                 fullWidth
                             >
                                 Cancel
@@ -356,5 +491,103 @@ function DeleteDialog({ keyword_pair, open, setOpen, deleteKeywordPair }: Delete
                 </Stack>
             </DialogContent>
         </Dialog>
+    )
+}
+
+// ----------------------------------------------------------------------
+
+type KeywordTypeDisplayProps = {
+    is_main: boolean;
+    view_only: boolean;
+    allTypes: KeywordType[];
+    contentState: ContentStateType;
+    setContentState: (arg0: ContentStateType) => void;
+};
+
+function KeywordTypeDisplay({ is_main, view_only, allTypes, contentState, setContentState }: KeywordTypeDisplayProps) {
+
+    const { isMobile } = useContext(MetadataContext);
+    const theme = useTheme();
+    const default_color = theme.palette.grey[500];
+
+    function getTypeUsed(type: KeywordType) {
+        if (is_main) {
+            const all_used_types = contentState.used_types.map((t: KeywordType) => t.id);
+            if (all_used_types.includes(type.id)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if (contentState.selected_pair.keyword_type.id === type.id) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    };
+
+    function handleClick(event: any, type: KeywordType) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        if (is_main) {
+            if (getTypeUsed(type)) {
+                setContentState({
+                    ...contentState,
+                    used_types: contentState.used_types.filter((t: KeywordType) => t.id !== type.id)
+                });
+            } else {
+                setContentState({
+                    ...contentState,
+                    used_types: contentState.used_types.concat([type])
+                });
+            }
+        } else {
+            if (getTypeUsed(type)) {
+                setContentState({
+                    ...contentState,
+                    selected_pair: { ...contentState.selected_pair, keyword_type: default_type }
+                });
+            } else {
+                setContentState({
+                    ...contentState,
+                    selected_pair: { ...contentState.selected_pair, keyword_type: type }
+                });
+            }
+        }
+
+    };
+
+    return (
+        <>
+            <Grid container spacing={1} sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                {allTypes.map((keyword_type: KeywordType) => (
+                    <Grid key={'type_display_' + keyword_type.id} item>
+                        <TagDiv
+                            text={keyword_type.name}
+                            handleClick={handleClick}
+                            backgroundColor={getTypeUsed(keyword_type) ? theme.palette.primary.main : 'transparent'}
+                            borderColor={getTypeUsed(keyword_type) ? 'transparent' : default_color}
+                            textColor={getTypeUsed(keyword_type) ? 'white' : default_color}
+                            item={keyword_type}
+                        />
+                    </Grid>
+                ))}
+            </Grid>
+            { is_main && !view_only &&
+                <AddNewWB
+                    isMobile={isMobile}
+                    handleClick={() => {
+                        setContentState({
+                            ...contentState,
+                            selected_type: default_type,
+                            create_open: true,
+                            setting: 'type'
+                        });
+                    }}
+                />
+            }
+        </>
     )
 }
