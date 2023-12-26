@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view
-from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
 from songdecks.serializers import (FactionSerializer)
 from songdecks.models import (Faction)
 from songdecks.views.helpers import upload_file_to_s3
@@ -13,13 +14,21 @@ def get_factions(request):
     try:
         factions = Faction.objects.all()
         serializer = FactionSerializer(factions, many=True)
-        return JsonResponse({"success": True, "response": serializer.data})
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['POST'])
 def add_edit_faction(request, faction_id=None):
     try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to delete keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         neutral_str = request.data.get('neutral', 'false')
         converted_neutral = True if neutral_str.lower() == 'true' else False
         info = {
@@ -29,13 +38,19 @@ def add_edit_faction(request, faction_id=None):
         }
         for key in info:
             if info[key] is None:
-                return JsonResponse({"success": False, "response": f"Missing {key}."})
+                return Response(
+                    {"detail": f"Missing {key}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
         img_file = request.data.get('img_file', None)
         if img_file:
             is_success, error_msg = upload_file_to_s3(img_file, AWS_S3_BUCKET_NAME, info['img_url'])
             if not is_success:
-                return JsonResponse({"success": False, "response": error_msg})
+                return Response(
+                    {"detail": error_msg},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
         if faction_id is None:
             faction = Faction.objects.create(
@@ -46,7 +61,10 @@ def add_edit_faction(request, faction_id=None):
         else:
             faction = Faction.objects.filter(id=faction_id)
             if faction.count() == 0:
-                return JsonResponse({"success": False, "response": "Faction not found."})
+                return Response(
+                    {"detail": "Faction not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
             faction = faction.first()
             faction.name = info['name']
             faction.img_url = info['img_url']
@@ -54,19 +72,36 @@ def add_edit_faction(request, faction_id=None):
             faction.save()
 
         new_faction = Faction.objects.filter(id=faction.id).first()
-        message = f"Successfully created: {new_faction.name}" if faction_id is None else f"Successfully edited: {new_faction.name}"
-        return JsonResponse({"success": True, "response": message, "faction": FactionSerializer(new_faction).data})
+        serializer = FactionSerializer(new_faction)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
-@api_view(['GET'])
+@api_view(['DELETE'])
 def delete_faction(request, faction_id):
     try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to delete keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         faction_search = Faction.objects.filter(id=faction_id)
         if faction_search.count() == 0:
-            return JsonResponse({"success": False, "response": "Faction not found."})
+            return Response(
+                {"detail": "Faction not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
         faction = faction_search.first()
         faction.delete()
-        return JsonResponse({"success": True, "response": "Successfully deleted faction."})
+        return Response(
+            {"detail": f"Successfully deleted: {faction.name}"},
+            status=status.HTTP_200_OK
+        )
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

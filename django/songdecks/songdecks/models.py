@@ -102,8 +102,8 @@ class UserCardStats(ExportModelOperationsMixin('user_card_stats'), models.Model)
         return f'{self.card_template.card_name} - {self.user.user.username}'
 
 # ----------------------------------------------------------------------
-    
 # Workbench
+
 class Tag(ExportModelOperationsMixin('tag'), models.Model):
     name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -187,3 +187,13 @@ class SubTask(ExportModelOperationsMixin('sub_task'), models.Model):
     notes = models.TextField(null=True, blank=True)
     assigned_admins = models.ManyToManyField(Profile, related_name='assigned_sub_tasks', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+# ----------------------------------------------------------------------
+# Keyword Search
+
+class KeywordPair(ExportModelOperationsMixin('keyword_pair'), models.Model):
+    keyword = models.CharField(max_length=100)
+    description = models.TextField()
+
+    def __str__(self):
+        return f'{self.keyword}'

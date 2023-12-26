@@ -36,7 +36,8 @@ export default function AddNewWB({ isMobile, handleClick }: AddNewProps) {
                 icon={'eva:plus-outline'}
                 color={theme.palette.primary.main}
                 width={icon_sizing}
-                height={icon_sizing} />
+                height={icon_sizing}
+            />
         </Card>
     );
 }

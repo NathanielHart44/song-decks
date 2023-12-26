@@ -12,11 +12,10 @@ import { useSnackbar } from "notistack";
 import { useContext, useState } from "react";
 import { Faction } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
-import LoadingBackdrop from "../base/LoadingBackdrop";
+import LoadingBackdrop from "../../base/LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
-import axios from "axios";
-import { MAIN_API } from "src/config";
-import UploadAvatarComp, { FileWithPreview } from "../upload/UploadAvatarComp";
+import UploadAvatarComp, { FileWithPreview } from "../../upload/UploadAvatarComp";
+import { useApiCall } from "src/hooks/useApiCall";
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +30,7 @@ type EditAddCardProps = {
 export default function EditAddFaction({ faction, factions, editOpen, setEditOpen, setFactions }: EditAddCardProps) {
 
     const theme = useTheme();
+    const { apiCall } = useApiCall();
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
@@ -58,54 +58,80 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
             setImgURL('');
         };
         setEditOpen(false);
-    }
-
-    const deleteFaction = async () => {
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-
-        await axios.get(`${MAIN_API.base_url}delete_faction/${faction && faction.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
-                setFactions(factions.filter((f) => f.id !== faction?.id));
-                setEditOpen(false);
-                enqueueSnackbar(res);
-            } else { enqueueSnackbar(response.data.response); };
-            setAwaitingResponse(false);
-        });
     };
 
-    const submitForm = async () => {
+    function getFormData() {
+        const formData = new FormData();
         if (!factionName || !imgURL) {
             enqueueSnackbar('Please fill out all fields', { variant: 'error' });
-            return;
+            return {formData: formData, success: false};
         };
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
 
-        const formData = new FormData();
         formData.append('name', factionName);
         formData.append('img_url', imgURL);
         formData.append('neutral', neutral.toString());
         if (uploadFile) { formData.append('img_file', uploadFile) };
 
-        const url = faction ? `${MAIN_API.base_url}add_edit_faction/${faction.id}/` : `${MAIN_API.base_url}add_edit_faction/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
-                const new_faction = response.data.faction;
-                if (faction) {
-                    setFactions(factions.map((f) => f.id === faction.id ? new_faction : f));
-                } else {
-                    setFactions([...factions, new_faction]);
-                };
-                setEditOpen(false);
-                enqueueSnackbar(res);
-            } else { enqueueSnackbar(response.data.response); };
+        return {formData: formData, success: true};
+    };
+
+    const handleFactionAction = async (type: 'create' | 'edit' | 'delete') => {
+        if (awaitingResponse) { return };
+        setAwaitingResponse(true);
+
+        let url;
+        let request_type: 'GET' | 'POST' | 'DELETE';
+        switch (type) {
+            case 'create':
+                url = `add_edit_faction`;
+                request_type = 'POST';
+                break;
+            case 'edit':
+                url = `add_edit_faction/${faction?.id}`;
+                request_type = 'POST';
+                break;
+            case 'delete':
+                url = `delete_faction/${faction?.id}`;
+                request_type = 'DELETE';
+                break;
+            default:
+                url = '';
+                request_type = 'GET';
+                break;
+        };
+        const form_data_res = getFormData();
+        let formData;
+        if (!form_data_res.success) {
             setAwaitingResponse(false);
-        }).catch((error) => {
-            console.error(error);
+            return;
+        }
+        if (request_type === 'DELETE') {
+            formData = null;
+        } else {
+            if (!form_data_res.success) {
+                setAwaitingResponse(false);
+                return;
+            } else {
+                formData = form_data_res.formData;
+            }
+        }
+        apiCall(url, request_type, formData, (data) => {
+            switch (type) {
+                case 'create':
+                    setFactions([...factions, data]);
+                    break;
+                case 'edit':
+                    setFactions(factions.map((c) => c.id === faction?.id ? data : c));
+                    break;
+                case 'delete':
+                    setFactions(factions.filter((c) => c.id !== faction?.id));
+                    break;
+                default:
+                    break;
+            };
         });
+        setEditOpen(false);
+        setAwaitingResponse(false);
     };
 
     return (
@@ -181,7 +207,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(submitForm) }}
+                                    onClick={() => { processTokens(() => handleFactionAction(faction ? 'edit' : 'create')) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     disabled={!factionName || !imgURL || awaitingResponse}
                                 >
@@ -190,7 +216,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(deleteFaction) }}
+                                    onClick={() => { processTokens(() => handleFactionAction('delete')) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
                                     disabled={!faction || awaitingResponse}

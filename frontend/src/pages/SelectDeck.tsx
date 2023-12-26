@@ -13,6 +13,7 @@ import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
 import { SelectableAvatar } from "../components/base/SelectableAvatar";
+import { useApiCall } from "src/hooks/useApiCall";
 
 // ----------------------------------------------------------------------
 
@@ -20,6 +21,7 @@ export default function SelectDeck() {
 
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
+    const { apiCall } = useApiCall();
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -32,28 +34,17 @@ export default function SelectDeck() {
     const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
 
-    const getFactions = async () => {
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}factions/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                setFactions(response.data.response);
-            } else { enqueueSnackbar(response.data.response) };
-            setAwaitingResponse(false);
-        }).catch((error) => {
-            console.error(error);
-        })
-    };
-
-    const getCommanders = async () => {
-        let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}commanders/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                setAllCommanders(response.data.response);
-            } else { enqueueSnackbar(response.data.response) };
-        }).catch((error) => {
-            console.error(error);
-        })
+    const getContent = async (type: 'factions' | 'commanders') => {
+        apiCall(type, 'GET', null, (data) => {
+            switch (type) {
+                case 'factions':
+                    setFactions(data);
+                    break;
+                case 'commanders':
+                    setAllCommanders(data);
+                    break;
+            }
+        });
     };
 
     const beginGame = async () => {
@@ -78,10 +69,16 @@ export default function SelectDeck() {
     };
 
     useEffect(() => {
-        processTokens(getFactions);
-        processTokens(getCommanders);
+        processTokens(() => {
+            getContent('factions');
+            getContent('commanders');
+        });
     }, []);
 
+    useEffect(() => {
+        if (factions && allCommanders) { setAwaitingResponse(false) };
+    }, [factions, allCommanders]);
+    
     useEffect(() => {
         if (selectedFaction && allCommanders) {
             const neutralCommanders = allCommanders?.filter((commander) => commander.faction.neutral);

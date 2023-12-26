@@ -1,5 +1,7 @@
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
 from songdecks.serializers import (PlayerCardSerializer, CardTemplateSerializer)
 from songdecks.models import (Faction, Commander, CardTemplate,
     Game, PlayerCard)
@@ -111,6 +113,11 @@ def get_game_cards(request, game_id):
 @api_view(['POST'])
 def add_edit_card(request, card_id=None):
     try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to delete cards."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         info = {
             'card_name': request.data.get('card_name', None),
             'img_url': request.data.get('img_url', None),
@@ -124,27 +131,42 @@ def add_edit_card(request, card_id=None):
             elif not info['replaces_id'] and key == 'replaces_id':
                 continue
             elif info[key] is None:
-                return JsonResponse({"success": False, "response": f"Missing {key}."})
+                return Response(
+                    {"detail": f"Missing {key}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
         img_file = request.data.get('img_file', None)
         if img_file:
             is_success, error_msg = upload_file_to_s3(img_file, AWS_S3_BUCKET_NAME, info['img_url'])
             if not is_success:
-                return JsonResponse({"success": False, "response": error_msg})
+                return Response(
+                    {"detail": error_msg},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
         faction_search = Faction.objects.filter(id=info['faction_id'])
         if faction_search.count() == 0:
-            return JsonResponse({"success": False, "response": "Faction not found."})
+            return Response(
+                {"detail": "Faction not found."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         commander_search = None
         if info['commander_id'] is not None:
             commander_search = Commander.objects.filter(id=info['commander_id'])
             if commander_search.count() == 0:
-                return JsonResponse({"success": False, "response": "Commander not found."})
+                return Response(
+                    {"detail": "Commander not found."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         replaces_search = None
         if info['replaces_id'] is not None:
             replaces_search = CardTemplate.objects.filter(id=info['replaces_id'])
             if replaces_search.count() == 0:
-                return JsonResponse({"success": False, "response": "Replacement card not found."})
+                return Response(
+                    {"detail": "Replacement card not found."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         if card_id is None:
             main_card = CardTemplate.objects.create(
                 card_name=info['card_name'],
@@ -159,7 +181,10 @@ def add_edit_card(request, card_id=None):
         else:
             main_card = CardTemplate.objects.filter(id=card_id)
             if main_card.count() == 0:
-                return JsonResponse({"success": False, "response": "Card not found."})
+                return Response(
+                    {"detail": "Card not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
             card = main_card.first()
             card.card_name = info['card_name']
             card.img_url = info['img_url']
@@ -172,37 +197,60 @@ def add_edit_card(request, card_id=None):
             main_card = main_card.first()
 
         new_card = CardTemplate.objects.filter(id=main_card.id).first()
-        message = f"Successfully created: {new_card.card_name}" if card_id is None else f"Successfully edited: {new_card.card_name}"
-        return JsonResponse({"success": True, "response": message, "card": CardTemplateSerializer(new_card).data})
+        serializer = CardTemplateSerializer(new_card)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
-@api_view(['GET'])
+@api_view(['DELETE'])
 def delete_card(request, card_id):
     try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to delete cards."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         card_search = CardTemplate.objects.filter(id=card_id)
         if card_search.count() == 0:
-            return JsonResponse({"success": False, "response": "Card not found."})
+            return Response(
+                {"detail": "Card not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
         card = card_search.first()
         card.delete()
-        return JsonResponse({"success": True, "response": "Successfully deleted card."})
+        return Response(
+            {"detail": f"Successfully deleted: {card.card_name}"},
+            status=status.HTTP_200_OK
+        )
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
 @api_view(['GET'])
 def get_cards_of_commander(request, commander_id):
     try:
         cards = CardTemplate.objects.filter(commander__id=commander_id)
         serializer = CardTemplateSerializer(cards, many=True)
-        return JsonResponse({"success": True, "response": serializer.data})
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
 @api_view(['GET'])
 def get_cards_of_faction(request, faction_id):
     try:
         cards = CardTemplate.objects.filter(faction__id=faction_id).exclude(commander__isnull=False)
         serializer = CardTemplateSerializer(cards, many=True)
-        return JsonResponse({"success": True, "response": serializer.data})
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

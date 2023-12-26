@@ -158,5 +158,11 @@ export type Subtask = {
     created_at: string;
 };
 
+export type KeywordPairType = {
+    id: number;
+    keyword: string;
+    description: string;
+};
+
 export type ACTION_TYPE =  'draw' | 'place_in_deck' | 'place_in_hand' | 'discard' | 'play' | 'leave_note' | 'update_play_notes' ;
 export const allSteps = ['Deck', 'Hand', 'In Play', 'Discard'];

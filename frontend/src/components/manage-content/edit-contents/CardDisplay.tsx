@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { useState } from "react";
 import { Commander, Faction, CardTemplate } from "src/@types/types";
-import EditAddCard from "src/components/edit-contents/EditAddCard";
+import EditAddCard from "src/components/manage-content/edit-contents/EditAddCard";
 
 // ----------------------------------------------------------------------
 

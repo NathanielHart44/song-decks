@@ -6,10 +6,10 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from songdecks.serializers import (PlayerCardSerializer,
     UserSerializer, UserCardStatsSerializer, GameSerializer,
-    ChangePasswordSerializer)
+    ChangePasswordSerializer, KeywordPairSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
-    Game, PlayerCard, UserCardStats)
+    Game, PlayerCard, UserCardStats, KeywordPair)
 from songdecks.views.helpers import (handle_card_updates, send_email_notification,
     update_last_login, gen_jwt_tokens_for_user, create_user_from_google)
 import requests
@@ -332,3 +332,90 @@ def download_img(request):
         return HttpResponse(response.content, content_type=content_type)
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
+    
+# ----------------------------------------------------------------------
+# Keyword Search
+    
+@api_view(['GET'])
+def get_keyword_pairs(request):
+    try:
+        keyword_pairs = KeywordPair.objects.all()
+        serializer = KeywordPairSerializer(keyword_pairs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def create_keyword_pair(request):
+    try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to create keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        post_data = request.data
+        serializer = KeywordPairSerializer(data=post_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['POST'])
+def edit_keyword_pair(request, keyword_pair_id):
+    try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to edit keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            keyword_pair = KeywordPair.objects.get(id=keyword_pair_id)
+        except KeywordPair.DoesNotExist:
+            return Response(
+                {"detail": "Keyword pair not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        post_data = request.data
+        serializer = KeywordPairSerializer(keyword_pair, data=post_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+# delete keyword pair
+@api_view(['DELETE'])
+def delete_keyword_pair(request, keyword_pair_id):
+    try:
+        if request.user.profile.moderator == False:
+            return Response(
+                {"detail": "You do not have permission to delete keywords."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        try:
+            keyword_pair = KeywordPair.objects.get(id=keyword_pair_id)
+        except KeywordPair.DoesNotExist:
+            return Response(
+                {"detail": "Keyword pair not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        keyword_pair.delete()
+        return Response(
+            {"detail": "Keyword pair deleted."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

@@ -7,12 +7,7 @@ import {
     Theme,
     Typography,
     useTheme,
-    DialogContent,
     Button,
-    Modal,
-    Fade,
-    SpeedDial,
-    SpeedDialIcon
 } from "@mui/material"
 import axios from "axios";
 import { useSnackbar } from "notistack";
@@ -23,18 +18,18 @@ import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../base/LoadingBackdrop";
 import { PlayerCard } from "src/@types/types";
 import { GameContext } from "src/contexts/GameContext";
-import Iconify from "../base/Iconify";
+import { GameModalOptions } from "src/pages/Game";
 
 // ----------------------------------------------------------------------
 
 type ButtonProps = {
     gameID: string;
     deck_count: number;
-    open: boolean;
-    setOpen: (arg0: boolean) => void;
+    openModal: GameModalOptions;
+    setOpenModal: (arg0: GameModalOptions) => void;
 };
 
-export default function CardProbability({ gameID, deck_count, open, setOpen }: ButtonProps) {
+export default function CardProbability({ gameID, deck_count, openModal, setOpenModal }: ButtonProps) {
 
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
@@ -45,7 +40,11 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
     const [deckCardOptions, setDeckCardOptions] = useState<PlayerCard[]>([]);
     // Used for displaying the images of the cards
     const [deckDisplayCards, setDeckDisplayCards] = useState<PlayerCard[]>([]);
-    const z_index = (open ? 999 : 0);
+    const [open, setOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        setOpen(openModal === 'probability');
+    }, [openModal]);
 
     const getGameCards = async () => {
         setAwaitingResponse(true);
@@ -159,77 +158,57 @@ export default function CardProbability({ gameID, deck_count, open, setOpen }: B
     }
 
     return (
-        <div>
+        <>
             { awaitingResponse && <LoadingBackdrop /> }
-            <SpeedDial
-                ariaLabel="Probability"
-                sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: (theme) => theme.zIndex.drawer + z_index }}
-                icon={open ? <SpeedDialIcon /> : <Iconify icon={'eva:percent-outline'} width={'45%'} height={'45%'} />}
-                onClick={() => { setOpen(!open) }}
-                open={open}
-            />
-            <div>
-                <Modal
-                    open={open}
-                    onClick={() => { setOpen(false) }}
-                    closeAfterTransition
-                    sx={{ overflow: 'scroll' }}
-                >
-                    <Fade in={open}>
-                        <DialogContent>
-                            <Grid
-                                container
-                                rowSpacing={2}
-                                columnSpacing={2}
-                                sx={gridContainerStyles}
-                            >
-                                { rankCards(deckDisplayCards).map((card) => (
-                                    <Grid
-                                        item
-                                        key={card.id + 'card'}
-                                        sx={gridItemStyles}
+            <Grid
+                container
+                rowSpacing={2}
+                columnSpacing={2}
+                sx={gridContainerStyles}
+            >
+                { rankCards(deckDisplayCards).map((card) => (
+                    <Grid
+                        item
+                        key={card.id + 'card'}
+                        sx={gridItemStyles}
+                    >
+                        <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
+                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
+                                <Box
+                                    sx={{
+                                        height: '100%',
+                                        width: '200px',
+                                        ...!isMobile ? {
+                                            transition: 'transform 0.3s',
+                                            cursor: 'pointer',
+                                            '&:hover': { transform: 'scale(1.075)' },
+                                        } : {},
+                                    }}
+                                >
+                                    <img
+                                        src={card.card_template.img_url}
+                                        alt={card.card_template.card_name}
+                                        loading="lazy"
+                                        style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
+                                </Box>
+                                <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
+                                    <Typography color={theme.palette.text.primary}>{getPercentage(card)}%</Typography>
+                                    <Button
+                                        variant={'contained'}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            processTokens(addCardToHand, card);
+                                        }}
                                     >
-                                        <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
-                                            <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
-                                                <Box
-                                                    sx={{
-                                                        height: '100%',
-                                                        width: '200px',
-                                                        ...!isMobile ? {
-                                                            transition: 'transform 0.3s',
-                                                            cursor: 'pointer',
-                                                            '&:hover': { transform: 'scale(1.075)' },
-                                                        } : {},
-                                                    }}
-                                                >
-                                                    <img
-                                                        src={card.card_template.img_url}
-                                                        alt={card.card_template.card_name}
-                                                        loading="lazy"
-                                                        style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
-                                                </Box>
-                                                <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
-                                                    <Typography color={theme.palette.text.primary}>{getPercentage(card)}%</Typography>
-                                                    <Button
-                                                        variant={'contained'}
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            processTokens(addCardToHand, card);
-                                                        }}
-                                                    >
-                                                        Add to Hand
-                                                    </Button>
-                                                </Stack>
-                                            </Stack>
-                                            <Divider flexItem />
-                                        </Stack>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </DialogContent>
-                    </Fade>
-                </Modal>
-            </div>
-        </div>
+                                        Add to Hand
+                                    </Button>
+                                </Stack>
+                            </Stack>
+                            <Divider flexItem />
+                        </Stack>
+                    </Grid>
+                ))}
+            </Grid>
+        </>
     )
 }

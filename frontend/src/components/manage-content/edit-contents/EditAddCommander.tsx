@@ -11,11 +11,10 @@ import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { Commander, Faction, FakeCommander } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
-import LoadingBackdrop from "../base/LoadingBackdrop";
+import LoadingBackdrop from "../../base/LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
-import axios from "axios";
-import { MAIN_API } from "src/config";
-import UploadAvatarComp, { FileWithPreview } from "../upload/UploadAvatarComp";
+import UploadAvatarComp, { FileWithPreview } from "../../upload/UploadAvatarComp";
+import { useApiCall } from "src/hooks/useApiCall";
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +30,7 @@ type EditAddCardProps = {
 export default function EditAddCommander({ commander, commanders, factions, editOpen, setEditOpen, setCommanders }: EditAddCardProps) {
 
     const theme = useTheme();
+    const { apiCall } = useApiCall();
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
@@ -69,53 +69,79 @@ export default function EditAddCommander({ commander, commanders, factions, edit
         setEditOpen(false);
     }
 
-    const deleteCommander = async () => {
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-
-        await axios.get(`${MAIN_API.base_url}delete_commander/${commander && commander.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
-                setCommanders(commanders.filter((c) => c.id !== commander?.id));
-                setEditOpen(false);
-                enqueueSnackbar(res);
-            } else { enqueueSnackbar(response.data.response); };
-            setAwaitingResponse(false);
-        });
-    };
-
-    const submitForm = async () => {
+    function getFormData() {
+        const formData = new FormData();
         if (!commanderName || !imgURL || !faction) {
             enqueueSnackbar('Please fill out all fields', { variant: 'error' });
-            return;
+            return {formData: formData, success: false};
         };
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
 
-        const formData = new FormData();
         formData.append('name', commanderName);
         formData.append('img_url', imgURL);
         formData.append('faction_id', (faction.id).toString());
         if (commander.id !== -1) { formData.append('commander_id', (commander.id).toString()) };
         if (uploadFile) { formData.append('img_file', uploadFile) };
 
-        const url = (commander.id !== -1) ? `${MAIN_API.base_url}add_edit_commander/${commander.id}/` : `${MAIN_API.base_url}add_edit_commander/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}`, 'content-type': 'multipart/form-data' } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
-                const new_commander = response.data.commander;
-                if (commander.id !== -1) {
-                    setCommanders(commanders.map((c) => c.id === commander.id ? new_commander : c));
-                } else {
-                    setCommanders([...commanders, new_commander]);
-                };
-                setEditOpen(false);
-                enqueueSnackbar(res);
-            } else { enqueueSnackbar(response.data.response); };
+        return {formData: formData, success: true};
+    };
+
+    const handleCommanderAction = async (type: 'create' | 'edit' | 'delete') => {
+        if (awaitingResponse) { return };
+        setAwaitingResponse(true);
+
+        let url;
+        let request_type: 'GET' | 'POST' | 'DELETE';
+        switch (type) {
+            case 'create':
+                url = `add_edit_commander`;
+                request_type = 'POST';
+                break;
+            case 'edit':
+                url = `add_edit_commander/${commander.id}`;
+                request_type = 'POST';
+                break;
+            case 'delete':
+                url = `delete_commander/${commander.id}`;
+                request_type = 'DELETE';
+                break;
+            default:
+                url = '';
+                request_type = 'GET';
+                break;
+        };
+        const form_data_res = getFormData();
+        let formData;
+        if (!form_data_res.success) {
             setAwaitingResponse(false);
-        }).catch((error) => {
-            console.error(error);
+            return;
+        }
+        if (request_type === 'DELETE') {
+            formData = null;
+        } else {
+            if (!form_data_res.success) {
+                setAwaitingResponse(false);
+                return;
+            } else {
+                formData = form_data_res.formData;
+            }
+        }
+        apiCall(url, request_type, formData, (data) => {
+            switch (type) {
+                case 'create':
+                    setCommanders([...commanders, data]);
+                    break;
+                case 'edit':
+                    setCommanders(commanders.map((c) => c.id === commander.id ? data : c));
+                    break;
+                case 'delete':
+                    setCommanders(commanders.filter((c) => c.id !== commander.id));
+                    break;
+                default:
+                    break;
+            };
         });
+        setEditOpen(false);
+        setAwaitingResponse(false);
     };
 
     return (
@@ -203,7 +229,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(submitForm) }}
+                                    onClick={() => { processTokens(() => handleCommanderAction(commander.id === -1 ? 'create' : 'edit')) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     disabled={!commanderName || !imgURL || !faction || awaitingResponse}
                                 >
@@ -212,7 +238,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(deleteCommander) }}
+                                    onClick={() => { processTokens(() => handleCommanderAction('delete')) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
                                     disabled={commander.id === -1 || awaitingResponse}

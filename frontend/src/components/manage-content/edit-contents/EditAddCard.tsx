@@ -10,11 +10,10 @@ import { useSnackbar } from "notistack";
 import { useContext, useState } from "react";
 import { CardTemplate, Commander, Faction, FakeCardTemplate } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
-import LoadingBackdrop from "../base/LoadingBackdrop";
+import LoadingBackdrop from "../../base/LoadingBackdrop";
 import { processTokens } from "src/utils/jwt";
-import axios from "axios";
-import { MAIN_API } from "src/config";
-import UploadAvatarComp, { FileWithPreview } from "../upload/UploadAvatarComp";
+import UploadAvatarComp, { FileWithPreview } from "../../upload/UploadAvatarComp";
+import { useApiCall } from "src/hooks/useApiCall";
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +31,7 @@ type EditAddCardProps = {
 export default function EditAddCard({ card, cards, defaultCards, factions, commanders, editOpen, setEditOpen, setCards }: EditAddCardProps) {
 
     const theme = useTheme();
+    const { apiCall } = useApiCall();
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
@@ -67,30 +67,13 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
         setEditOpen(false);
     }
 
-    const deleteCard = async () => {
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
-
-        await axios.get(`${MAIN_API.base_url}delete_card/${card && card.id + '/'}`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
-                setCards(cards.filter((c) => c.id !== card?.id));
-                setEditOpen(false);
-                enqueueSnackbar(res);
-            } else { enqueueSnackbar(response.data.response); };
-            setAwaitingResponse(false);
-        });
-    };
-
-    const submitForm = async () => {
+    function getFormData() {
+        const formData = new FormData();
         if (!cardName || !imgURL || !faction) {
             enqueueSnackbar('Please fill out all fields', { variant: 'error' });
-            return;
+            return {formData: formData, success: false};
         };
-        setAwaitingResponse(true);
-        let token = localStorage.getItem('accessToken') ?? '';
 
-        const formData = new FormData();
         formData.append('card_name', cardName);
         formData.append('img_url', imgURL);
         formData.append('faction_id', (faction.id).toString());
@@ -98,23 +81,66 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
         if (replacement) { formData.append('replaces_id', (replacement.id).toString()) };
         if (uploadFile) { formData.append('img_file', uploadFile) };
 
-        const url = (card.id !== -1) ? `${MAIN_API.base_url}add_edit_card/${card.id}/` : `${MAIN_API.base_url}add_edit_card/`;
-        await axios.post(url, formData, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
-            if (response?.data && response.data.success) {
-                const res = response.data.response;
-                const new_card = response.data.card;
-                if (card) {
-                    setCards(cards.map((c) => c.id === card.id ? new_card : c));
-                } else {
-                    setCards([...cards, new_card]);
-                }
-                setEditOpen(false);
-                enqueueSnackbar(res);
-            } else { enqueueSnackbar(response.data.response); };
+        return {formData: formData, success: true};
+    };
+
+    const handleCardAction = async (type: 'create' | 'edit' | 'delete') => {
+        if (awaitingResponse) { return };
+        setAwaitingResponse(true);
+
+        let url;
+        let request_type: 'GET' | 'POST' | 'DELETE';
+        switch (type) {
+            case 'create':
+                url = `add_edit_card`;
+                request_type = 'POST';
+                break;
+            case 'edit':
+                url = `add_edit_card/${card.id}`;
+                request_type = 'POST';
+                break;
+            case 'delete':
+                url = `delete_card/${card.id}`;
+                request_type = 'DELETE';
+                break;
+            default:
+                url = '';
+                request_type = 'GET';
+                break;
+        };
+        const form_data_res = getFormData();
+        let formData;
+        if (!form_data_res.success) {
             setAwaitingResponse(false);
-        }).catch((error) => {
-            console.error(error);
+            return;
+        }
+        if (request_type === 'DELETE') {
+            formData = null;
+        } else {
+            if (!form_data_res.success) {
+                setAwaitingResponse(false);
+                return;
+            } else {
+                formData = form_data_res.formData;
+            }
+        }
+        apiCall(url, request_type, formData, (data) => {
+            switch (type) {
+                case 'create':
+                    setCards([...cards, data]);
+                    break;
+                case 'edit':
+                    setCards(cards.map((c) => c.id === card.id ? data : c));
+                    break;
+                case 'delete':
+                    setCards(cards.filter((c) => c.id !== card.id));
+                    break;
+                default:
+                    break;
+            };
         });
+        setEditOpen(false);
+        setAwaitingResponse(false);
     };
 
     return (
@@ -249,7 +275,7 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(submitForm) }}
+                                    onClick={() => { processTokens(() => { handleCardAction(card.id === -1 ? 'create' : 'edit') }) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     disabled={!cardName || !imgURL || !faction || awaitingResponse}
                                 >
@@ -258,7 +284,7 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 <Button
                                     variant="contained"
                                     size="large"
-                                    onClick={() => { processTokens(deleteCard) }}
+                                    onClick={() => { processTokens(() => { handleCardAction('delete') }) }}
                                     sx={{ width: isMobile ? '35%' : '25%' }}
                                     color={'secondary'}
                                     disabled={card.id === -1 || awaitingResponse}

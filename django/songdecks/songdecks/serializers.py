@@ -319,3 +319,11 @@ class TaskSerializer(serializers.ModelSerializer):
         self._set_m2m_fields(task, m2m_fields)
         
         return task
+    
+# ----------------------------------------------------------------------
+# Keyword Search
+    
+class KeywordPairSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KeywordPair
+        fields = '__all__'
