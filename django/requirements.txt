@@ -10,4 +10,5 @@ dj-rest-auth
 django-allauth
 google-auth
 mysqlclient
+pandas
 uwsgi
