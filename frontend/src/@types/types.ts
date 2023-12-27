@@ -167,7 +167,7 @@ export type KeywordType = {
 export type KeywordPairType = {
     id: number;
     keyword: string;
-    keyword_type: KeywordType;
+    keyword_types: KeywordType[];
     description: string;
 };
 

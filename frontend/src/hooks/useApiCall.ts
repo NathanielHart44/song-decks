@@ -54,9 +54,8 @@ export const objectToFormData = (obj: any): FormData => {
     const formData = new FormData();
 
     const appendFormData = (key: string, value: any) => {
-        if (value === undefined || value === null || value.id < 0) return;
+        if (value === undefined || value === null) { return };
         if (typeof value === 'object' && Array.isArray(value) === false) {
-            if (key === 'keyword_type') { key = 'keyword_type_id' };
             formData.append(key, value.id);
         } else if (Array.isArray(value)) {
             value.forEach(item => {

@@ -102,7 +102,13 @@ export default function Workbench() {
         const url_path = is_new ? 'create_subtask' : `update_subtask/${subtask.id}`;
         apiCall(url_path, 'POST', formData, (data) => {
             if (is_new) {
-                setAllTasks(allTasks ? [...allTasks, data] : [data]);
+                let updated_tasks = allTasks?.map((task) => {
+                    if (task.id === data.id) {
+                        return data;
+                    }
+                    return task;
+                });
+                setAllTasks(updated_tasks);
             } else {
                 let updated_tasks = allTasks?.map((task) => {
                     if (task.id === data.id) {

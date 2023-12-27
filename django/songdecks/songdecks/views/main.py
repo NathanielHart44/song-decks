@@ -363,7 +363,7 @@ def create_keyword_pair(request):
                 status=status.HTTP_403_FORBIDDEN
             )
         post_data = request.data
-        serializer = KeywordPairSerializer(data=post_data)
+        serializer = KeywordPairSerializer(data=post_data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -389,7 +389,7 @@ def edit_keyword_pair(request, keyword_pair_id):
                 status=status.HTTP_404_NOT_FOUND
             )
         post_data = request.data
-        serializer = KeywordPairSerializer(keyword_pair, data=post_data, partial=True)
+        serializer = KeywordPairSerializer(keyword_pair, data=post_data, context={'request': request}, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

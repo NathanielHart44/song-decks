@@ -33,7 +33,7 @@ const default_type: KeywordType = {
 
 const default_pair: KeywordPairType = {
     id: -1,
-    keyword_type: default_type,
+    keyword_types: [],
     keyword: '',
     description: '',
 };
@@ -148,8 +148,7 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
             true;
     
         const keywordTypeMatch = contentState.used_types.length > 0 ?
-            keyword_pair.keyword_type &&
-            contentState.used_types.map((t: KeywordType) => t.id).includes(keyword_pair.keyword_type.id) :
+            keyword_pair.keyword_types.some(kt => contentState.used_types.map((t: KeywordType) => t.id).includes(kt.id)) :
             true;
     
         return searchTermMatch && keywordTypeMatch;
@@ -246,11 +245,11 @@ function KeywordPair({ keyword_pair, contentState, onlySearched, is_game, handle
                     title={keyword_pair.keyword}
                 />
                 <AccordionDetails sx={{ pt: 3 }}>
-                    { keyword_pair.keyword_type.name &&
+                    { keyword_pair.keyword_types.length > 0 &&
                         <KeywordTypeDisplay
                             is_main={false}
                             view_only={true}
-                            allTypes={[keyword_pair.keyword_type]}
+                            allTypes={keyword_pair.keyword_types}
                             contentState={contentState}
                             setContentState={() => {}}
                         />
@@ -519,7 +518,7 @@ function KeywordTypeDisplay({ is_main, view_only, allTypes, contentState, setCon
                 return false;
             }
         } else {
-            if (contentState.selected_pair.keyword_type.id === type.id) {
+            if (contentState.selected_pair.keyword_types.map((t: KeywordType) => t.id).includes(type.id)) {
                 return true;
             } else {
                 return false;
@@ -547,12 +546,12 @@ function KeywordTypeDisplay({ is_main, view_only, allTypes, contentState, setCon
             if (getTypeUsed(type)) {
                 setContentState({
                     ...contentState,
-                    selected_pair: { ...contentState.selected_pair, keyword_type: default_type }
+                    selected_pair: { ...contentState.selected_pair, keyword_types: [] }
                 });
             } else {
                 setContentState({
                     ...contentState,
-                    selected_pair: { ...contentState.selected_pair, keyword_type: type }
+                    selected_pair: { ...contentState.selected_pair, keyword_types: contentState.selected_pair.keyword_types.concat([type]) }
                 });
             }
         }

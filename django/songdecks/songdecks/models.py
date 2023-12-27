@@ -200,7 +200,7 @@ class KeywordType(ExportModelOperationsMixin('keyword_type'), models.Model):
 
 class KeywordPair(ExportModelOperationsMixin('keyword_pair'), models.Model):
     keyword = models.CharField(max_length=100, unique=True)
-    keyword_type = models.ForeignKey(KeywordType, on_delete=models.CASCADE, null=True)
+    keyword_types = models.ManyToManyField(KeywordType, blank=True, related_name='keyword_pairs')
     description = models.TextField()
 
     def __str__(self):

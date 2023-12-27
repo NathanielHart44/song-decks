@@ -228,7 +228,7 @@ class SubTaskSerializer(serializers.ModelSerializer):
             instance.save()
             task = instance
         else:
-            task = Task.objects.create(**validated_data)
+            task = SubTask.objects.create(**validated_data)
 
         self._set_m2m_fields(task, m2m_fields)
         
@@ -329,16 +329,47 @@ class KeywordTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class KeywordPairSerializer(serializers.ModelSerializer):
-    keyword_type = serializers.SerializerMethodField(read_only=True)
-    keyword_type_id = serializers.PrimaryKeyRelatedField(
+    keyword_types = KeywordTypeSerializer(many=True, read_only=True)
+    keyword_type_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
         queryset=KeywordType.objects.all(),
-        source='keyword_type',
-        write_only=True
+        required=False
     )
 
     class Meta:
         model = KeywordPair
         fields = '__all__'
 
-    def get_keyword_type(self, obj):
-        return KeywordTypeSerializer(obj.keyword_type).data
+    def validate(self, data):
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        return self._save_pair(validated_data)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        return self._save_pair(validated_data, instance)
+
+    def _set_m2m_fields(self, pair, m2m_field_data):
+        for field_name, objs in m2m_field_data.items():
+            if objs is not None:
+                getattr(pair, field_name).set(objs)
+
+    def _save_pair(self, validated_data, instance=None):
+        m2m_fields = {
+            'keyword_types': validated_data.pop('keyword_type_ids', [])
+        }
+
+        if instance:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            pair = instance
+        else:
+            pair = KeywordPair.objects.create(**validated_data)
+
+        self._set_m2m_fields(pair, m2m_fields)
+        
+        return pair
