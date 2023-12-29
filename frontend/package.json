@@ -10,10 +10,9 @@
     "@mui/material": "^5.11.14",
     "@react-oauth/google": "^0.12.1",
     "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
     "apexcharts": "^3.44.2",
     "axios": "^1.3.4",
+    "eslint-config-react-app": "^7.0.1",
     "framer-motion": "^10.12.16",
     "i18next": "^22.4.14",
     "i18next-browser-languagedetector": "^7.0.1",
@@ -31,10 +30,11 @@
     "react-lazy-load-image-component": "^1.6.0",
     "react-router-dom": "^6.9.0",
     "react-scripts": "5.0.1",
-    "react-swipeable-views": "^0.14.0",
-    "react-swipeable-views-utils": "^0.14.0",
     "victory": "^36.6.10",
     "web-vitals": "^2.1.4"
+  },
+  "overrides": {
+    "typescript": "^5.0.3"
   },
   "scripts": {
     "start": "GENERATE_SOURCEMAP=false react-scripts start",
@@ -70,9 +70,6 @@
     "@types/react": "^18.0.29",
     "@types/react-dom": "^18.0.11",
     "@types/react-lazy-load-image-component": "^1.6.3",
-    "@types/react-scroll": "^1.8.6",
-    "@types/react-swipeable-views": "^0.13.1",
-    "@types/react-swipeable-views-utils": "^0.13.4",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.3"
   }
 }
