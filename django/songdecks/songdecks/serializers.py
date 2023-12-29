@@ -94,6 +94,36 @@ class CommanderSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'img_url', 'faction')
         depth = 1
 
+class NcuSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NCU
+        fields = '__all__'
+        depth = 1
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachment
+        fields = '__all__'
+        depth = 1
+
+class UnitSerializer(serializers.ModelSerializer):
+    attachments = AttachmentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Unit
+        fields = '__all__'
+        depth = 1
+
+class ListSerializer(serializers.ModelSerializer):
+    faction = FactionSerializer(read_only=True)
+    commander = CommanderSerializer(read_only=True)
+    units = UnitSerializer(many=True, read_only=True)
+    ncus = NcuSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = List
+        fields = '__all__'
+
 class CardTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CardTemplate
@@ -101,9 +131,11 @@ class CardTemplateSerializer(serializers.ModelSerializer):
         depth = 1
 
 class GameSerializer(serializers.ModelSerializer):
+    owner_list = ListSerializer(read_only=True)
+
     class Meta:
         model = Game
-        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round')
+        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round', 'owner_list')
         depth = 1
 
 class PlayerCardSerializer(serializers.ModelSerializer):

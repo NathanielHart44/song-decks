@@ -1,18 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Button, Card, CircularProgress, FormHelperText, Grid, Stack, SxProps, TextField, Theme, styled } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { CustomFile } from './type';
 import { fData } from 'src/utils/formatNumber';
 import { useDropzone } from 'react-dropzone';
 import Iconify from '../base/Iconify';
 import RejectionFiles from './RejectionFiles';
 import LazyImage from '../base/Image';
-import { Commander, Faction } from "src/@types/types";
+import { Attachment, Commander, Faction, Unit, NCU } from "src/@types/types";
 import createImageURL from 'src/utils/createImgURL';
 import isValidHttpUrl from 'src/utils/isValidHttpUrl';
+import { processTokens } from 'src/utils/jwt';
 import { MAIN_API } from 'src/config';
 import axios from 'axios';
-import { processTokens } from 'src/utils/jwt';
+import { MetadataContext } from 'src/contexts/MetadataContext';
 
 // ----------------------------------------------------------------------
 
@@ -21,10 +22,11 @@ export interface FileWithPreview extends File {
 }
 
 type UploadProps = {
-    type: 'card' | 'faction' | 'commander';
+    size: 'card' | 'unit' | 'avatar';
+    type: 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit';
     name: string;
     faction: Faction | null;
-    commander: Commander | null;
+    item: Commander | Attachment | NCU | Unit | null;
     uploadFile: FileWithPreview | null;
     setUploadFile: (arg0: FileWithPreview | null) => void;
     imgURL: string;
@@ -34,16 +36,14 @@ type UploadProps = {
 
 // ----------------------------------------------------------------------
 
-export default function UploadAvatarComp({ type, name, faction, commander, uploadFile, setUploadFile, imgURL, setImgURL, setURLLock }: UploadProps) {
+export default function UploadAvatarComp({ size, type, name, faction, item, uploadFile, setUploadFile, imgURL, setImgURL, setURLLock }: UploadProps) {
 
     const [newUrl, setNewUrl] = useState<string>('');
 
     useEffect(() => {
-        const img_url = createImageURL({ type, name, faction, commander, uploadFile });
+        const img_url = createImageURL({ type, name, faction, item, uploadFile });
         setNewUrl(img_url);
-    }, [type, name, faction, commander, uploadFile]);
-
-    const is_card = type === 'card';
+    }, [type, name, faction, item, uploadFile]);
 
     const handleDrop = useCallback((acceptedFiles: File[]) => {
         const newFile = acceptedFiles[0] as FileWithPreview;
@@ -72,7 +72,7 @@ export default function UploadAvatarComp({ type, name, faction, commander, uploa
                 maxSize={3145728}
                 onDrop={handleDrop}
                 removeFile={() => setUploadFile(null)}
-                is_card={is_card}
+                size={size}
                 setURLLock={setURLLock}
             />
         </Card>
@@ -87,7 +87,7 @@ type UploadAvatarProps = {
     imgURL: string;
     setImgURL: (arg0: string) => void;
     maxSize: number;
-    is_card: boolean;
+    size: 'card' | 'unit' | 'avatar';
     onDrop: (acceptedFiles: File[]) => void;
     removeFile: () => void;
     setURLLock: (arg0: boolean) => void;
@@ -96,12 +96,23 @@ type UploadAvatarProps = {
   
 // ----------------------------------------------------------------------
   
-function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, is_card, onDrop, removeFile, setURLLock, sx, ...other }: UploadAvatarProps) {
+function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, size, onDrop, removeFile, setURLLock, sx, ...other }: UploadAvatarProps) {
 
+    const { isMobile } = useContext(MetadataContext);
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
-    const card_mod = 0.215;
-    const commander_mod = 0.5;
-    const dimensions = is_card ? [750 * card_mod, 1050 * card_mod] : [300 * commander_mod, 300 * commander_mod];
+    const card_mod = 0.3;
+    const unit_mod = isMobile ? 0.2 : 0.26;
+    const [dimensions, setDimensions] = useState<number[]>([0, 0]);
+
+    useEffect(() => {
+        if (size === 'avatar') {
+            setDimensions([150, 150]);
+        } else if (size === 'card') {
+            setDimensions([750 * card_mod, 1050 * card_mod]);
+        } else {
+            setDimensions([1250 * unit_mod, 750 * unit_mod]);
+        }
+    }, [size]);
 
     const [error, setError] = useState(false);
     const [helperText, setHelperText] = useState('');
@@ -177,16 +188,24 @@ function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, is_card, onDro
         else { setURLLock(false) };
     }, [awaitingResponse]);
 
+    const grid_sizing = {
+        xs: 12,
+        sm: 12,
+        md: size === 'unit' ? 12 : 6,
+        lg: 6,
+        xl: 6,
+    }
+
     return (
         <>
             <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ p: 1, width: '100%' }}>
-                <Grid item sm={12} md={6}>
+                <Grid item {...grid_sizing}>
                     <RootStyle
                         sx={{
                             ...((isDragReject || error) && {
                                 borderColor: 'error.light',
                             }),
-                            borderRadius: is_card ? '2%' : '25%',
+                            borderRadius: size === 'avatar' ? '25%' : '4%',
                             width: `${dimensions[0]}px`,
                             height: `${dimensions[1]}px`,
                             ...sx,
@@ -196,7 +215,7 @@ function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, is_card, onDro
                             {...getRootProps()}
                             sx={{
                                 ...(isDragActive && { opacity: 0.72 }),
-                                borderRadius: is_card ? '2%' : '25%',
+                                borderRadius: size === 'avatar' ? '25%' : '4%',
                             }}
                         >
                             <input {...getInputProps()} />
@@ -229,7 +248,7 @@ function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, is_card, onDro
                     )}
                 </Grid>
 
-                <Grid item sm={12} md={6}>
+                <Grid item {...grid_sizing}>
                     <Stack direction="column" justifyContent="center" alignItems="center" spacing={1} sx={{ width: '100%' }}>
                         <TextField
                             variant="outlined"
@@ -247,18 +266,19 @@ function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, is_card, onDro
                                 size="small"
                                 onClick={() => { setImgURL(newUrl) }}
                                 sx={{ width: '100%' }}
-                                disabled={newUrl === imgURL}
+                                disabled={newUrl === imgURL || !file}
                             >
-                                Use Gen. URL
+                                Use URL
                             </Button>
                             <Button
                                 variant="contained"
                                 size="small"
-                                onClick={removeFile}
+                                color='secondary'
+                                onClick={() => { removeFile(); setImgURL(''); }}
                                 sx={{ width: '100%' }}
                                 disabled={!file}
                             >
-                                Remove Image
+                                Remove
                             </Button>
                         </Stack>
                     </Stack>

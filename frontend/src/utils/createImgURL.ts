@@ -1,19 +1,19 @@
-import { Commander, Faction } from "src/@types/types";
+import { Attachment, Commander, Faction } from "src/@types/types";
 import { FileWithPreview } from "src/components/upload/UploadAvatarComp";
 import { MAIN_API } from "src/config";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-    type: 'card' | 'faction' | 'commander';
+    type: 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit';
     name: string;
     faction: Faction | null;
-    commander: Commander | null;
+    item: Commander | Attachment | null;
     uploadFile: FileWithPreview | null;
 };
 
 // Function that creates a S3 url for the image.
-export default function createImageURL({ type, name, faction, commander, uploadFile }: Props) {
+export default function createImageURL({ type, name, faction, item, uploadFile }: Props) {
 
     let url = MAIN_API.asset_url_base;
 
@@ -25,14 +25,20 @@ export default function createImageURL({ type, name, faction, commander, uploadF
         url += 'factions/';
     } else if (type === 'commander') {
         url += 'commanders/';
+    } else if (type === 'attachment') {
+        url += 'attachments/';
+    } else if (type === 'ncu') {
+        url += 'ncus/';
+    } else if (type === 'unit') {
+        url += 'units/';
     };
 
     if (faction) {
         const formatted_faction = formatFunct(faction.name);
         url += `${formatted_faction}/`;
     }
-    if (commander) {
-        const formatted_commander = formatFunct(commander.name);
+    if (item) {
+        const formatted_commander = formatFunct(item.name);
         url += `${formatted_commander}/`;
     }
     url += `${formatted_name}`;

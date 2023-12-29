@@ -9,7 +9,7 @@ export default function LoadingBackdrop() {
     return (
         <div>
             <Backdrop
-                sx={{ color: theme.palette.primary.main, zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: theme.palette.primary.main, zIndex: (theme) => theme.zIndex.drawer + 999 }}
                 open={true}
             >
                 <CircularProgress />

@@ -36,6 +36,102 @@ export type FakeCommander = {
     faction: Faction | null;
 };
 
+export type NCU = {
+    id: number;
+    name: string;
+    faction: Faction;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+};
+
+export type FakeNCU = {
+    id: number;
+    name: string;
+    faction: Faction | null;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+};
+
+export type Attachment = {
+    id: number;
+    name: string;
+    faction: Faction;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+    type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+};
+
+export type FakeAttachment = {
+    id: number;
+    name: string;
+    faction: Faction | null;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+    type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+};
+
+export type Unit = {
+    id: number;
+    name: string;
+    faction: Faction;
+    points_cost: number;
+    unit_type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    attachments: Attachment[];
+    img_url: string;
+    main_url: string;
+};
+
+export type FakeUnit = {
+    id: number;
+    name: string;
+    faction: Faction | null;
+    points_cost: number;
+    unit_type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    attachments: FakeAttachment[];
+    img_url: string;
+    main_url: string;
+};
+
+export type List = {
+    id: number;
+    name: string;
+    owner: Profile;
+    points_allowed: number;
+    faction: Faction;
+    commander: Commander;
+    units: Unit[];
+    ncus: NCU[];
+    created_at: string;
+    updated_at: string;
+    is_draft: boolean;
+    is_public: boolean;
+    is_valid: boolean;
+    shared_from: Profile | null;
+};
+
+export type FakeList = {
+    id: number;
+    name: string;
+    owner: Profile;
+    points_allowed: number;
+    faction: Faction | null;
+    commander: FakeCommander | null;
+    units: FakeUnit[];
+    ncus: FakeNCU[];
+    created_at: string;
+    updated_at: string;
+    is_draft: boolean;
+    is_public: boolean;
+    is_valid: boolean;
+    shared_from: Profile | null;
+};
+
+// ----------------------------------------------------------------------
+
 export type Game = {
     id: number;
     owner: Profile;

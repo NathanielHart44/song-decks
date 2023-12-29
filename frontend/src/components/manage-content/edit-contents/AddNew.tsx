@@ -6,7 +6,7 @@ import Iconify from "src/components/base/Iconify";
 type AddNewProps = {
     isMobile: boolean;
     handleClick: (arg0: any) => void;
-    type: 'faction' | 'commander' | 'card';
+    type: 'faction' | 'commander' | 'card' | 'attachment' | 'ncu' | 'unit';
 };
 export function AddNew({ isMobile, handleClick, type }: AddNewProps) {
 

@@ -1,20 +1,18 @@
 import { Box } from "@mui/material";
 import { useState } from "react";
-import { Commander, Faction, CardTemplate } from "src/@types/types";
-import EditAddCard from "src/components/manage-content/edit-contents/EditAddCard";
+import { Unit, Faction } from "src/@types/types";
+import EditAddUnit from "./EditAddUnit";
 
 // ----------------------------------------------------------------------
 
 type CardDisplayProps = {
     isMobile: boolean;
-    card: CardTemplate;
-    cards: CardTemplate[];
-    defaultCards: CardTemplate[] | null;
+    unit: Unit;
+    units: Unit[];
+    setUnits: (arg0: Unit[]) => void;
     factions: Faction[];
-    commanders: Commander[];
-    setCards: (arg0: CardTemplate[]) => void;
 };
-export function CardDisplay({ isMobile, card, cards, defaultCards, factions, commanders, setCards }: CardDisplayProps) {
+export function UnitDisplay({ isMobile, unit, units, setUnits, factions }: CardDisplayProps) {
 
     const [editOpen, setEditOpen] = useState<boolean>(false);
 
@@ -24,7 +22,7 @@ export function CardDisplay({ isMobile, card, cards, defaultCards, factions, com
                 onClick={() => { setEditOpen(true); }}
                 sx={{
                     height: '100%',
-                    width: '200px',
+                    width: isMobile ? '300px' : '420px',
                     ...!isMobile ? {
                         transition: 'transform 0.3s',
                         cursor: 'pointer',
@@ -33,21 +31,19 @@ export function CardDisplay({ isMobile, card, cards, defaultCards, factions, com
                 }}
             >
                 <img
-                    src={card.img_url}
-                    alt={card.card_name}
+                    src={unit.main_url}
+                    alt={unit.name}
                     loading="lazy"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                 />
             </Box>
-            <EditAddCard
-                card={card}
-                cards={cards}
-                defaultCards={defaultCards}
-                factions={factions}
-                commanders={commanders}
+            <EditAddUnit
+                unit={unit}
                 editOpen={editOpen}
                 setEditOpen={setEditOpen}
-                setCards={setCards}
+                units={units}
+                setUnits={setUnits}
+                factions={factions}
             />
         </>
     );

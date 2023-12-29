@@ -17,6 +17,15 @@ class Profile(ExportModelOperationsMixin('profile'), models.Model):
     def __str__(self) -> str:
         return self.user.first_name + ' ' + self.user.last_name
 
+    def get_owned_lists(self):
+        return self.owned_lists.all()
+
+    def get_active_lists(self):
+        return self.owned_lists.filter(is_draft=False)
+
+    def get_draft_lists(self):
+        return self.owned_lists.filter(is_draft=True)
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -35,6 +44,8 @@ def delete_user(sender, instance=None, **kwargs):
     else:
         instance.user.delete()
 
+# ----------------------------------------------------------------------
+
 class Faction(ExportModelOperationsMixin('faction'), models.Model):
     name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
@@ -51,6 +62,89 @@ class Commander(ExportModelOperationsMixin('commander'), models.Model):
     def __str__(self):
         return self.name
 
+# ----------------------------------------------------------------------
+# List Builder
+
+class NCU(ExportModelOperationsMixin('ncu'), models.Model):
+    name = models.CharField(max_length=100)
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    points_cost = models.PositiveIntegerField()
+    img_url = models.URLField(max_length=500)
+    main_url = models.URLField(max_length=500)
+
+    def __str__(self):
+        return f'{self.name} - {self.faction.name}'
+
+class Attachment(ExportModelOperationsMixin('attachment'), models.Model):
+    UNIT_TYPE_CHOICES = [
+        ('infantry', 'Infantry'),
+        ('cavalry', 'Cavalry'),
+        ('monster', 'Monster'),
+        ('war_machine', 'War Machine'),
+    ]
+
+    name = models.CharField(max_length=100)
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    points_cost = models.PositiveIntegerField()
+    img_url = models.URLField(max_length=500)
+    main_url = models.URLField(max_length=500)
+    type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
+
+    def __str__(self):
+        return f'{self.name} - {self.faction.name}'
+
+class Unit(ExportModelOperationsMixin('unit'), models.Model):
+    UNIT_TYPE_CHOICES = [
+        ('infantry', 'Infantry'),
+        ('cavalry', 'Cavalry'),
+        ('monster', 'Monster'),
+        ('war_machine', 'War Machine'),
+    ]
+
+    name = models.CharField(max_length=100)
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    points_cost = models.PositiveIntegerField()
+    unit_type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
+    attachments = models.ManyToManyField(Attachment, blank=True)
+    img_url = models.URLField(max_length=500)
+    main_url = models.URLField(max_length=500)
+
+    def __str__(self):
+        return f'{self.name} - {self.unit_type} - {self.faction.name}'
+
+class List(ExportModelOperationsMixin('list'), models.Model):
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='owned_lists')
+    points_allowed = models.PositiveIntegerField()
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
+    units = models.ManyToManyField(Unit, blank=True)
+    ncus = models.ManyToManyField(NCU, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_draft = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=False)
+    is_valid = models.BooleanField(default=False)
+    shared_from = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f'{self.name} - {self.faction.name} - {self.commander.name}'
+    
+# ----------------------------------------------------------------------
+
+class Game(ExportModelOperationsMixin('game'), models.Model):
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
+    owner_list = models.ForeignKey(List, blank=True, null=True, on_delete=models.SET_NULL)
+    status = models.CharField(max_length=15, choices=[('in-progress', 'In Progress'), ('completed', 'Completed'), ('abandoned', 'Abandoned')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    round = models.PositiveIntegerField(null=False, blank=False, default=1)
+
+    def __str__(self):
+        return f'{self.owner.user.username} - {self.commander.name}'
+    
 class CardTemplate(ExportModelOperationsMixin('card_template'), models.Model):
     card_name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
@@ -63,18 +157,6 @@ class CardTemplate(ExportModelOperationsMixin('card_template'), models.Model):
 
     def __str__(self):
         return self.card_name
-
-class Game(ExportModelOperationsMixin('game'), models.Model):
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
-    commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
-    status = models.CharField(max_length=15, choices=[('in-progress', 'In Progress'), ('completed', 'Completed'), ('abandoned', 'Abandoned')])
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    round = models.PositiveIntegerField(null=False, blank=False, default=1)
-
-    def __str__(self):
-        return f'{self.owner.user.username} - {self.commander.name}'
 
 class PlayerCard(ExportModelOperationsMixin('player_card'), models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)

@@ -1,20 +1,18 @@
 import { Box } from "@mui/material";
 import { useState } from "react";
-import { Commander, Faction, CardTemplate } from "src/@types/types";
-import EditAddCard from "src/components/manage-content/edit-contents/EditAddCard";
+import { Attachment, Faction } from "src/@types/types";
+import EditAddAttachment from "./EditAddAttachment";
 
 // ----------------------------------------------------------------------
 
 type CardDisplayProps = {
     isMobile: boolean;
-    card: CardTemplate;
-    cards: CardTemplate[];
-    defaultCards: CardTemplate[] | null;
+    attachment: Attachment;
+    attachments: Attachment[];
+    setAttachments: (arg0: Attachment[]) => void;
     factions: Faction[];
-    commanders: Commander[];
-    setCards: (arg0: CardTemplate[]) => void;
 };
-export function CardDisplay({ isMobile, card, cards, defaultCards, factions, commanders, setCards }: CardDisplayProps) {
+export function AttachmentDisplay({ isMobile, attachment, attachments, setAttachments, factions }: CardDisplayProps) {
 
     const [editOpen, setEditOpen] = useState<boolean>(false);
 
@@ -33,21 +31,19 @@ export function CardDisplay({ isMobile, card, cards, defaultCards, factions, com
                 }}
             >
                 <img
-                    src={card.img_url}
-                    alt={card.card_name}
+                    src={attachment.main_url}
+                    alt={attachment.name}
                     loading="lazy"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                 />
             </Box>
-            <EditAddCard
-                card={card}
-                cards={cards}
-                defaultCards={defaultCards}
-                factions={factions}
-                commanders={commanders}
+            <EditAddAttachment
+                attachment={attachment}
                 editOpen={editOpen}
                 setEditOpen={setEditOpen}
-                setCards={setCards}
+                attachments={attachments}
+                setAttachments={setAttachments}
+                factions={factions}
             />
         </>
     );
