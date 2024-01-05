@@ -57,6 +57,7 @@ export type FakeNCU = {
 };
 
 export type Attachment = {
+    temp_id?: string
     id: number;
     name: string;
     faction: Faction;
@@ -68,6 +69,7 @@ export type Attachment = {
 };
 
 export type FakeAttachment = {
+    temp_id?: string
     id: number;
     name: string;
     faction: Faction | null;
@@ -79,6 +81,7 @@ export type FakeAttachment = {
 };
 
 export type Unit = {
+    temp_id?: string;
     id: number;
     name: string;
     faction: Faction;
@@ -91,6 +94,7 @@ export type Unit = {
 };
 
 export type FakeUnit = {
+    temp_id?: string;
     id: number;
     name: string;
     faction: Faction | null;

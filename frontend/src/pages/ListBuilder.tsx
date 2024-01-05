@@ -7,23 +7,25 @@ import {
     SxProps,
     Theme,
     Typography,
-    useTheme,
     AccordionDetails,
     Button,
+    Divider,
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { Attachment, Commander, Faction, NCU, Unit } from "src/@types/types";
-import SpeedDialDiv from "src/components/SpeedDialDiv";
-import Iconify from "src/components/base/Iconify";
+import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import { SelectableAvatar } from "src/components/base/SelectableAvatar";
 import AccordionSummaryDiv from "src/components/workbench/AccordionSummaryDiv";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { useApiCall } from "src/hooks/useApiCall";
 import { processTokens } from "src/utils/jwt";
+import { SelectView } from "../components/list-build/SelectView";
+import { BuilderTopDisplay } from "../components/list-build/BuilderTopDisplay";
+import { genUniqueID } from "src/utils/genUniqueID";
 
 // ----------------------------------------------------------------------
 
-const gridContainerStyles: SxProps<Theme> = {
+export const gridContainerStyles: SxProps<Theme> = {
     justifyContent: 'space-around',
     alignItems: 'center',
     display: 'grid',
@@ -31,7 +33,7 @@ const gridContainerStyles: SxProps<Theme> = {
     gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))'
 };
 
-const gridItemStyles: SxProps<Theme> = {
+export const gridItemStyles: SxProps<Theme> = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'flex-start',
@@ -41,8 +43,15 @@ const gridItemStyles: SxProps<Theme> = {
 
 // ----------------------------------------------------------------------
 
-type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus';
+type ListClickProps = {
+    type: 'unit' | 'ncu' | 'attachment';
+    item: Unit | NCU | Attachment;
+    in_list: boolean;
+    index: number;
+};
+export type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus';
 type ALL_CONTENT_OPTIONS = 'factions' | 'commanders' | VIEW_OPTIONS;
+const DEFAULT_POINTS = 40;
 
 export default function ListBuilder() {
 
@@ -59,6 +68,14 @@ export default function ListBuilder() {
     const [factionNCUs, setFactionNCUs] = useState<NCU[] | null>(null);
 
     const [selectedView, setSelectedView] = useState<VIEW_OPTIONS>('my_list');
+
+    const [listTitle, setListTitle] = useState<string>('');
+    const [usedPoints, setUsedPoints] = useState<number>(0);
+    const [maxPoints, setMaxPoints] = useState<number>(DEFAULT_POINTS);
+
+    const [selectedUnits, setSelectedUnits] = useState<Unit[]>([]);
+    const [selectedUnitTempID, setSelectedUnitTempID] = useState<string | null>(null);
+    const [selectedNCUs, setSelectedNCUs] = useState<NCU[]>([]);
 
     const getContent = async (type: ALL_CONTENT_OPTIONS) => {
         setAwaitingResponse(true);
@@ -110,6 +127,11 @@ export default function ListBuilder() {
             setSelectedFaction(null);
             setSelectedCommander(null);
             setSelectedView('my_list');
+            setListTitle('');
+            setUsedPoints(0);
+            setMaxPoints(DEFAULT_POINTS);
+            setSelectedNCUs([]);
+            setSelectedUnits([]);
         } else {
             setSelectedFaction(faction);
         }
@@ -123,11 +145,120 @@ export default function ListBuilder() {
         }
     };
 
+    const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setListTitle(event.target.value);
+    };
+
+    const handleMaxPointsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        if (isNaN(parseInt(value)) || parseInt(value) < 0) {
+            setMaxPoints(0);
+        } else if (parseInt(value) >= 999) {
+            setMaxPoints(999);
+        } else {
+            setMaxPoints(parseInt(event.target.value));
+        }
+    };
+
+    function getUnitTempID(unit: Unit, selected_units: Unit[]) {
+        const unit_index = selected_units.findIndex((selected_unit) => selected_unit.id === unit.id);
+        if (unit_index === -1) { return null };
+        return selected_units[unit_index].temp_id;
+    };
+
+    const handleOpenAttachments = (unit: Unit) => {
+        const temp_id = getUnitTempID(unit, selectedUnits);
+        if (temp_id) {
+            setSelectedUnitTempID(temp_id);
+        }
+        setSelectedView('attachments');
+    };
+
+    const handleListClick = (props: ListClickProps) => {
+        const { type, item, in_list, index } = props;
+        if (in_list) {
+            if (type === 'unit') {
+                let unitToRemoveIndex = selectedUnits.findIndex((unit) => unit.id === item.id);
+                if (index !== undefined) { unitToRemoveIndex = index };
+                    
+                if (unitToRemoveIndex !== -1) {
+                    const newSelectedUnits = [...selectedUnits];
+                    newSelectedUnits[unitToRemoveIndex].attachments = [];
+                    newSelectedUnits.splice(unitToRemoveIndex, 1);
+                    setSelectedUnits(newSelectedUnits);
+                }                
+            } else if (type === 'ncu') {
+                setSelectedNCUs(selectedNCUs.filter((ncu) => ncu.id !== item.id));
+            } else {
+                // handle Attachment removal
+                const attachment_temp_id = (item as Attachment).temp_id;
+                if (!attachment_temp_id) { return };
+                const attachmentsUnit = selectedUnits.find((unit) => unit.attachments.find((attachment) => attachment.temp_id === attachment_temp_id));
+                if (!attachmentsUnit) { return };
+                const attachmentToRemoveIndex = attachmentsUnit.attachments.findIndex((attachment) => attachment.temp_id === attachment_temp_id);
+                if (attachmentToRemoveIndex !== -1) {
+                    const newAttachmentsUnit = JSON.parse(JSON.stringify(attachmentsUnit));
+                    newAttachmentsUnit.attachments.splice(attachmentToRemoveIndex, 1);
+                    let unitToRemoveIndex = selectedUnits.findIndex((unit) => unit.temp_id === attachmentsUnit.temp_id);
+                    if (unitToRemoveIndex !== -1) {
+                        const newSelectedUnits = [...selectedUnits];
+                        newSelectedUnits.splice(unitToRemoveIndex, 1);
+                        newSelectedUnits.push(newAttachmentsUnit);
+                        setSelectedUnits(newSelectedUnits);
+                    }
+                }
+            }
+        } else {
+            if (type === 'unit') {
+                let newUnit = JSON.parse(JSON.stringify(item)) as Unit;
+                newUnit.temp_id = genUniqueID();
+                newUnit.attachments = [];
+                
+                setSelectedUnits([...selectedUnits, newUnit]);
+            } else if (type === 'ncu') {
+                if (!selectedNCUs.find((ncu) => ncu.id === item.id)) {
+                    setSelectedNCUs([...selectedNCUs, item as NCU]);
+                }
+            } else {
+                // handle Attachment add
+                if (!selectedUnitTempID) { return };
+                const selectedUnit = JSON.parse(JSON.stringify(selectedUnits.find((unit) => unit.temp_id === selectedUnitTempID)));
+                if (!selectedUnit) { return };
+                let newAttachment = JSON.parse(JSON.stringify(item)) as Attachment;
+                newAttachment.temp_id = genUniqueID();
+                let newSelectedUnit = {
+                    ...selectedUnit,
+                    attachments: [...selectedUnit.attachments, newAttachment]
+                };
+
+                let unitToRemoveIndex = selectedUnits.findIndex((unit) => unit.temp_id === selectedUnit.temp_id);
+                if (unitToRemoveIndex !== -1) {
+                    const newSelectedUnits = [...selectedUnits];
+                    newSelectedUnits.splice(unitToRemoveIndex, 1);
+                    newSelectedUnits.push(newSelectedUnit);
+                    setSelectedUnits(newSelectedUnits);
+                    setSelectedUnitTempID(null);
+                    setSelectedView('my_list');
+                }
+            }
+        }
+    };
+
+    useEffect(() => {
+        let newUsedPoints = 0;
+        selectedUnits.forEach((unit) => {
+            newUsedPoints += unit.points_cost;
+            unit.attachments.forEach((attachment) => { newUsedPoints += attachment.points_cost });
+        });
+        selectedNCUs.forEach((ncu) => { newUsedPoints += ncu.points_cost });
+        setUsedPoints(newUsedPoints);
+    }, [selectedUnits, selectedNCUs]);
+
     return (
         <>
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 <Typography variant={'h3'}>List Builder</Typography>
-                <FactionAndCommanderSelect
+                <BuilderTopDisplay
                     isMobile={isMobile}
                     allFactions={allFactions}
                     selectedFaction={selectedFaction}
@@ -135,22 +266,98 @@ export default function ListBuilder() {
                     factionCommanders={factionCommanders}
                     handleFactionClick={handleFactionClick}
                     handleCommanderClick={handleCommanderClick}
+                    listTitle={listTitle}
+                    handleTitleChange={handleTitleChange}
+                    usedPoints={usedPoints}
+                    maxPoints={maxPoints}
+                    handleMaxPointsChange={handleMaxPointsChange}
                 />
-                <ListAvailableSelections
-                    availableItems={
-                        selectedFaction === null ? null :
-                        selectedView === 'units' ? factionUnits :
-                            selectedView === 'attachments' ? factionAttachments :
-                                selectedView === 'ncus' ? factionNCUs :
-                                    null
-                    }
-                />
+                {selectedFaction && selectedView === 'my_list' &&
+                    <Stack
+                        spacing={3}
+                        width={'100%'}
+                        justifyContent={'center'}
+                        alignItems={'center'}
+                    >
+                        <Typography variant={'h4'}>Units</Typography>
+                        <ListAvailableSelections
+                            type={'unit'}
+                            availableItems={selectedUnits}
+                            in_list={true}
+                            handleListClick={handleListClick}
+                            handleOpenAttachments={handleOpenAttachments}
+                        />
+                        <Divider sx={{ width: '65%' }} />
+                        <Typography variant={'h4'}>NCUs</Typography>
+                        <ListAvailableSelections
+                            type={'ncu'}
+                            availableItems={selectedNCUs}
+                            in_list={true}
+                            handleListClick={handleListClick}
+                        />
+                    </Stack>
+
+                }
+                {selectedFaction && selectedView !== 'my_list' &&
+                    <ListAvailableSelections
+                        type={
+                            selectedView === 'units' ? 'unit' :
+                                selectedView === 'attachments' ? 'attachment' :
+                                    selectedView === 'ncus' ? 'ncu' :
+                                        'unit'
+                        }
+                        availableItems={
+                            selectedView === 'units' ? factionUnits :
+                                selectedView === 'attachments' ? factionAttachments :
+                                    selectedView === 'ncus' ? factionNCUs :
+                                        null
+                        }
+                        in_list={false}
+                        handleListClick={handleListClick}
+                    />
+                }
             </Stack>
             <SelectView
                 selectedFaction={selectedFaction}
                 selectedView={selectedView}
                 setSelectedView={setSelectedView}
             />
+            { awaitingResponse && <LoadingBackdrop /> }
+        </>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type ListAvailableSelectionsProps = {
+    type: 'unit' | 'ncu' | 'attachment';
+    in_list: boolean;
+    availableItems: Unit[] | Attachment[] | NCU[] | null;
+    handleListClick: (props: ListClickProps) => void;
+    handleOpenAttachments?: (unit: Unit) => void;
+};
+
+function ListAvailableSelections({ type, in_list, availableItems, handleListClick, handleOpenAttachments }: ListAvailableSelectionsProps) {
+
+    return (
+        <>
+            {availableItems &&
+                <Box sx={{ width: '100%' }}>
+                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        {availableItems.map((item, index) => (
+                            <AvailableSelection
+                                key={item.name + '_select_' + index}
+                                item={item}
+                                type={type}
+                                index={index}
+                                in_list={in_list}
+                                handleListClick={handleListClick}
+                                handleOpenAttachments={handleOpenAttachments}
+                            />
+                        ))}
+                    </Stack>
+                </Box>
+            }
         </>
     );
 };
@@ -158,12 +365,21 @@ export default function ListBuilder() {
 // ----------------------------------------------------------------------
 
 type AvailableSelectionProps = {
+    type: 'unit' | 'ncu' | 'attachment';
+    index: number;
     item: Unit | Attachment | NCU;
+    in_list: boolean;
+    handleListClick: (props: ListClickProps) => void;
+    handleOpenAttachments?: (unit: Unit) => void;
 };
 
-function AvailableSelection({ item }: AvailableSelectionProps) {
+function AvailableSelection({ type, index, item, in_list, handleListClick, handleOpenAttachments }: AvailableSelectionProps) {
 
     const [accordionOpen, setAccordionOpen] = useState<boolean>(false);
+    let item_title = `${item.name} (${item.points_cost})`;
+    if (type === 'unit' && (item as Unit).attachments.length > 0) {
+        item_title += ' -- ' + (item as Unit).attachments.map((attachment) => `${attachment.name} (${attachment.points_cost})`).join(', ');
+    }
 
     return (
         <Stack sx={{ width: '100%' }}>
@@ -176,209 +392,57 @@ function AvailableSelection({ item }: AvailableSelectionProps) {
                 <AccordionSummaryDiv
                     accordionOpen={accordionOpen}
                     setAccordionOpen={setAccordionOpen}
-                    title={`${item.name} (${item.points_cost})`}
+                    title={item_title}
                 />
                 <AccordionDetails sx={{ pt: 3 }}>
                     <Stack spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                         <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                            <Grid item xs={12} md={6}>
-                                <Button variant={'contained'} fullWidth>Add to List</Button>
+                            <Grid item xs={12} md={4}>
+                                <Button
+                                    variant={'contained'}
+                                    fullWidth
+                                    onClick={() => handleListClick({ type, item, in_list, index })}
+                                >
+                                    {in_list ? `Remove from ${type === 'attachment' ? 'Unit' : 'List'}` :
+                                    `Add to ${type === 'attachment' ? 'Unit' : 'List'}`}
+                                </Button>
                             </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Button variant={'contained'} fullWidth>View Card</Button>
-                            </Grid>
+                            {type === 'unit' && in_list && handleOpenAttachments &&
+                                <Grid item xs={12} md={4}>
+                                    <Button
+                                        variant={'contained'}
+                                        fullWidth
+                                        onClick={() => handleOpenAttachments(item as Unit)}
+                                    >
+                                        Add Attachment
+                                    </Button>
+                                </Grid>
+                            }
                         </Grid>
                         <SelectableAvatar
                             item={item}
                             altText={item.name}
                             isMobile={false}
                             handleClick={() => {}}
+                            // view a pop up of the card?
                         />
+                        {type === 'unit' && in_list && handleOpenAttachments && (item as Unit).attachments.length > 0 &&
+                            <>
+                                {((item as Unit).attachments).map((attachment, attach_index) => (
+                                    <AvailableSelection
+                                        key={attachment.name + '_attach_' + attach_index}
+                                        item={attachment}
+                                        type={'attachment'}
+                                        index={attach_index}
+                                        in_list={true}
+                                        handleListClick={handleListClick}
+                                    />
+                                ))}
+                            </>
+                        }
                     </Stack>
                 </AccordionDetails>
             </Accordion>
         </Stack>
     );
 };
-
-// ----------------------------------------------------------------------
-
-type ListAvailableSelectionsProps = {
-    availableItems: Unit[] | Attachment[] | NCU[] | null;
-};
-
-function ListAvailableSelections({ availableItems }: ListAvailableSelectionsProps) {
-
-    return (
-        <>
-            {availableItems &&
-                <Box sx={{ width: '100%' }}>
-                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        {availableItems.map((item) => (
-                            <AvailableSelection key={item.name + '_select_' + item.id} item={item} />
-                        ))}
-                    </Stack>
-                </Box>
-            }
-        </>
-    );
-};
-
-// ----------------------------------------------------------------------
-
-type SelectViewProps = {
-    selectedFaction: Faction | null;
-    selectedView: VIEW_OPTIONS;
-    setSelectedView: (arg0: VIEW_OPTIONS) => void;
-};
-
-function SelectView({selectedFaction, selectedView, setSelectedView}: SelectViewProps) {
-
-    const theme = useTheme();
-
-    const getDialColor = (view: VIEW_OPTIONS) => {
-        if (view === selectedView) {
-            return theme.palette.primary.main;
-        } else {
-            return 'default';
-        }
-    };
-
-    return (
-        <>
-            {selectedFaction &&
-                <SpeedDialDiv
-                    setOpenModal={setSelectedView}
-                    options={[
-                        {
-                            name: 'My List',
-                            source: 'my_list' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'icon-park-solid:layers'} width={'55%'} height={'55%'} color={getDialColor('my_list' as VIEW_OPTIONS)}/>
-                        },
-                        {
-                            name: 'Units',
-                            source: 'units' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'mdi:square-rounded-outline'} width={'55%'} height={'55%'} color={getDialColor('units' as VIEW_OPTIONS)}/>
-                        },
-                        {
-                            name: 'Attachments',
-                            source: 'attachments' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'mdi:square-rounded-badge-outline'} width={'55%'} height={'55%'} color={getDialColor('attachments' as VIEW_OPTIONS)}/>
-                        },
-                        {
-                            name: 'NCUs',
-                            source: 'ncus' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'mdi:quill'} width={'55%'} height={'55%'} color={getDialColor('ncus' as VIEW_OPTIONS)}/>
-                        },
-                    ]}
-                />
-            }
-        </>
-    );
-}
-
-// ----------------------------------------------------------------------
-
-type FactionAndCommanderSelectProps = {
-    isMobile: boolean;
-    allFactions: Faction[];
-    selectedFaction: Faction | null;
-    selectedCommander: Commander | null;
-    factionCommanders: Commander[] | null;
-    handleFactionClick: (arg0: Faction | null) => void;
-    handleCommanderClick: (arg0: Commander | null) => void;
-};
-
-function FactionAndCommanderSelect(
-    { isMobile, allFactions, selectedFaction, selectedCommander, factionCommanders, handleFactionClick, handleCommanderClick }: FactionAndCommanderSelectProps
-) {
-
-    const theme = useTheme();
-
-    return (
-        <>
-            <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'flex-start'}>
-                <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                    {selectedFaction ?
-                        <SelectableAvatar
-                            item={selectedFaction}
-                            altText={selectedFaction.name}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick}
-                        /> :
-                        <SelectableAvatar
-                            item={selectedFaction}
-                            altText={'Faction'}
-                            defaultIcon={'/icons/throne.png'}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                        />
-                    }
-                </Stack>
-                <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                    {selectedCommander ?
-                        <SelectableAvatar
-                            item={selectedCommander}
-                            altText={selectedCommander.name}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                        /> :
-                        <SelectableAvatar
-                            item={selectedCommander}
-                            altText={'Commander'}
-                            defaultIcon={'/icons/crown.svg'}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                        />
-                    }
-                </Stack>
-            </Stack>
-
-            {!selectedFaction &&
-                <Box sx={{ width: '100%' }}>
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {allFactions.map((faction) => (
-                                <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                    <SelectableAvatar
-                                        item={faction}
-                                        altText={faction.name}
-                                        isMobile={isMobile}
-                                        handleClick={handleFactionClick}
-                                    />
-                                </Grid>
-                            )
-                        )}
-                    </Grid>
-                </Box>
-            }
-            {selectedFaction && !selectedCommander &&
-                <Box sx={{ width: '100%' }}>
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {factionCommanders?.map((commander) => (
-                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={commander}
-                                    altText={commander.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleCommanderClick}
-                                />
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Box>
-            }
-        </>
-    )
-}
