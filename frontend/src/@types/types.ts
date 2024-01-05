@@ -27,6 +27,7 @@ export type Commander = {
     name: string;
     img_url: string;
     faction: Faction;
+    commander_type: 'attachment' | 'unit';
 };
 
 export type FakeCommander = {
@@ -34,6 +35,7 @@ export type FakeCommander = {
     name: string;
     img_url: string;
     faction: Faction | null;
+    commander_type: 'attachment' | 'unit';
 };
 
 export type NCU = {
@@ -62,6 +64,7 @@ export type Attachment = {
     img_url: string;
     main_url: string;
     type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    is_commander: boolean;
 };
 
 export type FakeAttachment = {
@@ -72,6 +75,7 @@ export type FakeAttachment = {
     img_url: string;
     main_url: string;
     type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    is_commander: boolean;
 };
 
 export type Unit = {
@@ -83,6 +87,7 @@ export type Unit = {
     attachments: Attachment[];
     img_url: string;
     main_url: string;
+    is_commander: boolean;
 };
 
 export type FakeUnit = {
@@ -94,6 +99,7 @@ export type FakeUnit = {
     attachments: FakeAttachment[];
     img_url: string;
     main_url: string;
+    is_commander: boolean;
 };
 
 export type List = {

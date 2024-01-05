@@ -1,7 +1,7 @@
 import Page from "src/components/base/Page";
 import { useContext, useState } from "react";
 import GameContent from "src/components/game-page/GameContent";
-import { Stack, SpeedDial, SpeedDialIcon, Backdrop, SpeedDialAction } from "@mui/material";
+import { Stack, useTheme } from "@mui/material";
 import SectionStepper from "src/components/SectionStepper";
 import { GameContext } from "src/contexts/GameContext";
 import { ActionButtons } from "src/components/game-page/ActionButtons";
@@ -10,6 +10,7 @@ import CardProbability from "src/components/game-page/CardProbability";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import Iconify from "src/components/base/Iconify";
 import KeywordSearch from "src/components/KeywordSearch";
+import SpeedDialDiv from "src/components/SpeedDialDiv";
 
 // ----------------------------------------------------------------------
 
@@ -17,6 +18,7 @@ export type GameModalOptions = 'probability' | 'word_search' | 'game';
 
 export default function Game() {
 
+    const theme = useTheme();
     const { gameID = '' } = useParams();
     const { allCards } = useContext(GameContext);
 
@@ -24,6 +26,14 @@ export default function Game() {
     const [openModal, setOpenModal] = useState<GameModalOptions>('game');
 
     // TODO: Preload images here, but running into issues with allCards containing cards not partaining to the current game.
+
+    const getDialColor = (option: GameModalOptions) => {
+        if (option === openModal) {
+            return theme.palette.primary.main;
+        } else {
+            return 'default';
+        }
+    };
 
     return (
         <Page title="Play">
@@ -47,8 +57,24 @@ export default function Game() {
                 />
             }
                 <SpeedDialDiv
-                    openModal={openModal}
                     setOpenModal={setOpenModal}
+                    options={[
+                        {
+                            name: 'Game',
+                            source: 'game' as GameModalOptions,
+                            icon: <Iconify icon={'ri:sword-line'} width={'55%'} height={'55%'} color={getDialColor('game')} />
+                        },
+                        {
+                            name: 'Deck Cards',
+                            source: 'probability' as GameModalOptions,
+                            icon: <Iconify icon={'eva:percent-outline'} width={'55%'} height={'55%'} color={getDialColor('probability')} />
+                        },
+                        {
+                            name: 'Keyword Search',
+                            source: 'word_search' as GameModalOptions,
+                            icon: <Iconify icon={'eva:search-outline'} width={'55%'} height={'55%'} color={getDialColor('word_search')} />
+                        },
+                    ]}
                 />
         </Page>
     );
@@ -89,67 +115,4 @@ function GameContentDiv({ setAwaitingResponse }: GameContentDivProps) {
             <GameContent />
         </Stack>
     );
-}
-
-// ----------------------------------------------------------------------
-
-type SpeedDialDivProps = {
-    openModal: GameModalOptions;
-    setOpenModal: (arg0: GameModalOptions) => void;
 };
-
-function SpeedDialDiv({ openModal, setOpenModal }: SpeedDialDivProps) {
-
-    const [open, setOpen] = useState<boolean>(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-    function handleSelect(selected_page: GameModalOptions) {
-        setOpen(false);
-        setOpenModal(selected_page);
-    };
-    
-    const icon_sizing = '55%';
-
-    const options: { name: string; source: GameModalOptions; icon: JSX.Element; }[] = [
-        {
-            name: 'Game',
-            source: 'game' as GameModalOptions,
-            icon: <Iconify icon={'ri:sword-line'} width={icon_sizing} height={icon_sizing} />
-        },
-        {
-            name: 'Deck Cards',
-            source: 'probability' as GameModalOptions,
-            icon: <Iconify icon={'eva:percent-outline'} width={icon_sizing} height={icon_sizing} />
-        },
-        {
-            name: 'Keyword Search',
-            source: 'word_search' as GameModalOptions,
-            icon: <Iconify icon={'eva:search-outline'} width={icon_sizing} height={icon_sizing} />
-        },
-    ];
-
-    return (
-        <div>
-            <Backdrop open={open} />
-            <SpeedDial
-                ariaLabel="Main Speed Dial"
-                // sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: (theme) => theme.zIndex.drawer + z_index }}
-                sx={{ position: 'fixed', bottom: 16, right: 16 }}
-                // icon={open ? <SpeedDialIcon /> : <Iconify icon={'eva:percent-outline'} width={'45%'} height={'45%'} />}
-                icon={<SpeedDialIcon />}
-                onClose={handleClose}
-                onOpen={handleOpen}
-                open={open}
-            >
-                {options.map((option) => (
-                    <SpeedDialAction
-                        key={option.name}
-                        icon={option.icon}
-                        tooltipTitle={option.name}
-                        onClick={() => { handleSelect(option.source) }}
-                    />
-                ))}
-            </SpeedDial>
-        </div>
-    );
-}

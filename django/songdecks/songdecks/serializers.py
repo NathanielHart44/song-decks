@@ -91,7 +91,7 @@ class FactionSerializer(serializers.ModelSerializer):
 class CommanderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commander
-        fields = ('id', 'name', 'img_url', 'faction')
+        fields = ('id', 'name', 'img_url', 'faction', 'commander_type')
         depth = 1
 
 class NcuSerializer(serializers.ModelSerializer):

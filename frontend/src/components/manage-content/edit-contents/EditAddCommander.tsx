@@ -4,6 +4,9 @@ import {
     Dialog,
     Stack,
     TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
     useTheme
 } from "@mui/material"
 import { useSnackbar } from "notistack";
@@ -65,6 +68,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
         const formData = new FormData();
         formData.append('name', currentCommander.name);
         formData.append('img_url', currentCommander.img_url);
+        formData.append('commander_type', currentCommander.commander_type);
         if (currentCommander.faction) {
             formData.append('faction_id', currentCommander.faction.id.toString());
         }
@@ -194,6 +198,19 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                             onChange={(event) => { handleCommanderChange('name', event.target.value) }}
                             label={"Commander Name"}
                         />
+                        <ToggleButtonGroup
+                            color="primary"
+                            value={currentCommander.commander_type}
+                            exclusive
+                            size={'small'}
+                        >
+                            <ToggleButton value={'attachment'} onClick={() => { handleCommanderChange('commander_type', 'attachment') }}>
+                                <Typography>Attachment</Typography>
+                            </ToggleButton>
+                            <ToggleButton value={'unit'} onClick={() => { handleCommanderChange('commander_type', 'unit') }}>
+                                <Typography>Unit</Typography>
+                            </ToggleButton>
+                        </ToggleButtonGroup>
                         <TextField
                             variant="outlined"
                             fullWidth

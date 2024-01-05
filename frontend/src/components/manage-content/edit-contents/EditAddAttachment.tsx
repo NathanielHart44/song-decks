@@ -3,7 +3,9 @@ import {
     Button,
     Dialog,
     Stack,
+    Switch,
     TextField,
+    Typography,
     useTheme
 } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -98,6 +100,7 @@ export default function EditAddAttachment({
         formData.append('img_url', mainAttachment.img_url);
         formData.append('main_url', mainAttachment.main_url);
         formData.append('faction_id', mainAttachment.faction.id.toString());
+        formData.append('is_commander', mainAttachment.is_commander.toString());
         formData.append('type', mainAttachment.type);
         if (attachment.id !== -1) {
             formData.append('attachment_id', attachment.id.toString());
@@ -236,6 +239,13 @@ export default function EditAddAttachment({
                             onChange={handlePointsCostChange}
                             label="Points Cost"
                         />
+                        <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                            <Typography>Is Commander</Typography>
+                            <Switch
+                                checked={mainAttachment.is_commander}
+                                onChange={(event) => { setMainAttachment({ ...mainAttachment, is_commander: event.target.checked }) }}
+                            />
+                        </Stack>
                         <TextField
                             select
                             fullWidth

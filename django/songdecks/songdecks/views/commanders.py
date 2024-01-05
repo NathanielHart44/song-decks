@@ -10,9 +10,12 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 # Commander Content
 
 @api_view(['GET'])
-def get_commanders(request):
+def get_commanders(request, faction_id=None):
     try:
-        commanders = Commander.objects.all()
+        if faction_id:
+            commanders = Commander.objects.filter(faction_id=faction_id)
+        else:
+            commanders = Commander.objects.all()
         serializer = CommanderSerializer(commanders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
@@ -33,6 +36,7 @@ def add_edit_commander(request, commander_id=None):
             'name': request.data.get('name', None),
             'img_url': request.data.get('img_url', None),
             'faction_id': request.data.get('faction_id', None),
+            'commander_type': request.data.get('commander_type', 'attachment'),
         }
         for key in info:
             if info[key] is None:
@@ -60,6 +64,7 @@ def add_edit_commander(request, commander_id=None):
             commander = Commander.objects.create(
                 name=info['name'],
                 img_url=info['img_url'],
+                commander_type=info['commander_type'],
                 faction=faction_search.first(),
             )
         else:
@@ -72,6 +77,7 @@ def add_edit_commander(request, commander_id=None):
             commander = commander.first()
             commander.name = info['name']
             commander.img_url = info['img_url']
+            commander.commander_type = info['commander_type']
             commander.faction = faction_search.first()
             commander.save()
 

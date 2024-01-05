@@ -10,9 +10,12 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 # Unit Content
 
 @api_view(['GET'])
-def get_units(request):
+def get_units(request, faction_id=None):
     try:
-        units = Unit.objects.all()
+        if faction_id:
+            units = Unit.objects.filter(faction_id=faction_id)
+        else:
+            units = Unit.objects.all()
         serializer = UnitSerializer(units, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
@@ -27,6 +30,7 @@ def add_edit_unit(request, unit_id=None):
         info = {
             'name': request.data.get('name'),
             'points_cost': request.data.get('points_cost'),
+            'is_commander': request.data.get('is_commander'),
             'unit_type': request.data.get('unit_type'),
             'img_url': request.data.get('img_url'),
             'main_url': request.data.get('main_url'),
@@ -38,6 +42,8 @@ def add_edit_unit(request, unit_id=None):
         for key, value in info.items():
             if value is None and key != 'attachment_ids':  # attachments are optional
                 return Response({"detail": f"Missing {key}"}, status=status.HTTP_400_BAD_REQUEST)
+            if key == 'is_commander':
+                info[key] = True if value == 'true' else False
 
         # Handle image file upload
         img_file = request.data.get('img_file')
@@ -63,6 +69,7 @@ def add_edit_unit(request, unit_id=None):
             unit = Unit.objects.create(
                 name=info['name'],
                 points_cost=info['points_cost'],
+                is_commander=info['is_commander'],
                 unit_type=info['unit_type'],
                 img_url=info['img_url'],
                 main_url=info['main_url'],
@@ -74,6 +81,7 @@ def add_edit_unit(request, unit_id=None):
                 return Response({"detail": "Unit not found."}, status=status.HTTP_404_NOT_FOUND)
             unit.name = info['name']
             unit.points_cost = info['points_cost']
+            unit.is_commander = info['is_commander']
             unit.unit_type = info['unit_type']
             unit.img_url = info['img_url']
             unit.main_url = info['main_url']

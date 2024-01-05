@@ -3,7 +3,9 @@ import {
     Button,
     Dialog,
     Stack,
+    Switch,
     TextField,
+    Typography,
     useTheme
 } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -98,6 +100,7 @@ export default function EditAddUnit({
         formData.append('img_url', mainUnit.img_url);
         formData.append('main_url', mainUnit.main_url);
         formData.append('faction_id', mainUnit.faction.id.toString());
+        formData.append('is_commander', mainUnit.is_commander.toString());
         formData.append('unit_type', mainUnit.unit_type);
         if (mainUnit.id !== -1) {
             formData.append('unit_id', mainUnit.id.toString());
@@ -236,6 +239,13 @@ export default function EditAddUnit({
                             onChange={handlePointsCostChange}
                             label="Points Cost"
                         />
+                        <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                            <Typography>Is Commander</Typography>
+                            <Switch
+                                checked={mainUnit.is_commander}
+                                onChange={(event) => { setMainUnit({ ...mainUnit, is_commander: event.target.checked }) }}
+                            />
+                        </Stack>
                         <TextField
                             select
                             fullWidth

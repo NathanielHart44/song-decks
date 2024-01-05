@@ -10,9 +10,12 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 # NCU Content
 
 @api_view(['GET'])
-def get_ncus(request):
+def get_ncus(request, faction_id=None):
     try:
-        ncus = NCU.objects.all()
+        if faction_id:
+            ncus = NCU.objects.filter(faction_id=faction_id)
+        else:
+            ncus = NCU.objects.all()
         serializer = NcuSerializer(ncus, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:

@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.db.models import signals
 from django.core.validators import MaxValueValidator
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django_prometheus.models import ExportModelOperationsMixin
 
 # ----------------------------------------------------------------------
@@ -55,9 +56,14 @@ class Faction(ExportModelOperationsMixin('faction'), models.Model):
         return self.name
 
 class Commander(ExportModelOperationsMixin('commander'), models.Model):
+    COMMANDER_TYPE_CHOICES = [
+        ('unit', 'Unit'),
+        ('attachment', 'Attachment'),
+    ]
     name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    commander_type = models.CharField(max_length=20, choices=COMMANDER_TYPE_CHOICES, default='attachment')
 
     def __str__(self):
         return self.name
@@ -89,6 +95,7 @@ class Attachment(ExportModelOperationsMixin('attachment'), models.Model):
     img_url = models.URLField(max_length=500)
     main_url = models.URLField(max_length=500)
     type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
+    is_commander = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.name} - {self.faction.name}'
@@ -108,28 +115,75 @@ class Unit(ExportModelOperationsMixin('unit'), models.Model):
     attachments = models.ManyToManyField(Attachment, blank=True)
     img_url = models.URLField(max_length=500)
     main_url = models.URLField(max_length=500)
+    is_commander = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.name} - {self.unit_type} - {self.faction.name}'
 
-class List(ExportModelOperationsMixin('list'), models.Model):
+class ListUnit(models.Model):
+    list = models.ForeignKey('List', on_delete=models.CASCADE, related_name='unit_list')
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    attachments = models.ManyToManyField(Attachment, blank=True)
+    commander = models.ForeignKey(Commander, null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f'{self.unit.name} x{self.quantity} in {self.list.name}'
+    
+class ListNCU(models.Model):
+    list = models.ForeignKey('List', on_delete=models.CASCADE, related_name='ncu_list')
+    ncu = models.ForeignKey(NCU, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.ncu.name} in {self.list.name}'
+    
+class List(models.Model):
     name = models.CharField(max_length=100)
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='owned_lists')
+    owner = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='owned_lists')
     points_allowed = models.PositiveIntegerField()
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
-    commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
-    units = models.ManyToManyField(Unit, blank=True)
-    ncus = models.ManyToManyField(NCU, blank=True)
+    units = models.ManyToManyField(ListUnit, blank=True, related_name='list_units')
+    ncus = models.ManyToManyField(ListNCU, blank=True, related_name='list_ncus')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_draft = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
     is_valid = models.BooleanField(default=False)
-    shared_from = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.SET_NULL)
+    shared_from = models.ForeignKey('Profile', null=True, blank=True, on_delete=models.SET_NULL)
+
+    def get_commander(self):
+        for list_unit in self.units.all():
+            if list_unit.unit.is_commander:
+                return list_unit.unit
+            for attachment in list_unit.attachments.all():
+                if attachment.is_commander:
+                    return attachment
+        return None
+
+    def clean(self):
+        # Validation for Commander requirement
+        if not self.is_draft and not self.get_commander():
+            raise ValidationError("A Commander is required for a non-draft list.")
+
+        # Validation for points cost
+        if self.is_valid:
+            total_points = 0
+            for list_unit in self.units.all():
+                total_points += list_unit.unit.points_cost * list_unit.quantity
+                total_points += sum(attachment.points_cost for attachment in list_unit.attachments.all())
+            for list_ncu in self.ncus.all():
+                total_points += list_ncu.ncu.points_cost
+
+            if total_points > self.points_allowed:
+                raise ValidationError("Total points exceed the allowed limit.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name} - {self.faction.name} - {self.commander.name}'
-    
+        return f'{self.faction.name} - {self.name}'
+
 # ----------------------------------------------------------------------
 
 class Game(ExportModelOperationsMixin('game'), models.Model):

@@ -25,5 +25,6 @@ export const PATH_PAGE = {
   admin: '/admin',
   profile: '/profile',
   select_deck: '/select-deck',
+  list_builder: '/list-builder',
   page404: '/404',
 };

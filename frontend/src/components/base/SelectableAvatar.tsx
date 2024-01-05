@@ -45,10 +45,14 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, default
                     </Avatar>
                 )}
                 <Typography variant={'caption'} align={'center'}>
-                    {(item && !altText.includes('SELECTED')) ? item.name : ''}
+                    {item ?
+                        item.name :
+                        (altText.includes('SELECTED') || altText.includes('DEFAULT')) ?
+                            '' :
+                            altText
+                    }
                 </Typography>
             </Stack>
         </Box>
     );
-}
-;
+};

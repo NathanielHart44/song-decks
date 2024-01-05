@@ -11,7 +11,7 @@ import { PATH_PAGE } from "src/routes/paths";
 // import { processTokens } from "src/utils/jwt";
 // import { RecentGames } from "../components/RecentGames";
 // import { PlayerStats } from "../components/PlayerStats";
-import ContactPop from "src/components/ContactPop";
+// import ContactPop from "src/components/ContactPop";
 import HomeWBDisplay from "src/components/workbench/HomeWBDisplay";
 
 // ----------------------------------------------------------------------
@@ -26,9 +26,9 @@ export default function Home() {
     // const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
     // const [recentGames, setRecentGames] = useState<Game[]>([]);
     // const [playerStats, setPlayerStats] = useState<UserCardStats[]>([]);
-    const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
+    // const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
 
-    const handleFeedback = () => { setFeedbackOpen(!feedbackOpen) };
+    // const handleFeedback = () => { setFeedbackOpen(!feedbackOpen) };
     
     // const getRecentGames = async () => {
     //     let token = localStorage.getItem('accessToken') ?? '';
@@ -77,7 +77,7 @@ export default function Home() {
                             New Game
                         </Button>
                     </Grid>
-                    <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
+                    {/* <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <Button
                             variant={'contained'}
                             onClick={handleFeedback}
@@ -90,7 +90,17 @@ export default function Home() {
                     <ContactPop
                         popOpen={feedbackOpen}
                         setPopOpen={setFeedbackOpen}
-                    />
+                    /> */}
+                    <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
+                        <Button
+                            variant={'contained'}
+                            onClick={() => { navigate(PATH_PAGE.list_builder) }}
+                            size={'large'}
+                            fullWidth
+                        >
+                            Build List
+                        </Button>
+                    </Grid>
                 </Grid>
                 <Box width={'75%'}>
                     <Divider flexItem />

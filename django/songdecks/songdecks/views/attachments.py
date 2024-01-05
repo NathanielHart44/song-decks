@@ -10,9 +10,12 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 # Attachment Content
 
 @api_view(['GET'])
-def get_attachments(request):
+def get_attachments(request, faction_id=None):
     try:
-        attachments = Attachment.objects.all()
+        if faction_id:
+            attachments = Attachment.objects.filter(faction_id=faction_id)
+        else:
+            attachments = Attachment.objects.all()
         serializer = AttachmentSerializer(attachments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
@@ -27,6 +30,7 @@ def add_edit_attachment(request, attachment_id=None):
         info = {
             'name': request.data.get('name'),
             'points_cost': request.data.get('points_cost'),
+            'is_commander': request.data.get('is_commander'),
             'img_url': request.data.get('img_url'),
             'main_url': request.data.get('main_url'),
             'faction_id': request.data.get('faction_id'),
@@ -36,6 +40,8 @@ def add_edit_attachment(request, attachment_id=None):
         for key, value in info.items():
             if value is None:
                 return Response({"detail": f"Missing {key}"}, status=status.HTTP_400_BAD_REQUEST)
+            if key == 'is_commander':
+                info[key] = True if value == 'true' else False
 
         # Handle image file upload
         img_file = request.data.get('img_file')
@@ -61,6 +67,7 @@ def add_edit_attachment(request, attachment_id=None):
             attachment = Attachment.objects.create(
                 name=info['name'],
                 points_cost=info['points_cost'],
+                is_commander=info['is_commander'],
                 img_url=info['img_url'],
                 main_url=info['main_url'],
                 faction=faction,
@@ -71,6 +78,7 @@ def add_edit_attachment(request, attachment_id=None):
                 return Response({"detail": "Attachment not found."}, status=status.HTTP_404_NOT_FOUND)
             attachment.name = info['name']
             attachment.points_cost = info['points_cost']
+            attachment.is_commander = info['is_commander']
             attachment.img_url = info['img_url']
             attachment.main_url = info['main_url']
             attachment.faction = faction

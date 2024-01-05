@@ -87,10 +87,6 @@ export function ContentTop({
     return (
         <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
             <Typography variant={'h3'}>Manage Content</Typography>
-            selected faction: {contentState.selectedFaction ? contentState.selectedFaction.name : 'null'} -
-            mode: {contentState.mode} - 
-            viewed length: {viewedItems ? viewedItems.length : 'null'} - 
-            selected item type: {selectedItemType}
             <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'flex-start'}>
                 {contentState.selectedFaction ?
                     <Stack>
@@ -263,9 +259,9 @@ export function ContentTop({
                                     isMobile={isMobile}
                                     handleClick={() => {
                                         if (selectedItemType === 'commander') {
-                                            handleCommanderClick(item);
+                                            handleCommanderClick(item as Commander);
                                         } else if (selectedItemType === 'commander_select') {
-                                            handleCommanderClick(item);
+                                            handleCommanderClick(item as Commander);
                                         } else if (selectedItemType === 'attachment') {
                                             handleAttachmentClick(item as Attachment);
                                         } else if (selectedItemType === 'ncu') {
@@ -305,6 +301,7 @@ export function ContentTop({
                             name: '',
                             img_url: '',
                             faction: contentState.selectedFaction,
+                            commander_type: 'attachment'
                         }}
                     editOpen={contentState.addNewCommander}
                     setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' }); }}
@@ -324,6 +321,7 @@ export function ContentTop({
                             points_cost: 0,
                             type: 'infantry',
                             faction: contentState.selectedFaction,
+                            is_commander: false
                         }}
                     editOpen={contentState.addNewAttachment}
                     setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_ATTACHMENT' }); }}
@@ -361,6 +359,7 @@ export function ContentTop({
                             points_cost: 0,
                             type: 'infantry',
                             faction: contentState.selectedFaction,
+                            is_commander: false
                         }}
                     editOpen={contentState.addNewUnit}
                     setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_UNIT' }); }}

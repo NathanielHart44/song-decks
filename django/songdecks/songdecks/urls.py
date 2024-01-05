@@ -68,6 +68,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('commanders/', commanders_views.get_commanders),
+    path('commanders/<int:faction_id>/', commanders_views.get_commanders),
 
     path('add_edit_commander/', commanders_views.add_edit_commander),
     path('add_edit_commander/<int:commander_id>/', commanders_views.add_edit_commander),
@@ -84,6 +85,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('attachments/', attachments_views.get_attachments),
+    path('attachments/<int:faction_id>/', attachments_views.get_attachments),
 
     path('add_edit_attachment/', attachments_views.add_edit_attachment),
     path('add_edit_attachment/<int:attachment_id>/', attachments_views.add_edit_attachment),
@@ -92,6 +94,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('ncus/', ncus_views.get_ncus),
+    path('ncus/<int:faction_id>/', ncus_views.get_ncus),
 
     path('add_edit_ncu/', ncus_views.add_edit_ncu),
     path('add_edit_ncu/<int:ncu_id>/', ncus_views.add_edit_ncu),
@@ -100,6 +103,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('units/', units_views.get_units),
+    path('units/<int:faction_id>/', units_views.get_units),
 
     path('add_edit_unit/', units_views.add_edit_unit),
     path('add_edit_unit/<int:unit_id>/', units_views.add_edit_unit),

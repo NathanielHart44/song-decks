@@ -1,4 +1,4 @@
-import { Attachment, Commander, Faction } from "src/@types/types";
+import { Attachment, Commander, Faction, NCU } from "src/@types/types";
 import { FileWithPreview } from "src/components/upload/UploadAvatarComp";
 import { MAIN_API } from "src/config";
 
@@ -8,7 +8,7 @@ type Props = {
     type: 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit';
     name: string;
     faction: Faction | null;
-    item: Commander | Attachment | null;
+    item: Commander | Attachment | NCU | null;
     uploadFile: FileWithPreview | null;
 };
 
