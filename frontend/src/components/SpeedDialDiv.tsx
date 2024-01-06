@@ -6,11 +6,12 @@ import { useState } from "react";
 type SpeedDialDivProps = {
     setOpenModal: (arg0: any) => void;
     options: { name: string; source: string; icon: JSX.Element; }[];
+    sx?: any;
 };
 
 // ----------------------------------------------------------------------
 
-export default function SpeedDialDiv({ setOpenModal, options }: SpeedDialDivProps) {
+export default function SpeedDialDiv({ setOpenModal, options, sx }: SpeedDialDivProps) {
 
     const [open, setOpen] = useState<boolean>(false);
     const handleOpen = () => setOpen(true);
@@ -25,7 +26,7 @@ export default function SpeedDialDiv({ setOpenModal, options }: SpeedDialDivProp
             <Backdrop open={open} />
             <SpeedDial
                 ariaLabel="Main Speed Dial"
-                sx={{ position: 'fixed', bottom: 16, right: 16 }}
+                sx={{ position: 'fixed', bottom: 16, right: 16, ...sx }}
                 icon={<SpeedDialIcon />}
                 onClose={handleClose}
                 onOpen={handleOpen}

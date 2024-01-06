@@ -1,49 +1,51 @@
-import { useTheme } from "@mui/material";
+import { BottomNavigation, BottomNavigationAction, Paper, Stack, Typography, useTheme } from "@mui/material";
 import { Faction } from "src/@types/types";
-import SpeedDialDiv from "src/components/SpeedDialDiv";
 import Iconify from "src/components/base/Iconify";
 import { VIEW_OPTIONS } from "../../pages/ListBuilder";
 
 // ----------------------------------------------------------------------
 type SelectViewProps = {
+    usedPoints: number;
+    maxPoints: number;
     selectedFaction: Faction | null;
     selectedView: VIEW_OPTIONS;
     setSelectedView: (arg0: VIEW_OPTIONS) => void;
 };
-export function SelectView({ selectedFaction, selectedView, setSelectedView }: SelectViewProps) {
+export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedView, setSelectedView }: SelectViewProps) {
 
     const theme = useTheme();
-
-    const getDialColor = (view: VIEW_OPTIONS) => {
-        if (view === selectedView) {
-            return theme.palette.primary.main;
-        } else {
-            return 'default';
-        }
-    };
+    const text_color = theme.palette.grey[500];
 
     return (
         <>
             {selectedFaction &&
-                <SpeedDialDiv
-                    setOpenModal={setSelectedView}
-                    options={[
-                        {
-                            name: 'My List',
-                            source: 'my_list' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'icon-park-solid:layers'} width={'55%'} height={'55%'} color={getDialColor('my_list' as VIEW_OPTIONS)} />
-                        },
-                        {
-                            name: 'Units',
-                            source: 'units' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'game-icons:swords-emblem'} width={'55%'} height={'55%'} color={getDialColor('units' as VIEW_OPTIONS)} />
-                        },
-                        {
-                            name: 'NCUs',
-                            source: 'ncus' as VIEW_OPTIONS,
-                            icon: <Iconify icon={'mdi:quill'} width={'55%'} height={'55%'} color={getDialColor('ncus' as VIEW_OPTIONS)} />
-                        },
-                    ]} />}
+                <Paper square sx={{ position: 'fixed', bottom: -2, left: 0, right: 0, width: '100%' }} elevation={10}>
+                    <BottomNavigation
+                        showLabels
+                        value={selectedView}
+                        onChange={(event, newValue) => {
+                            setSelectedView(newValue);
+                        }}
+                    >
+                        <BottomNavigationAction
+                            disabled
+                            label="Points"
+                            icon={
+                                <Stack justifyContent={'center'} alignItems={'center'}>
+                                    <Stack direction={'row'} justifyContent={'center'} alignItems={'center'} spacing={0.5}>
+                                        <Typography variant={'subtitle1'} color={text_color}>{usedPoints}</Typography>
+                                        <Typography variant={'subtitle1'} color={text_color}>/</Typography>
+                                        <Typography variant={'subtitle1'} color={text_color}>{maxPoints}</Typography>
+                                    </Stack>
+                                </Stack>
+                            }
+                        />
+                        <BottomNavigationAction value={'my_list'} label="My List" icon={<Iconify icon={'icon-park-solid:layers'} width={'55%'} height={'55%'} />} />
+                        <BottomNavigationAction value={'units'} label="Units" icon={<Iconify icon={'game-icons:swords-emblem'} width={'55%'} height={'55%'} />} />
+                        <BottomNavigationAction value={'ncus'} label="NCUs" icon={<Iconify icon={'mdi:quill'} width={'55%'} height={'55%'} />} />
+                    </BottomNavigation>
+                </Paper>
+            }
         </>
     );
 }

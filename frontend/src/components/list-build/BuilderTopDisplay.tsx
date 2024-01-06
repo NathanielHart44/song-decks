@@ -1,4 +1,4 @@
-import { Stack, Typography, TextField } from "@mui/material";
+import { Stack, Typography, TextField, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import { Commander, Faction } from "src/@types/types";
 import { FactionAndCommanderSelect } from "./FactionAndCommanderSelect";
 
@@ -13,26 +13,41 @@ type BuilderTopDisplayProps = {
     handleCommanderClick: (arg0: Commander | null) => void;
     listTitle: string;
     handleTitleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    usedPoints: number;
     maxPoints: number;
-    handleMaxPointsChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    setMaxPoints: (arg0: number) => void;
 };
 export function BuilderTopDisplay(
     {
-        isMobile, allFactions, selectedFaction, selectedCommander, factionCommanders, handleFactionClick, handleCommanderClick, listTitle, handleTitleChange, usedPoints, maxPoints, handleMaxPointsChange
+        isMobile, allFactions, selectedFaction, selectedCommander, factionCommanders, handleFactionClick, handleCommanderClick, listTitle, handleTitleChange, maxPoints, setMaxPoints
     }: BuilderTopDisplayProps
 ) {
+
     return (
         <>
-            {selectedFaction &&
-                <Stack width={'65%'} justifyContent={'center'} alignItems={'center'}>
-                    <TextField
-                        label={'List Name'}
-                        variant={'outlined'}
-                        fullWidth
-                        value={listTitle}
-                        onChange={handleTitleChange} />
-                </Stack>}
+            {selectedFaction ?
+                <Stack width={isMobile ? '98%' : '65%'} justifyContent={'center'} alignItems={'center'}>
+                    <Stack width={'100%'} direction={'row'} justifyContent={'center'} alignItems={'center'} spacing={1}>
+                        <TextField
+                            label={'List Name'}
+                            variant={'outlined'}
+                            fullWidth
+                            value={listTitle}
+                            onChange={handleTitleChange}
+                        />
+                        <ToggleButtonGroup
+                            color="primary"
+                            value={maxPoints}
+                            exclusive
+                            // size={'small'}
+                        >
+                            <ToggleButton value={30} onClick={() => { setMaxPoints(30) }}>30</ToggleButton>
+                            <ToggleButton value={40} onClick={() => { setMaxPoints(40) }}>40</ToggleButton>
+                            <ToggleButton value={50} onClick={() => { setMaxPoints(50) }}>50</ToggleButton>
+                        </ToggleButtonGroup>
+                    </Stack>
+                </Stack> :
+                <Typography variant={'h3'}>List Builder</Typography>
+            }
             <FactionAndCommanderSelect
                 isMobile={isMobile}
                 allFactions={allFactions}
@@ -40,35 +55,8 @@ export function BuilderTopDisplay(
                 selectedCommander={selectedCommander}
                 factionCommanders={factionCommanders}
                 handleFactionClick={handleFactionClick}
-                handleCommanderClick={handleCommanderClick} />
-            {selectedFaction &&
-                <Stack
-                    spacing={3}
-                    width={'100%'}
-                    direction={'row'}
-                    justifyContent={'center'}
-                    alignItems={'center'}
-                    sx={{ pt: 1 }}
-                >
-                    <TextField
-                        label={'Used Points'}
-                        variant={'outlined'}
-                        size={"small"}
-                        value={usedPoints}
-                        error={usedPoints > maxPoints}
-                        inputMode={"numeric"}
-                        onChange={() => { }}
-                        sx={{ '& input': { textAlign: 'center', width: '9ch' } }} />
-                    <Typography>/</Typography>
-                    <TextField
-                        label={'Max Points'}
-                        variant={'outlined'}
-                        size={"small"}
-                        value={maxPoints}
-                        inputMode={"numeric"}
-                        onChange={handleMaxPointsChange}
-                        sx={{ '& input': { textAlign: 'center', width: '9ch' } }} />
-                </Stack>}
+                handleCommanderClick={handleCommanderClick}
+            />
         </>
     );
 }

@@ -149,17 +149,6 @@ export default function ListBuilder() {
         setListTitle(event.target.value);
     };
 
-    const handleMaxPointsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-        if (isNaN(parseInt(value)) || parseInt(value) < 0) {
-            setMaxPoints(0);
-        } else if (parseInt(value) >= 999) {
-            setMaxPoints(999);
-        } else {
-            setMaxPoints(parseInt(event.target.value));
-        }
-    };
-
     function getUnitTempID(unit: Unit, selected_units: Unit[]) {
         const unit_index = selected_units.findIndex((selected_unit) => selected_unit.id === unit.id);
         if (unit_index === -1) { return null };
@@ -257,7 +246,6 @@ export default function ListBuilder() {
     return (
         <>
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Typography variant={'h3'}>List Builder</Typography>
                 <BuilderTopDisplay
                     isMobile={isMobile}
                     allFactions={allFactions}
@@ -268,9 +256,8 @@ export default function ListBuilder() {
                     handleCommanderClick={handleCommanderClick}
                     listTitle={listTitle}
                     handleTitleChange={handleTitleChange}
-                    usedPoints={usedPoints}
                     maxPoints={maxPoints}
-                    handleMaxPointsChange={handleMaxPointsChange}
+                    setMaxPoints={setMaxPoints}
                 />
                 {selectedFaction && selectedView === 'my_list' &&
                     <Stack
@@ -318,6 +305,8 @@ export default function ListBuilder() {
                 }
             </Stack>
             <SelectView
+                usedPoints={usedPoints}
+                maxPoints={maxPoints}
                 selectedFaction={selectedFaction}
                 selectedView={selectedView}
                 setSelectedView={setSelectedView}
