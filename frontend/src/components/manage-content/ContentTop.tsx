@@ -163,39 +163,43 @@ export function ContentTop({
             </Stack>
 
             {contentState.mode === 'type_select' &&
-                <Grid container rowSpacing={2} columnSpacing={2} sx={gridContainerStyles}>
-                    <Grid item sx={gridItemStyles}>
+                <Grid container rowSpacing={2} columnSpacing={2} justifyContent={'center'}>
+                    <Grid item sx={gridItemStyles} xs={8} sm={5} md={2.5}>
                         <Button
                             variant={'contained'}
                             size={"large"}
                             onClick={() => { contentDispatch({ type: 'SET_MODE', payload: 'commander_select' }); }}
+                            fullWidth
                         >
                             Commanders
                         </Button>
                     </Grid>
-                    <Grid item sx={gridItemStyles}>
+                    <Grid item sx={gridItemStyles} xs={8} sm={5} md={2.5}>
                         <Button
                             variant={'contained'}
                             size={"large"}
                             onClick={() => { contentDispatch({ type: 'SET_MODE', payload: 'attachments' }); }}
+                            fullWidth
                         >
                             Attachments
                         </Button>
                     </Grid>
-                    <Grid item sx={gridItemStyles}>
+                    <Grid item sx={gridItemStyles} xs={8} sm={5} md={2.5}>
                         <Button
                             variant={'contained'}
                             size={"large"}
                             onClick={() => { contentDispatch({ type: 'SET_MODE', payload: 'ncus' }); }}
+                            fullWidth
                         >
                             NCUs
                         </Button>
                     </Grid>
-                    <Grid item sx={gridItemStyles}>
+                    <Grid item sx={gridItemStyles} xs={8} sm={5} md={2.5}>
                         <Button
                             variant={'contained'}
                             size={"large"}
                             onClick={() => { contentDispatch({ type: 'SET_MODE', payload: 'units' }); }}
+                            fullWidth
                         >
                             Units
                         </Button>
