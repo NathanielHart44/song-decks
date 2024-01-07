@@ -1,4 +1,6 @@
-import { Avatar, Box, Stack, SxProps, Theme, Typography } from "@mui/material";
+import { Avatar, Badge, Box, Stack, SxProps, Theme, Typography } from "@mui/material";
+import { capWordsLower } from "src/utils/capWords";
+import { Attachment } from "src/@types/types";
 
 // ----------------------------------------------------------------------
 type SelectableAvatarProps = {
@@ -6,10 +8,11 @@ type SelectableAvatarProps = {
     handleClick: (arg0: any) => void;
     item: any;
     isMobile: boolean;
+    attachments?: Attachment[];
     defaultIcon?: string;
     sxOverrides?: SxProps<Theme>;
 };
-export function SelectableAvatar({ altText, handleClick, item, isMobile, defaultIcon, sxOverrides }: SelectableAvatarProps) {
+export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, sxOverrides }: SelectableAvatarProps) {
 
     const avatar_size = isMobile ? 100 : 80;
 
@@ -24,33 +27,55 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, default
         ...sxOverrides,
     };
 
+    function getCaptiontext() {
+        if (altText.includes('SELECTED')) {
+            return '';
+        } else if (altText.includes('DEFAULT')) {
+            return capWordsLower(altText.replace('DEFAULT', ''));
+        } else {
+            return altText;
+        }
+    }
+
     return (
         <Box>
             <Stack spacing={1} display={'flex'} justifyContent={'center'} alignItems={'center'}>
-                {item ? (
-                    <Avatar
-                        alt={altText}
-                        src={item.img_url}
-                        variant={'rounded'}
-                        sx={avatarStyles}
-                        onClick={() => { handleClick(item); }} />
-                ) : (
-                    <Avatar
-                        alt={altText}
-                        variant={'rounded'}
-                        sx={avatarStyles}
-                        onClick={() => { handleClick(item); }}
-                    >
-                        <img src={defaultIcon} alt={altText} loading="lazy" />
-                    </Avatar>
-                )}
-                <Typography variant={'caption'} align={'center'}>
-                    {item ?
-                        item.name :
-                        (altText.includes('SELECTED') || altText.includes('DEFAULT')) ?
-                            '' :
-                            altText
+                <Badge
+                    overlap="circular"
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    badgeContent={(attachments && attachments.length > 0) &&
+                        <Badge invisible={attachments.length <= 1} badgeContent={`+${attachments.length - 1}`} color="primary">
+                            <Avatar
+                                alt={altText}
+                                src={attachments[0].img_url}
+                                variant={'rounded'}
+                                sx={{ cursor: 'pointer', width: avatar_size * 0.5, height: avatar_size * 0.5 }}
+                                onClick={() => { handleClick(item); }}
+                            />
+                        </Badge>
                     }
+                >
+                    {item ? (
+                        <Avatar
+                            alt={altText}
+                            src={item.img_url}
+                            variant={'rounded'}
+                            sx={avatarStyles}
+                            onClick={() => { handleClick(item); }}
+                        />
+                    ) : (
+                        <Avatar
+                            alt={altText}
+                            variant={'rounded'}
+                            sx={avatarStyles}
+                            onClick={() => { handleClick(item); }}
+                        >
+                            <img src={defaultIcon} alt={altText} loading="lazy" />
+                        </Avatar>
+                    )}
+                </Badge>
+                <Typography variant={'caption'} align={'center'}>
+                    {getCaptiontext()}
                 </Typography>
             </Stack>
         </Box>

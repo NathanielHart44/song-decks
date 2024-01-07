@@ -26,7 +26,7 @@ export function AddNew({ isMobile, handleClick, type }: AddNewProps) {
                     '&:hover': { transform: 'scale(1.1)' },
                 } : {},
             }}
-            onClick={() => { handleClick(`Clicked add new ${type}`); }}
+            onClick={() => { handleClick(`Clicked add new ${type}`) }}
         >
             <Iconify
                 icon={'eva:plus-outline'}

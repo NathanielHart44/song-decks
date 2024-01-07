@@ -203,6 +203,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                             value={currentCommander.commander_type}
                             exclusive
                             size={'small'}
+                            fullWidth
                         >
                             <ToggleButton value={'attachment'} onClick={() => { handleCommanderChange('commander_type', 'attachment') }}>
                                 <Typography>Attachment</Typography>

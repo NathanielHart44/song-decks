@@ -3,14 +3,14 @@ import {
     Button,
     Dialog,
     Stack,
-    Switch,
     TextField,
-    Typography,
+    ToggleButton,
+    ToggleButtonGroup,
     useTheme
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
-import { Attachment, Faction, FakeAttachment } from "src/@types/types";
+import { Attachment, Commander, Faction, FakeAttachment } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import LoadingBackdrop from "../../base/LoadingBackdrop";
 import UploadAvatarComp, { FileWithPreview } from "../../upload/UploadAvatarComp";
@@ -42,6 +42,7 @@ export default function EditAddAttachment({
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
     const [mainAttachment, setMainAttachment] = useState<Attachment | FakeAttachment>(attachment);
+    const [commanderOptions, setCommanderOptions] = useState<Commander[]>([]);
 
     const [uploadFile, setUploadFile] = useState<FileWithPreview | null>(null);
     const [urlLock, setURLLock] = useState<boolean>(false);
@@ -53,6 +54,10 @@ export default function EditAddAttachment({
         setMainAttachment(attachment);
         setUploadFile(null);
         setMainFile(null);
+        setURLLock(false);
+        setMainURLLock(false);
+        setCommanderOptions([]);
+        console.log(editOpen, attachment);
     }, [attachment, editOpen]);
 
     const handleAttachmentNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +82,19 @@ export default function EditAddAttachment({
     };
 
     const formValid = () => {
-        if (!mainAttachment.name || !mainAttachment.img_url || !mainAttachment.faction || !mainAttachment.main_url || !mainAttachment.points_cost || !mainAttachment.type) {
+        if (!mainAttachment.name) {
+            return false;
+        } else if (!mainAttachment.faction) {
+            return false;
+        } else if (!mainAttachment.img_url) {
+            return false;
+        } else if (!mainAttachment.main_url) {
+            return false;
+        } else if (!mainAttachment.type) {
+            return false;
+        } else if (mainAttachment.attachment_type !== 'commander' && !mainAttachment.points_cost) {
+            return false;
+        } else if (mainAttachment.attachment_type === 'commander' && mainAttachment.points_cost) {
             return false;
         }
         return true;
@@ -100,7 +117,7 @@ export default function EditAddAttachment({
         formData.append('img_url', mainAttachment.img_url);
         formData.append('main_url', mainAttachment.main_url);
         formData.append('faction_id', mainAttachment.faction.id.toString());
-        formData.append('is_commander', mainAttachment.is_commander.toString());
+        formData.append('attachment_type', mainAttachment.attachment_type);
         formData.append('type', mainAttachment.type);
         if (attachment.id !== -1) {
             formData.append('attachment_id', attachment.id.toString());
@@ -114,6 +131,31 @@ export default function EditAddAttachment({
 
         return formData;
     };
+
+    const getFactionCommanders = (faction: Faction) => {
+        if (awaitingResponse) return;
+        setAwaitingResponse(true);
+
+        processTokens(() => {
+            let url = `commanders/${faction.id}`;
+            const requestType = 'GET';
+
+            apiCall(url, requestType, null, (data) => {
+                setCommanderOptions(data);
+            });
+            setAwaitingResponse(false);
+        });
+    };
+
+    useEffect(() => {
+        if (
+            mainAttachment.faction &&
+            mainAttachment.attachment_type === 'commander' &&
+            commanderOptions.length === 0
+        ) {
+            getFactionCommanders(mainAttachment.faction);
+        }
+    }, [mainAttachment.faction, mainAttachment.attachment_type]);
 
     const handleAttachmentAction = async (type: 'create' | 'edit' | 'delete') => {
         if (awaitingResponse) return;
@@ -166,8 +208,9 @@ export default function EditAddAttachment({
             } else {
                 // Handle DELETE request
                     apiCall(url, requestType, null, () => {
-                    setAttachments(attachments.filter(a => a.id !== attachment.id));
-                    closeScreen();
+                        setAttachments(attachments.filter(a => a.id !== attachment.id));
+
+                        closeScreen();
                 });
             }
         });
@@ -232,24 +275,59 @@ export default function EditAddAttachment({
                             onChange={handleAttachmentNameChange}
                             label="Attachment Name"
                         />
-                        <TextField
-                            variant="outlined"
+                        <ToggleButtonGroup
+                            color="primary"
+                            value={mainAttachment.attachment_type}
+                            exclusive
+                            size={'small'}
                             fullWidth
-                            value={mainAttachment.points_cost}
-                            onChange={handlePointsCostChange}
-                            label="Points Cost"
-                        />
-                        <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
-                            <Typography>Is Commander</Typography>
-                            <Switch
-                                checked={mainAttachment.is_commander}
-                                onChange={(event) => { setMainAttachment({ ...mainAttachment, is_commander: event.target.checked }) }}
+                        >
+                            <ToggleButton value={'generic'} onClick={() => { setMainAttachment({ ...mainAttachment, attachment_type: 'generic' }) }}>Generic</ToggleButton>
+                            <ToggleButton value={'character'} onClick={() => { setMainAttachment({ ...mainAttachment, attachment_type: 'character' }) }}>Character</ToggleButton>
+                            <ToggleButton value={'commander'} onClick={() => { setMainAttachment({ ...mainAttachment, attachment_type: 'commander' }) }}>Commander</ToggleButton>
+                        </ToggleButtonGroup>
+                        {mainAttachment.attachment_type !== 'commander' &&
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                value={mainAttachment.points_cost}
+                                onChange={handlePointsCostChange}
+                                label="Points Cost"
                             />
-                        </Stack>
+                        }
+                        {mainAttachment.attachment_type === 'commander' && commanderOptions.length > 0 &&
+                            <TextField
+                                select
+                                fullWidth
+                                onChange={(event) => {
+                                    const commander_id = event.target.value;
+                                    const commander = commanderOptions.find((commander) => commander.id === parseInt(commander_id));
+                                    if (commander) {
+                                        setMainAttachment({
+                                            ...mainAttachment,
+                                            name: commander.name,
+                                            img_url: commander.img_url,
+                                            faction: commander.faction
+                                        });
+                                    }
+                                }}
+                                SelectProps={{ native: true }}
+                                variant="outlined"
+                                sx={{ labelWidth: "text".length * 9 }}
+                                label="Commander"
+                            >
+                                <option value={''}></option>
+                                {commanderOptions.map((commander) => (
+                                    <option key={commander.id} value={commander.id}>
+                                        {commander.name}
+                                    </option>
+                                ))}
+                            </TextField>
+                        }
                         <TextField
                             select
                             fullWidth
-                            value={mainAttachment.type ? mainAttachment.type : 'infantry'}
+                            value={mainAttachment.type}
                             onChange={(event) => {
                                 const type = event.target.value;
                                 setMainAttachment({ ...mainAttachment, type: type as 'infantry' | 'cavalry' | 'war_machine' | 'monster' });
@@ -259,6 +337,7 @@ export default function EditAddAttachment({
                             sx={{ labelWidth: "text".length * 9 }}
                             label="Type"
                         >
+                            <option value={''}></option>
                             <option value={'infantry'}>Infantry</option>
                             <option value={'cavalry'}>Cavalry</option>
                             <option value={'war_machine'}>War Machine</option>

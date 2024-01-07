@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
     Box,
     Button,
@@ -61,6 +62,32 @@ export function ContentTop({
         };
 
     }, [contentState.selectedCommander, contentState.selectedAttachment, contentState.selectedNCU, contentState.selectedUnit]);
+
+    useEffect(() => {
+        if (selectedItem && viewedItems) {
+            if (selectedItemType === 'commander_select' || selectedItemType === 'commander') {
+                if (!contentState.allCommanders.includes(selectedItem as Commander)) {
+                    setSelectedItem(null);
+                    contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
+                };
+            } else if (selectedItemType === 'attachment') {
+                if (!contentState.factionAttachments?.includes(selectedItem as Attachment)) {
+                    setSelectedItem(null);
+                    contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: null });
+                };
+            } else if (selectedItemType === 'ncu') {
+                if (!contentState.factionNCUs?.includes(selectedItem as NCU)) {
+                    setSelectedItem(null);
+                    contentDispatch({ type: 'SET_SELECTED_NCU', payload: null });
+                };
+            } else if (selectedItemType === 'unit') {
+                if (!contentState.factionUnits?.includes(selectedItem as Unit)) {
+                    setSelectedItem(null);
+                    contentDispatch({ type: 'SET_SELECTED_UNIT', payload: null });
+                };
+            };
+        };
+    }, [contentState.allCommanders, contentState.factionAttachments, contentState.factionNCUs, contentState.factionUnits]);
 
     useEffect(() => {
         if (contentState.mode === 'commander_select' && contentState.viewedCommanders !== null) {
@@ -279,10 +306,13 @@ export function ContentTop({
                         ))}
                         <Grid item sx={gridItemStyles}>
                             <AddNew
-                                type={selectedItemType as 'commander' | 'attachment' | 'ncu' | 'unit'}
+                                type={
+                                    selectedItemType === 'commander_select' ? 'commander' :
+                                    selectedItemType as 'commander' | 'attachment' | 'ncu' | 'unit'
+                                }
                                 isMobile={isMobile}
                                 handleClick={() => {
-                                    if (selectedItemType === 'commander') {
+                                    if (selectedItemType === 'commander' || selectedItemType === 'commander_select') {
                                         contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' });
                                     } else if (selectedItemType === 'attachment') {
                                         contentDispatch({ type: 'TOGGLE_ADD_NEW_ATTACHMENT' });
@@ -297,7 +327,7 @@ export function ContentTop({
                     </Grid>
                 </Box>
             }
-            {contentState.factions && contentState.selectedFaction && contentState.allCommanders && selectedItemType === 'commander' &&
+            {contentState.factions && contentState.selectedFaction && contentState.allCommanders && (selectedItemType === 'commander_select' || selectedItemType === 'commander') &&
                 <EditAddCommander
                     commander={contentState.selectedCommander !== null ? contentState.selectedCommander :
                         {
@@ -325,7 +355,7 @@ export function ContentTop({
                             points_cost: 0,
                             type: 'infantry',
                             faction: contentState.selectedFaction,
-                            is_commander: false
+                            attachment_type: 'generic'
                         }}
                     editOpen={contentState.addNewAttachment}
                     setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_ATTACHMENT' }); }}

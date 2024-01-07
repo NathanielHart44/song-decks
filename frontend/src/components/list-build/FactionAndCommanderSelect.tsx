@@ -1,7 +1,8 @@
 import {
     Box,
     Grid,
-    Stack, useTheme
+    Stack,
+    useTheme
 } from "@mui/material";
 import { Commander, Faction } from "src/@types/types";
 import { SelectableAvatar } from "src/components/base/SelectableAvatar";
@@ -32,14 +33,17 @@ export function FactionAndCommanderSelect(
                             item={selectedFaction}
                             altText={selectedFaction.name}
                             isMobile={isMobile}
-                            handleClick={handleFactionClick} /> :
+                            handleClick={handleFactionClick}
+                        /> :
                         <SelectableAvatar
                             item={selectedFaction}
                             altText={'Faction'}
                             defaultIcon={'/icons/throne.png'}
                             isMobile={isMobile}
                             handleClick={handleFactionClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }} />}
+                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
+                        />
+                    }
                 </Stack>
                 <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     {selectedCommander ?
@@ -47,14 +51,17 @@ export function FactionAndCommanderSelect(
                             item={selectedCommander}
                             altText={selectedCommander.name}
                             isMobile={isMobile}
-                            handleClick={handleCommanderClick} /> :
+                            handleClick={handleCommanderClick}
+                        /> :
                         <SelectableAvatar
                             item={selectedCommander}
                             altText={'Commander'}
                             defaultIcon={'/icons/crown.svg'}
                             isMobile={isMobile}
                             handleClick={handleCommanderClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }} />}
+                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
+                        />
+                    }
                 </Stack>
             </Stack>
 
@@ -72,12 +79,14 @@ export function FactionAndCommanderSelect(
                                     item={faction}
                                     altText={faction.name}
                                     isMobile={isMobile}
-                                    handleClick={handleFactionClick} />
+                                    handleClick={handleFactionClick}
+                                />
                             </Grid>
                         )
                         )}
                     </Grid>
-                </Box>}
+                </Box>
+            }
             {selectedFaction && !selectedCommander &&
                 <Box sx={{ width: '100%' }}>
                     <Grid
@@ -92,11 +101,13 @@ export function FactionAndCommanderSelect(
                                     item={commander}
                                     altText={commander.name}
                                     isMobile={isMobile}
-                                    handleClick={handleCommanderClick} />
+                                    handleClick={handleCommanderClick}
+                                />
                             </Grid>
                         ))}
                     </Grid>
-                </Box>}
+                </Box>
+            }
         </>
     );
 }

@@ -40,6 +40,7 @@ export type FakeCommander = {
 
 export type NCU = {
     id: number;
+    temp_id?: string;
     name: string;
     faction: Faction;
     points_cost: number;
@@ -49,6 +50,7 @@ export type NCU = {
 
 export type FakeNCU = {
     id: number;
+    temp_id?: string;
     name: string;
     faction: Faction | null;
     points_cost: number;
@@ -65,7 +67,7 @@ export type Attachment = {
     img_url: string;
     main_url: string;
     type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
-    is_commander: boolean;
+    attachment_type: 'generic' | 'character' | 'commander';
 };
 
 export type FakeAttachment = {
@@ -77,7 +79,7 @@ export type FakeAttachment = {
     img_url: string;
     main_url: string;
     type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
-    is_commander: boolean;
+    attachment_type: 'generic' | 'character' | 'commander';
 };
 
 export type Unit = {

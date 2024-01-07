@@ -1,7 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-    Box,
-    Divider,
     Stack,
     SxProps,
     Theme,

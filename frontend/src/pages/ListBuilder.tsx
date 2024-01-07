@@ -1,27 +1,23 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-    Accordion,
     Box,
     Grid,
     Stack,
     SxProps,
     Theme,
     Typography,
-    AccordionDetails,
-    Button,
     Divider,
+    useTheme,
 } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
-import { Attachment, Commander, Faction, NCU, Unit } from "src/@types/types";
+import { useContext, useEffect } from "react";
+import { Attachment, NCU, Unit } from "src/@types/types";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
-import { SelectableAvatar } from "src/components/base/SelectableAvatar";
-import AccordionSummaryDiv from "src/components/workbench/AccordionSummaryDiv";
 import { MetadataContext } from "src/contexts/MetadataContext";
-import { useApiCall } from "src/hooks/useApiCall";
 import { processTokens } from "src/utils/jwt";
 import { SelectView } from "../components/list-build/SelectView";
 import { BuilderTopDisplay } from "../components/list-build/BuilderTopDisplay";
-import { genUniqueID } from "src/utils/genUniqueID";
+import { AvailableSelection } from "../components/list-build/AvailableSelection";
+import useListBuildManager, { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/hooks/useListBuildManager";
 
 // ----------------------------------------------------------------------
 
@@ -41,112 +37,67 @@ export const gridItemStyles: SxProps<Theme> = {
     height: '100%',
 };
 
-// ----------------------------------------------------------------------
-
-type ListClickProps = {
+export type ListClickProps = {
     type: 'unit' | 'ncu' | 'attachment';
     item: Unit | NCU | Attachment;
     in_list: boolean;
     index: number;
 };
-export type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus';
-type ALL_CONTENT_OPTIONS = 'factions' | 'commanders' | VIEW_OPTIONS;
-const DEFAULT_POINTS = 40;
+
+// ----------------------------------------------------------------------
 
 export default function ListBuilder() {
 
-    const { apiCall } = useApiCall();
     const { isMobile } = useContext(MetadataContext);
+    const theme = useTheme();
 
-    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
-    const [allFactions, setAllFactions] = useState<Faction[]>([]);
-    const [selectedFaction, setSelectedFaction] = useState<Faction | null>(null);
-    const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
-    const [factionCommanders, setFactionCommanders] = useState<Commander[] | null>(null);
-    const [factionUnits, setFactionUnits] = useState<Unit[] | null>(null);
-    const [factionAttachments, setFactionAttachments] = useState<Attachment[] | null>(null);
-    const [factionNCUs, setFactionNCUs] = useState<NCU[] | null>(null);
-
-    const [selectedView, setSelectedView] = useState<VIEW_OPTIONS>('my_list');
-
-    const [listTitle, setListTitle] = useState<string>('');
-    const [usedPoints, setUsedPoints] = useState<number>(0);
-    const [maxPoints, setMaxPoints] = useState<number>(DEFAULT_POINTS);
-
-    const [selectedUnits, setSelectedUnits] = useState<Unit[]>([]);
-    const [selectedUnitTempID, setSelectedUnitTempID] = useState<string | null>(null);
-    const [selectedNCUs, setSelectedNCUs] = useState<NCU[]>([]);
-
-    const getContent = async (type: ALL_CONTENT_OPTIONS) => {
-        setAwaitingResponse(true);
-        let url;
-        if (type === 'factions') {
-            url = `${type}`;
-        } else {
-            url = `${type}/${selectedFaction?.id}`;
-        }
-        apiCall(url, 'GET', null, (data) => {
-            if (type === 'factions') {
-                setAllFactions(data);
-            } else if (type === 'commanders') {
-                setFactionCommanders(data);
-            } else if (type === 'units') {
-                setFactionUnits(data);
-            } else if (type === 'attachments') {
-                setFactionAttachments(data);
-            } else if (type === 'ncus') {
-                setFactionNCUs(data);
-            };
-        });
-        if (type === 'factions') { setAwaitingResponse(false) };
-    };
+    const {
+        listState,
+        listDispatch,
+        getContent,
+        handleFactionClick,
+        handleCommanderClick,
+        handleListClick
+    } = useListBuildManager();
 
     useEffect(() => { processTokens(() => { getContent('factions') }) }, []);
     useEffect(() => {
-        if (selectedFaction) {
-            setFactionCommanders(null);
-            setFactionUnits(null);
-            setFactionAttachments(null);
-            setFactionNCUs(null);
+        if (listState.selectedFaction) {
+            listDispatch({ type: 'SET_FACTION_COMMANDERS', payload: null });
+            listDispatch({ type: 'SET_FACTION_UNITS', payload: null });
+            listDispatch({ type: 'SET_FACTION_ATTACHMENTS', payload: null });
+            listDispatch({ type: 'SET_AVAILABLE_ATTACHMENTS', payload: null });
             processTokens(() => {
                 ['commanders', 'units', 'attachments', 'ncus'].forEach((type) => {
                     getContent(type as ALL_CONTENT_OPTIONS);
                 });
             })
         }
-    }, [selectedFaction]);
+    }, [listState.selectedFaction]);
 
     useEffect(() => {
-        if (selectedFaction && factionCommanders && factionUnits && factionAttachments && factionNCUs) {
-            setAwaitingResponse(false);
+        if (listState.selectedFaction && listState.factionCommanders && listState.factionUnits && listState.factionAttachments && listState.factionNCUs) {
+            listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false });
         }
-    }, [selectedFaction, factionCommanders, factionUnits, factionAttachments, factionNCUs]);
+    }, [listState.selectedFaction, listState.factionCommanders, listState.factionUnits, listState.factionAttachments, listState.factionNCUs]);
 
-    const handleFactionClick = (faction: Faction | null) => {
-        if (faction && faction.id === selectedFaction?.id) {
-            setSelectedFaction(null);
-            setSelectedCommander(null);
-            setSelectedView('my_list');
-            setListTitle('');
-            setUsedPoints(0);
-            setMaxPoints(DEFAULT_POINTS);
-            setSelectedNCUs([]);
-            setSelectedUnits([]);
-        } else {
-            setSelectedFaction(faction);
-        }
-    };
+    useEffect(() => {
+        if (!listState.selectedFaction || !listState.selectedCommander) { return };
+        listDispatch({ type: 'SET_LIST_TITLE', payload: `${listState.selectedCommander.name} (${listState.selectedFaction.name})` });
 
-    const handleCommanderClick = (commander: Commander | null) => {
-        if (commander && commander.id === selectedCommander?.id) {
-            setSelectedCommander(null);
-        } else {
-            setSelectedCommander(commander);
+        if (!listState.factionAttachments || !listState.availableAttachments) { return };
+        // remove all attachments from availableAttachments where is_commander === true
+        let newAvailableAttachments = listState.availableAttachments.filter((attachment) => attachment.attachment_type !== 'commander');
+        if (listState.selectedCommander.commander_type === 'attachment') {
+            const commanderAttachment = listState.factionAttachments.find((attachment) => attachment.name === listState.selectedCommander!.name);
+            if (commanderAttachment) {
+                listDispatch({ type: 'SET_AVAILABLE_ATTACHMENTS', payload: [...newAvailableAttachments, commanderAttachment] });
+            }
         }
-    };
+    }, [listState.selectedFaction, listState.selectedCommander]);
 
     const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setListTitle(event.target.value);
+        listDispatch({ type: 'SET_LIST_TITLE', payload: event.target.value });
     };
 
     function getUnitTempID(unit: Unit, selected_units: Unit[]) {
@@ -156,162 +107,98 @@ export default function ListBuilder() {
     };
 
     const handleOpenAttachments = (unit: Unit) => {
-        const temp_id = getUnitTempID(unit, selectedUnits);
+        const temp_id = getUnitTempID(unit, listState.selectedUnits);
         if (temp_id) {
-            setSelectedUnitTempID(temp_id);
+            listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: temp_id });
         }
-        setSelectedView('attachments');
-    };
-
-    const handleListClick = (props: ListClickProps) => {
-        const { type, item, in_list, index } = props;
-        if (in_list) {
-            if (type === 'unit') {
-                let unitToRemoveIndex = selectedUnits.findIndex((unit) => unit.id === item.id);
-                if (index !== undefined) { unitToRemoveIndex = index };
-                    
-                if (unitToRemoveIndex !== -1) {
-                    const newSelectedUnits = [...selectedUnits];
-                    newSelectedUnits[unitToRemoveIndex].attachments = [];
-                    newSelectedUnits.splice(unitToRemoveIndex, 1);
-                    setSelectedUnits(newSelectedUnits);
-                }                
-            } else if (type === 'ncu') {
-                setSelectedNCUs(selectedNCUs.filter((ncu) => ncu.id !== item.id));
-            } else {
-                // handle Attachment removal
-                const attachment_temp_id = (item as Attachment).temp_id;
-                if (!attachment_temp_id) { return };
-                const attachmentsUnit = selectedUnits.find((unit) => unit.attachments.find((attachment) => attachment.temp_id === attachment_temp_id));
-                if (!attachmentsUnit) { return };
-                const attachmentToRemoveIndex = attachmentsUnit.attachments.findIndex((attachment) => attachment.temp_id === attachment_temp_id);
-                if (attachmentToRemoveIndex !== -1) {
-                    const newAttachmentsUnit = JSON.parse(JSON.stringify(attachmentsUnit));
-                    newAttachmentsUnit.attachments.splice(attachmentToRemoveIndex, 1);
-                    let unitToRemoveIndex = selectedUnits.findIndex((unit) => unit.temp_id === attachmentsUnit.temp_id);
-                    if (unitToRemoveIndex !== -1) {
-                        const newSelectedUnits = [...selectedUnits];
-                        newSelectedUnits.splice(unitToRemoveIndex, 1);
-                        newSelectedUnits.push(newAttachmentsUnit);
-                        setSelectedUnits(newSelectedUnits);
-                    }
-                }
-            }
-        } else {
-            if (type === 'unit') {
-                let newUnit = JSON.parse(JSON.stringify(item)) as Unit;
-                newUnit.temp_id = genUniqueID();
-                newUnit.attachments = [];
-                
-                setSelectedUnits([...selectedUnits, newUnit]);
-            } else if (type === 'ncu') {
-                if (!selectedNCUs.find((ncu) => ncu.id === item.id)) {
-                    setSelectedNCUs([...selectedNCUs, item as NCU]);
-                }
-            } else {
-                // handle Attachment add
-                if (!selectedUnitTempID) { return };
-                const selectedUnit = JSON.parse(JSON.stringify(selectedUnits.find((unit) => unit.temp_id === selectedUnitTempID)));
-                if (!selectedUnit) { return };
-                let newAttachment = JSON.parse(JSON.stringify(item)) as Attachment;
-                newAttachment.temp_id = genUniqueID();
-                let newSelectedUnit = {
-                    ...selectedUnit,
-                    attachments: [...selectedUnit.attachments, newAttachment]
-                };
-
-                let unitToRemoveIndex = selectedUnits.findIndex((unit) => unit.temp_id === selectedUnit.temp_id);
-                if (unitToRemoveIndex !== -1) {
-                    const newSelectedUnits = [...selectedUnits];
-                    newSelectedUnits.splice(unitToRemoveIndex, 1);
-                    newSelectedUnits.push(newSelectedUnit);
-                    setSelectedUnits(newSelectedUnits);
-                    setSelectedUnitTempID(null);
-                    setSelectedView('my_list');
-                }
-            }
-        }
+        listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'attachments' });
     };
 
     useEffect(() => {
         let newUsedPoints = 0;
-        selectedUnits.forEach((unit) => {
+        listState.selectedUnits.forEach((unit) => {
             newUsedPoints += unit.points_cost;
             unit.attachments.forEach((attachment) => { newUsedPoints += attachment.points_cost });
         });
-        selectedNCUs.forEach((ncu) => { newUsedPoints += ncu.points_cost });
-        setUsedPoints(newUsedPoints);
-    }, [selectedUnits, selectedNCUs]);
+        listState.selectedNCUs.forEach((ncu) => { newUsedPoints += ncu.points_cost });
+        listDispatch({ type: 'SET_USED_POINTS', payload: newUsedPoints });
+    }, [listState.selectedUnits, listState.selectedNCUs]);
 
     return (
         <>
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 <BuilderTopDisplay
                     isMobile={isMobile}
-                    allFactions={allFactions}
-                    selectedFaction={selectedFaction}
-                    selectedCommander={selectedCommander}
-                    factionCommanders={factionCommanders}
                     handleFactionClick={handleFactionClick}
                     handleCommanderClick={handleCommanderClick}
-                    listTitle={listTitle}
                     handleTitleChange={handleTitleChange}
-                    maxPoints={maxPoints}
-                    setMaxPoints={setMaxPoints}
+                    setMaxPoints={(points: number) => { listDispatch({ type: 'SET_MAX_POINTS', payload: points }) }}
+                    {...listState}
                 />
-                {selectedFaction && selectedView === 'my_list' &&
-                    <Stack
-                        spacing={3}
-                        width={'100%'}
-                        justifyContent={'center'}
-                        alignItems={'center'}
-                    >
-                        <Typography variant={'h4'}>Units</Typography>
-                        <ListAvailableSelections
-                            type={'unit'}
-                            availableItems={selectedUnits}
-                            in_list={true}
-                            handleListClick={handleListClick}
-                            handleOpenAttachments={handleOpenAttachments}
-                        />
-                        <Divider sx={{ width: '65%' }} />
-                        <Typography variant={'h4'}>NCUs</Typography>
-                        <ListAvailableSelections
-                            type={'ncu'}
-                            availableItems={selectedNCUs}
-                            in_list={true}
-                            handleListClick={handleListClick}
-                        />
-                    </Stack>
+                <Stack
+                    spacing={3}
+                    width={'100%'}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                >
+                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'my_list' &&
+                        <>
+                            <Typography variant={'h4'}>Units</Typography>
+                            { listState.selectedUnits.length === 0 &&
+                                <Typography color={theme.palette.text.disabled}>No Units Selected</Typography>
+                            }
+                            <ListAvailableSelections
+                                type={'unit'}
+                                availableItems={listState.selectedUnits}
+                                in_list={true}
+                                handleListClick={handleListClick}
+                                handleOpenAttachments={handleOpenAttachments}
+                            />
+                            <Divider sx={{ width: '65%' }} />
+                            <Typography variant={'h4'}>NCUs</Typography>
+                            { listState.selectedNCUs.length === 0 &&
+                                <Typography color={theme.palette.text.disabled}>No NCUs Selected</Typography>
+                            }
+                            <ListAvailableSelections
+                                type={'ncu'}
+                                availableItems={listState.selectedNCUs}
+                                in_list={true}
+                                handleListClick={handleListClick}
+                            />
+                        </>
 
-                }
-                {selectedFaction && selectedView !== 'my_list' &&
-                    <ListAvailableSelections
-                        type={
-                            selectedView === 'units' ? 'unit' :
-                                selectedView === 'attachments' ? 'attachment' :
-                                    selectedView === 'ncus' ? 'ncu' :
-                                        'unit'
-                        }
-                        availableItems={
-                            selectedView === 'units' ? factionUnits :
-                                selectedView === 'attachments' ? factionAttachments :
-                                    selectedView === 'ncus' ? factionNCUs :
-                                        null
-                        }
-                        in_list={false}
-                        handleListClick={handleListClick}
-                    />
-                }
+                    }
+                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' &&
+                        <>
+                            <Typography variant={'h4'}>
+                                {listState.selectedView === 'units' ? 'Units' : listState.selectedView === 'attachments' ? 'Attachments' : 'NCUs'}
+                            </Typography>
+                            <ListAvailableSelections
+                                type={
+                                    listState.selectedView === 'units' ? 'unit' :
+                                        listState.selectedView === 'attachments' ? 'attachment' :
+                                            listState.selectedView === 'ncus' ? 'ncu' :
+                                                'unit'
+                                }
+                                availableItems={
+                                    listState.selectedView === 'units' ? listState.factionUnits :
+                                        listState.selectedView === 'attachments' ? listState.availableAttachments :
+                                            listState.selectedView === 'ncus' ? listState.factionNCUs :
+                                                null
+                                }
+                                in_list={false}
+                                handleListClick={handleListClick}
+                                handleOpenAttachments={handleOpenAttachments}
+                            />
+                        </>
+                    }
+                </Stack>
             </Stack>
             <SelectView
-                usedPoints={usedPoints}
-                maxPoints={maxPoints}
-                selectedFaction={selectedFaction}
-                selectedView={selectedView}
-                setSelectedView={setSelectedView}
+                setSelectedView={(view: VIEW_OPTIONS) => { listDispatch({ type: 'SET_SELECTED_VIEW', payload: view }) }}
+                {...listState}
             />
-            { awaitingResponse && <LoadingBackdrop /> }
+            { listState.awaitingResponse && <LoadingBackdrop /> }
         </>
     );
 };
@@ -332,7 +219,7 @@ function ListAvailableSelections({ type, in_list, availableItems, handleListClic
         <>
             {availableItems &&
                 <Box sx={{ width: '100%' }}>
-                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'} sx={gridContainerStyles}>
                         {availableItems.map((item, index) => (
                             <AvailableSelection
                                 key={item.name + '_select_' + index}
@@ -342,96 +229,12 @@ function ListAvailableSelections({ type, in_list, availableItems, handleListClic
                                 in_list={in_list}
                                 handleListClick={handleListClick}
                                 handleOpenAttachments={handleOpenAttachments}
+                                gridItemStyles={gridItemStyles}
                             />
                         ))}
-                    </Stack>
+                    </Grid>
                 </Box>
             }
         </>
-    );
-};
-
-// ----------------------------------------------------------------------
-
-type AvailableSelectionProps = {
-    type: 'unit' | 'ncu' | 'attachment';
-    index: number;
-    item: Unit | Attachment | NCU;
-    in_list: boolean;
-    handleListClick: (props: ListClickProps) => void;
-    handleOpenAttachments?: (unit: Unit) => void;
-};
-
-function AvailableSelection({ type, index, item, in_list, handleListClick, handleOpenAttachments }: AvailableSelectionProps) {
-
-    const [accordionOpen, setAccordionOpen] = useState<boolean>(false);
-    let item_title = `${item.name} (${item.points_cost})`;
-    if (type === 'unit' && (item as Unit).attachments.length > 0) {
-        item_title += ' -- ' + (item as Unit).attachments.map((attachment) => `${attachment.name} (${attachment.points_cost})`).join(', ');
-    }
-
-    return (
-        <Stack sx={{ width: '100%' }}>
-            <Accordion
-                disableGutters={true}
-                expanded={accordionOpen}
-                sx={{ ...(accordionOpen && { bgcolor: 'transparent' }) }}
-                TransitionProps={{ unmountOnExit: true }}
-            >
-                <AccordionSummaryDiv
-                    accordionOpen={accordionOpen}
-                    setAccordionOpen={setAccordionOpen}
-                    title={item_title}
-                />
-                <AccordionDetails sx={{ pt: 3 }}>
-                    <Stack spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                            <Grid item xs={12} md={4}>
-                                <Button
-                                    variant={'contained'}
-                                    fullWidth
-                                    onClick={() => handleListClick({ type, item, in_list, index })}
-                                >
-                                    {in_list ? `Remove from ${type === 'attachment' ? 'Unit' : 'List'}` :
-                                    `Add to ${type === 'attachment' ? 'Unit' : 'List'}`}
-                                </Button>
-                            </Grid>
-                            {type === 'unit' && in_list && handleOpenAttachments &&
-                                <Grid item xs={12} md={4}>
-                                    <Button
-                                        variant={'contained'}
-                                        fullWidth
-                                        onClick={() => handleOpenAttachments(item as Unit)}
-                                    >
-                                        Add Attachment
-                                    </Button>
-                                </Grid>
-                            }
-                        </Grid>
-                        <SelectableAvatar
-                            item={item}
-                            altText={item.name}
-                            isMobile={false}
-                            handleClick={() => {}}
-                            // view a pop up of the card?
-                        />
-                        {type === 'unit' && in_list && handleOpenAttachments && (item as Unit).attachments.length > 0 &&
-                            <>
-                                {((item as Unit).attachments).map((attachment, attach_index) => (
-                                    <AvailableSelection
-                                        key={attachment.name + '_attach_' + attach_index}
-                                        item={attachment}
-                                        type={'attachment'}
-                                        index={attach_index}
-                                        in_list={true}
-                                        handleListClick={handleListClick}
-                                    />
-                                ))}
-                            </>
-                        }
-                    </Stack>
-                </AccordionDetails>
-            </Accordion>
-        </Stack>
     );
 };

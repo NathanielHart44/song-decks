@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Box, Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Box, Button, Grid, Stack, SxProps, Theme, useTheme } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -127,8 +127,8 @@ export default function SelectDeck() {
         <Page title="Select Deck">
             { awaitingResponse && <LoadingBackdrop /> }
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
-                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'flex-start'}>
+                    <Grid item xs={4} md={3} lg={2}>
                         { selectedFaction ?
                             <SelectableAvatar
                                 item={selectedFaction}
@@ -145,29 +145,27 @@ export default function SelectDeck() {
                                 sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
                             />
                         }
-                        <Typography variant={'h4'} sx={{ textAlign: 'center' }}>Faction</Typography>
-                    </Stack>
+                    </Grid>
 
-                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    <Grid item xs={4} md={3} lg={2}>
                         { selectedCommander ?
                             <SelectableAvatar
-                            item={selectedCommander}
-                            altText={`SELECTED ${selectedCommander.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
+                                item={selectedCommander}
+                                altText={`SELECTED ${selectedCommander.name}`}
+                                isMobile={isMobile}
+                                handleClick={handleCommanderClick}
                             /> :
                             <SelectableAvatar
-                            item={selectedCommander}
-                            altText={'DEFAULT COMMANDER'}
-                            defaultIcon={'/icons/crown.svg'}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
+                                item={selectedCommander}
+                                altText={'DEFAULT COMMANDER'}
+                                defaultIcon={'/icons/crown.svg'}
+                                isMobile={isMobile}
+                                handleClick={handleCommanderClick}
+                                sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
                             />
                         }
-                        <Typography variant={'h4'} sx={{ textAlign: 'center' }}>Commander</Typography>
-                    </Stack>
-                </Stack>
+                    </Grid>
+                </Grid>
 
                 {  factions && !selectedFaction &&
                     <Box sx={{ width: '100%' }}>
@@ -214,7 +212,13 @@ export default function SelectDeck() {
                 }
 
                 { selectedFaction && selectedCommander && (
-                    <Button variant={'contained'} color={'primary'} onClick={() => { processTokens(beginGame) }} disabled={awaitingResponse}>
+                    <Button
+                        variant={'contained'}
+                        color={'primary'}
+                        size={'large'}
+                        onClick={() => { processTokens(beginGame) }}
+                        disabled={awaitingResponse}
+                    >
                         Confirm
                     </Button>
                 )}

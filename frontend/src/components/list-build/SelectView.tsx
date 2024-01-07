@@ -1,25 +1,26 @@
 import { BottomNavigation, BottomNavigationAction, Paper, Stack, Typography, useTheme } from "@mui/material";
-import { Faction } from "src/@types/types";
+import { Commander, Faction } from "src/@types/types";
 import Iconify from "src/components/base/Iconify";
-import { VIEW_OPTIONS } from "../../pages/ListBuilder";
+import { VIEW_OPTIONS } from "src/hooks/useListBuildManager";
 
 // ----------------------------------------------------------------------
 type SelectViewProps = {
     usedPoints: number;
     maxPoints: number;
     selectedFaction: Faction | null;
+    selectedCommander: Commander | null;
     selectedView: VIEW_OPTIONS;
     setSelectedView: (arg0: VIEW_OPTIONS) => void;
 };
-export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedView, setSelectedView }: SelectViewProps) {
+export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCommander, selectedView, setSelectedView }: SelectViewProps) {
 
     const theme = useTheme();
     const text_color = theme.palette.grey[500];
 
     return (
         <>
-            {selectedFaction &&
-                <Paper square sx={{ position: 'fixed', bottom: -2, left: 0, right: 0, width: '100%' }} elevation={10}>
+            {selectedFaction && selectedCommander &&
+                <Paper square sx={{ position: 'fixed', bottom: -2, left: 0, right: 0, width: '100%', zIndex: 999 }} elevation={10}>
                     <BottomNavigation
                         showLabels
                         value={selectedView}

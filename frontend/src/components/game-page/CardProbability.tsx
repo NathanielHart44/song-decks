@@ -189,7 +189,8 @@ export default function CardProbability({ gameID, deck_count, openModal, setOpen
                                         src={card.card_template.img_url}
                                         alt={card.card_template.card_name}
                                         loading="lazy"
-                                        style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
+                                    />
                                 </Box>
                                 <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>
                                     <Typography color={theme.palette.text.primary}>{getPercentage(card)}%</Typography>

@@ -1,4 +1,4 @@
-import { Stack, Typography, TextField, ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { Stack, Typography, TextField, ToggleButtonGroup, ToggleButton, Divider } from "@mui/material";
 import { Commander, Faction } from "src/@types/types";
 import { FactionAndCommanderSelect } from "./FactionAndCommanderSelect";
 
@@ -57,6 +57,9 @@ export function BuilderTopDisplay(
                 handleFactionClick={handleFactionClick}
                 handleCommanderClick={handleCommanderClick}
             />
+            {selectedFaction && selectedCommander &&
+                <Divider sx={{ width: '65%' }} />
+            }
         </>
     );
 }

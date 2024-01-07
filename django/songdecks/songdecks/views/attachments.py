@@ -30,7 +30,8 @@ def add_edit_attachment(request, attachment_id=None):
         info = {
             'name': request.data.get('name'),
             'points_cost': request.data.get('points_cost'),
-            'is_commander': request.data.get('is_commander'),
+            'type': request.data.get('type'),
+            'attachment_type': request.data.get('attachment_type'),
             'img_url': request.data.get('img_url'),
             'main_url': request.data.get('main_url'),
             'faction_id': request.data.get('faction_id'),
@@ -67,7 +68,8 @@ def add_edit_attachment(request, attachment_id=None):
             attachment = Attachment.objects.create(
                 name=info['name'],
                 points_cost=info['points_cost'],
-                is_commander=info['is_commander'],
+                type=info['type'],
+                attachment_type=info['attachment_type'],
                 img_url=info['img_url'],
                 main_url=info['main_url'],
                 faction=faction,
@@ -78,7 +80,8 @@ def add_edit_attachment(request, attachment_id=None):
                 return Response({"detail": "Attachment not found."}, status=status.HTTP_404_NOT_FOUND)
             attachment.name = info['name']
             attachment.points_cost = info['points_cost']
-            attachment.is_commander = info['is_commander']
+            attachment.type = info['type']
+            attachment.attachment_type = info['attachment_type']
             attachment.img_url = info['img_url']
             attachment.main_url = info['main_url']
             attachment.faction = faction

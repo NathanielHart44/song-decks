@@ -88,6 +88,11 @@ class Attachment(ExportModelOperationsMixin('attachment'), models.Model):
         ('monster', 'Monster'),
         ('war_machine', 'War Machine'),
     ]
+    ATTACHMENT_TYPE_CHOICES = [
+        ('generic', 'Generic'),
+        ('character', 'Character'),
+        ('commander', 'Commander'),
+    ]
 
     name = models.CharField(max_length=100)
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
@@ -95,7 +100,7 @@ class Attachment(ExportModelOperationsMixin('attachment'), models.Model):
     img_url = models.URLField(max_length=500)
     main_url = models.URLField(max_length=500)
     type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
-    is_commander = models.BooleanField(default=False)
+    attachment_type = models.CharField(max_length=20, choices=ATTACHMENT_TYPE_CHOICES, default='generic')
 
     def __str__(self):
         return f'{self.name} - {self.faction.name}'
