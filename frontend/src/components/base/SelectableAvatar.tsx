@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Stack, SxProps, Theme, Typography } from "@mui/material";
+import { Avatar, Badge, Box, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { capWordsLower } from "src/utils/capWords";
 import { Attachment } from "src/@types/types";
 
@@ -15,6 +15,7 @@ type SelectableAvatarProps = {
 };
 export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, disabled, sxOverrides }: SelectableAvatarProps) {
 
+    const theme = useTheme();
     const avatar_size = isMobile ? 100 : 80;
 
     const avatarStyles = {
@@ -57,7 +58,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                                 alt={altText}
                                 src={attachments[0].img_url}
                                 variant={'rounded'}
-                                sx={{ cursor: 'pointer', width: avatar_size * 0.5, height: avatar_size * 0.5 }}
+                                sx={{ cursor: 'pointer', width: avatar_size * 0.5, height: avatar_size * 0.5, border: `2px solid ${theme.palette.primary.main}` }}
                                 onClick={() => { handleClick(item); }}
                             />
                         </Badge>

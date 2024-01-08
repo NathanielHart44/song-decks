@@ -1,54 +1,17 @@
-import { useReducer } from "react";
 import { Attachment, Commander, Faction, NCU, Unit } from "src/@types/types";
 import { ListClickProps } from "src/pages/ListBuilder";
 import { genUniqueID } from "src/utils/genUniqueID";
 import { useApiCall } from "src/hooks/useApiCall";
+import { useContext } from "react";
+import { ALL_CONTENT_OPTIONS, DEFAULT_LIST_POINTS, ListBuilderContext } from "src/contexts/ListBuilderContext";
+import { useSnackbar } from "notistack";
 
 // ----------------------------------------------------------------------
 
 const useListBuildManager = () => {
     const { apiCall } = useApiCall();
-
-    function listBuilderReducer(state: ListState, action: ListAction) {
-        switch (action.type) {
-            case 'SET_AWAITING_RESPONSE':
-                return { ...state, awaitingResponse: action.payload };
-            case 'SET_ALL_FACTIONS':
-                return { ...state, allFactions: action.payload };
-            case 'SET_SELECTED_FACTION':
-                return { ...state, selectedFaction: action.payload };
-            case 'SET_SELECTED_COMMANDER':
-                return { ...state, selectedCommander: action.payload };
-            case 'SET_FACTION_COMMANDERS':
-                return { ...state, factionCommanders: action.payload };
-            case 'SET_FACTION_UNITS':
-                return { ...state, factionUnits: action.payload };
-            case 'SET_FACTION_ATTACHMENTS':
-                return { ...state, factionAttachments: action.payload };
-            case 'SET_AVAILABLE_ATTACHMENTS':
-                return { ...state, availableAttachments: action.payload };
-            case 'SET_FACTION_NCUs':
-                return { ...state, factionNCUs: action.payload };
-            case 'SET_SELECTED_VIEW':
-                return { ...state, selectedView: action.payload as VIEW_OPTIONS };
-            case 'SET_LIST_TITLE':
-                return { ...state, listTitle: action.payload };
-            case 'SET_USED_POINTS':
-                return { ...state, usedPoints: action.payload };
-            case 'SET_MAX_POINTS':
-                return { ...state, maxPoints: action.payload };
-            case 'SET_SELECTED_UNITS':
-                return { ...state, selectedUnits: action.payload };
-            case 'SET_SELECTED_UNIT_TEMP_ID':
-                return { ...state, selectedUnitTempID: action.payload };
-            case 'SET_SELECTED_NCUs':
-                return { ...state, selectedNCUs: action.payload };
-            default:
-                throw new Error('Unhandled action type!');
-        }
-    };
-
-    const [listState, listDispatch] = useReducer(listBuilderReducer, initialState);
+    const { enqueueSnackbar } = useSnackbar();
+    const { listDispatch, listState } = useContext(ListBuilderContext);
 
     const handleFactionClick = (faction: Faction | null) => {
         if (faction && faction.id === listState.selectedFaction?.id) {
@@ -116,9 +79,11 @@ const useListBuildManager = () => {
                     newSelectedUnits[unitToRemoveIndex].attachments = [];
                     newSelectedUnits.splice(unitToRemoveIndex, 1);
                     listDispatch({ type: 'SET_SELECTED_UNITS', payload: newSelectedUnits });
-                }                
+                }
+                enqueueSnackbar('Unit removed from List');
             } else if (type === 'ncu') {
                 listDispatch({ type: 'SET_SELECTED_NCUs', payload: listState.selectedNCUs.filter((ncu) => ncu.id !== item.id) });
+                enqueueSnackbar('NCU removed from List');
             } else {
                 // handle Attachment removal
                 const attachment_temp_id = (item as Attachment).temp_id;
@@ -137,6 +102,7 @@ const useListBuildManager = () => {
                         listDispatch({ type: 'SET_SELECTED_UNITS', payload: newSelectedUnits });
                     }
                 }
+                enqueueSnackbar('Attachment removed from Unit');
             }
         } else {
             if (type === 'unit') {
@@ -145,10 +111,12 @@ const useListBuildManager = () => {
                 newUnit.attachments = [];
                 
                 listDispatch({ type: 'SET_SELECTED_UNITS', payload: [...listState.selectedUnits, newUnit] });
+                enqueueSnackbar('Unit added to List');
             } else if (type === 'ncu') {
                 if (!listState.selectedNCUs.find((ncu) => ncu.id === item.id)) {
                     listDispatch({ type: 'SET_SELECTED_NCUs', payload: [...listState.selectedNCUs, item as NCU] });
                 }
+                enqueueSnackbar('NCU added to List');
             } else {
                 // handle Attachment add
                 if (!listState.selectedUnitTempID) { return };
@@ -170,6 +138,7 @@ const useListBuildManager = () => {
                     listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
                     listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
                 }
+                enqueueSnackbar('Attachment added to Unit');
             }
         }
     };
@@ -199,67 +168,75 @@ const useListBuildManager = () => {
         if (type === 'factions') { listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false }) };
     };
 
-    return { listState, listDispatch, getContent, handleFactionClick, handleCommanderClick, handleListClick };
+    const handleSaveList = async (action: 'edit' | 'create') => {
+        if (listState.awaitingResponse) return;
+        listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: true });
+
+        let url = 'add_edit_list';
+        // if (action === 'edit') {
+        //     url = `${url}/${listState.selectedFaction?.id}`;
+        // };
+
+        const list_units = listState.selectedUnits.map((unit) => {
+            return {
+                id: unit.id,
+                attachments: unit.attachments.map((attachment) => attachment.id)
+            };
+        });
+        const formData = new FormData();
+        formData.append('name', listState.listTitle);
+        formData.append('points_allowed', listState.maxPoints.toString());
+        formData.append('faction_id', listState.selectedFaction?.id.toString() || '');
+        formData.append('commander_id', listState.selectedCommander?.id.toString() || '');
+        formData.append('units', JSON.stringify(list_units));
+        formData.append('ncu_ids', JSON.stringify(listState.selectedNCUs.map((ncu) => ncu.id)));
+        formData.append('is_draft', 'false');
+        formData.append('is_public', 'true');
+        formData.append('is_valid', 'true');
+
+        apiCall(url, 'POST', formData, (data) => {
+            enqueueSnackbar('List Saved!');
+            console.log(data);
+        });
+        listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false });
+    }
+
+    function validSubmission() {
+        let failure_reasons = [];
+        if (!listState.selectedFaction) {
+            failure_reasons.push('No Faction selected.');
+        };
+        if (!listState.listTitle) {
+            failure_reasons.push('No List name.');
+        };
+        if (listState.usedPoints > listState.maxPoints) {
+            failure_reasons.push('List is over the max points allowed.');
+        };
+        if (listState.selectedUnits.length < 1) {
+            failure_reasons.push('No Units selected.');
+        };
+        // if the commander is not present as a unit or an attachment on a unit, add it to the failure_reasons.
+        if (listState.selectedCommander) {
+            if (listState.selectedCommander.commander_type === 'attachment') {
+                const commanderAttachment = listState.selectedUnits.find((unit) => unit.attachments.find((attachment) => attachment.name === listState.selectedCommander?.name));
+                if (!commanderAttachment) {
+                    failure_reasons.push('Commander not present in the List.');
+                }
+            } else if (listState.selectedCommander.commander_type === 'unit') {
+                if (!listState.selectedUnits.find((unit) => unit.name === listState.selectedCommander?.name)) {
+                    failure_reasons.push('Commander not present in the List.');
+                }
+            }
+        } else {
+            failure_reasons.push('No Commander selected.');
+        }
+        return {
+            valid: failure_reasons.length === 0,
+            failure_reasons
+        };
+    }
+
+    return { listState, listDispatch, getContent, handleFactionClick, handleCommanderClick, handleListClick, handleSaveList, validSubmission };
 };
 
 export default useListBuildManager;
-
-export const DEFAULT_LIST_POINTS = 40;
-export type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus';
-export type ALL_CONTENT_OPTIONS = 'factions' | 'commanders' | VIEW_OPTIONS;
-
-export type ListState = {
-    awaitingResponse: boolean;
-    allFactions: Faction[];
-    selectedFaction: Faction | null;
-    selectedCommander: Commander | null;
-    factionCommanders: Commander[] | null;
-    factionUnits: Unit[] | null;
-    factionAttachments: Attachment[] | null;
-    availableAttachments: Attachment[] | null;
-    factionNCUs: NCU[] | null;
-    selectedView: VIEW_OPTIONS;
-    listTitle: string;
-    usedPoints: number;
-    maxPoints: number;
-    selectedUnits: Unit[];
-    selectedUnitTempID: string | null;
-    selectedNCUs: NCU[];
-};
-
-export type ListAction =
-    { type: 'SET_AWAITING_RESPONSE'; payload: boolean }
-    | { type: 'SET_ALL_FACTIONS'; payload: Faction[] }
-    | { type: 'SET_SELECTED_FACTION'; payload: Faction | null }
-    | { type: 'SET_SELECTED_COMMANDER'; payload: Commander | null }
-    | { type: 'SET_FACTION_COMMANDERS'; payload: Commander[] | null }
-    | { type: 'SET_FACTION_UNITS'; payload: Unit[] | null }
-    | { type: 'SET_FACTION_ATTACHMENTS'; payload: Attachment[] | null }
-    | { type: 'SET_AVAILABLE_ATTACHMENTS'; payload: Attachment[] | null }
-    | { type: 'SET_FACTION_NCUs'; payload: NCU[] | null }
-    | { type: 'SET_SELECTED_VIEW'; payload: VIEW_OPTIONS }
-    | { type: 'SET_LIST_TITLE'; payload: string }
-    | { type: 'SET_USED_POINTS'; payload: number }
-    | { type: 'SET_MAX_POINTS'; payload: number }
-    | { type: 'SET_SELECTED_UNITS'; payload: Unit[] }
-    | { type: 'SET_SELECTED_UNIT_TEMP_ID'; payload: string | null }
-    | { type: 'SET_SELECTED_NCUs'; payload: NCU[] };
-
-const initialState = {
-    awaitingResponse: true,
-    allFactions: [],
-    selectedFaction: null,
-    selectedCommander: null,
-    factionCommanders: null,
-    factionUnits: null,
-    factionAttachments: null,
-    availableAttachments: null,
-    factionNCUs: null,
-    selectedView: 'my_list' as VIEW_OPTIONS,
-    listTitle: '',
-    usedPoints: 0,
-    maxPoints: DEFAULT_LIST_POINTS,
-    selectedUnits: [],
-    selectedUnitTempID: null,
-    selectedNCUs: []
-};

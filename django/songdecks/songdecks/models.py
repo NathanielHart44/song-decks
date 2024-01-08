@@ -147,6 +147,7 @@ class List(models.Model):
     owner = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='owned_lists')
     points_allowed = models.PositiveIntegerField()
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
+    commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
     units = models.ManyToManyField(ListUnit, blank=True, related_name='list_units')
     ncus = models.ManyToManyField(ListNCU, blank=True, related_name='list_ncus')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -155,36 +156,6 @@ class List(models.Model):
     is_public = models.BooleanField(default=False)
     is_valid = models.BooleanField(default=False)
     shared_from = models.ForeignKey('Profile', null=True, blank=True, on_delete=models.SET_NULL)
-
-    def get_commander(self):
-        for list_unit in self.units.all():
-            if list_unit.unit.is_commander:
-                return list_unit.unit
-            for attachment in list_unit.attachments.all():
-                if attachment.is_commander:
-                    return attachment
-        return None
-
-    def clean(self):
-        # Validation for Commander requirement
-        if not self.is_draft and not self.get_commander():
-            raise ValidationError("A Commander is required for a non-draft list.")
-
-        # Validation for points cost
-        if self.is_valid:
-            total_points = 0
-            for list_unit in self.units.all():
-                total_points += list_unit.unit.points_cost * list_unit.quantity
-                total_points += sum(attachment.points_cost for attachment in list_unit.attachments.all())
-            for list_ncu in self.ncus.all():
-                total_points += list_ncu.ncu.points_cost
-
-            if total_points > self.points_allowed:
-                raise ValidationError("Total points exceed the allowed limit.")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.faction.name} - {self.name}'

@@ -114,11 +114,27 @@ class UnitSerializer(serializers.ModelSerializer):
         fields = '__all__'
         depth = 1
 
+class ListUnitSerializer(serializers.ModelSerializer):
+    unit = UnitSerializer(read_only=True)
+    attachments = AttachmentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ListUnit
+        fields = ['unit', 'attachments', 'quantity']
+
+class ListNcuSerializer(serializers.ModelSerializer):
+    ncu = NcuSerializer(read_only=True)
+
+    class Meta:
+        model = ListNCU
+        fields = ['ncu']
+
+
 class ListSerializer(serializers.ModelSerializer):
     faction = FactionSerializer(read_only=True)
     commander = CommanderSerializer(read_only=True)
-    units = UnitSerializer(many=True, read_only=True)
-    ncus = NcuSerializer(many=True, read_only=True)
+    units = ListUnitSerializer(many=True, read_only=True, source='unit_list')
+    ncus = ListNcuSerializer(many=True, read_only=True, source='ncu_list')
 
     class Meta:
         model = List

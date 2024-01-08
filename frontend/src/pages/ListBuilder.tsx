@@ -8,6 +8,10 @@ import {
     Typography,
     Divider,
     useTheme,
+    ToggleButton,
+    ToggleButtonGroup,
+    TextField,
+    Button,
 } from "@mui/material";
 import { useContext, useEffect } from "react";
 import { Attachment, NCU, Unit } from "src/@types/types";
@@ -17,7 +21,8 @@ import { processTokens } from "src/utils/jwt";
 import { SelectView } from "../components/list-build/SelectView";
 import { BuilderTopDisplay } from "../components/list-build/BuilderTopDisplay";
 import { AvailableSelection } from "../components/list-build/AvailableSelection";
-import useListBuildManager, { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/hooks/useListBuildManager";
+import useListBuildManager from "src/hooks/useListBuildManager";
+import { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/contexts/ListBuilderContext";
 
 // ----------------------------------------------------------------------
 
@@ -57,7 +62,7 @@ export default function ListBuilder() {
         getContent,
         handleFactionClick,
         handleCommanderClick,
-        handleListClick
+        handleListClick,
     } = useListBuildManager();
 
     useEffect(() => { processTokens(() => { getContent('factions') }) }, []);
@@ -96,10 +101,6 @@ export default function ListBuilder() {
             }
         }
     }, [listState.selectedFaction, listState.selectedCommander]);
-
-    const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        listDispatch({ type: 'SET_LIST_TITLE', payload: event.target.value });
-    };
 
     function getUnitTempID(unit: Unit, selected_units: Unit[]) {
         const unit_index = selected_units.findIndex((selected_unit) => selected_unit.id === unit.id);
@@ -144,8 +145,6 @@ export default function ListBuilder() {
                     isMobile={isMobile}
                     handleFactionClick={handleFactionClick}
                     handleCommanderClick={handleCommanderClick}
-                    handleTitleChange={handleTitleChange}
-                    setMaxPoints={(points: number) => { listDispatch({ type: 'SET_MAX_POINTS', payload: points }) }}
                     {...listState}
                 />
                 <Stack
@@ -183,7 +182,7 @@ export default function ListBuilder() {
                         </>
 
                     }
-                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' &&
+                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' && listState.selectedView !== 'settings' &&
                         <>
                             <Typography variant={'h4'}>
                                 {listState.selectedView === 'units' ? 'Units' : listState.selectedView === 'attachments' ? 'Attachments' : 'NCUs'}
@@ -211,6 +210,9 @@ export default function ListBuilder() {
                                 handleOpenAttachments={handleOpenAttachments}
                             />
                         </>
+                    }
+                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'settings' &&
+                        <SettingsPage />
                     }
                 </Stack>
             </Stack>
@@ -260,3 +262,84 @@ function ListAvailableSelections({ type, in_list, availableItems, disabledItems,
         </>
     );
 };
+
+// ----------------------------------------------------------------------
+
+function SettingsPage() {
+
+    const theme = useTheme();
+    const title_grey = theme.palette.grey[600];
+    const { isMobile } = useContext(MetadataContext);
+    const { listState, listDispatch, handleSaveList, validSubmission } = useListBuildManager();
+
+    const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        listDispatch({ type: 'SET_LIST_TITLE', payload: event.target.value });
+    };
+
+    const validation_info = validSubmission();
+
+    return (
+        <Stack width={isMobile ? '98%' : '65%'} justifyContent={'center'} alignItems={'center'} spacing={3}>
+            <TextField
+                label={'List Name'}
+                variant={'outlined'}
+                fullWidth
+                value={listState.listTitle}
+                onChange={handleTitleChange}
+            />
+            <Stack width={'100%'}>
+                <Typography color={title_grey} variant={'subtitle2'}>Max Points</Typography>
+                <ToggleButtonGroup
+                    color="primary"
+                    value={listState.maxPoints}
+                    exclusive
+                    fullWidth
+                    size={'small'}
+                >
+                    {[30, 40, 50].map((points) => (
+                        <ToggleButton
+                            key={'points_' + points}
+                            value={points}
+                            onClick={() => { listDispatch({ type: 'SET_MAX_POINTS', payload: points }); } }
+                        >
+                            {points}
+                        </ToggleButton>
+                    ))}
+                </ToggleButtonGroup>
+            </Stack>
+            <Grid container columnGap={2} rowGap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Grid item xs={12} md={5} lg={4}>
+                    <Button
+                        variant={'contained'}
+                        fullWidth
+                        onClick={() => { processTokens(() => { handleSaveList('create'); }); } }
+                        disabled={!validation_info.valid}
+                    >
+                        Save
+                    </Button>
+                </Grid>
+                <Grid item xs={12} md={5} lg={4}>
+                    <Button
+                        variant={'contained'}
+                        fullWidth
+                        color={'secondary'}
+                        onClick={() => { listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' }); } }
+                    >
+                        Delete
+                    </Button>
+                </Grid>
+            </Grid>
+            {validation_info.failure_reasons.length > 0 &&
+                <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={1}>
+                    <Typography color={theme.palette.secondary.main} variant={'subtitle2'}>Invalid Submission</Typography>
+                    <Divider sx={{ width: '65%' }} />
+                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        {validation_info.failure_reasons.map((reason, index) => (
+                            <Typography key={'reason_' + index} color={theme.palette.secondary.main} variant={'subtitle2'}>{reason}</Typography>
+                        ))}
+                    </Stack>
+                </Stack>
+            }
+        </Stack>
+    );
+}
