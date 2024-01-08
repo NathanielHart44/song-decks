@@ -57,7 +57,6 @@ export default function EditAddAttachment({
         setURLLock(false);
         setMainURLLock(false);
         setCommanderOptions([]);
-        console.log(editOpen, attachment);
     }, [attachment, editOpen]);
 
     const handleAttachmentNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,11 +91,7 @@ export default function EditAddAttachment({
             return false;
         } else if (!mainAttachment.type) {
             return false;
-        } else if (mainAttachment.attachment_type !== 'commander' && !mainAttachment.points_cost) {
-            return false;
-        } else if (mainAttachment.attachment_type === 'commander' && mainAttachment.points_cost) {
-            return false;
-        }
+        };
         return true;
     }
 

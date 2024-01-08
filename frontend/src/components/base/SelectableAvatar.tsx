@@ -10,9 +10,10 @@ type SelectableAvatarProps = {
     isMobile: boolean;
     attachments?: Attachment[];
     defaultIcon?: string;
+    disabled?: boolean;
     sxOverrides?: SxProps<Theme>;
 };
-export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, sxOverrides }: SelectableAvatarProps) {
+export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, disabled, sxOverrides }: SelectableAvatarProps) {
 
     const avatar_size = isMobile ? 100 : 80;
 
@@ -23,6 +24,9 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
             transition: 'transform 0.3s',
             cursor: 'pointer',
             '&:hover': { transform: 'scale(1.1)' },
+        } : {},
+        ...(disabled) ? {
+            opacity: 0.5,
         } : {},
         ...sxOverrides,
     };
@@ -44,7 +48,11 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                     overlap="circular"
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     badgeContent={(attachments && attachments.length > 0) &&
-                        <Badge invisible={attachments.length <= 1} badgeContent={`+${attachments.length - 1}`} color="primary">
+                        <Badge
+                            invisible={attachments.length <= 1}
+                            badgeContent={`+${attachments.length - 1}`}
+                            color="primary"
+                        >
                             <Avatar
                                 alt={altText}
                                 src={attachments[0].img_url}
@@ -74,7 +82,11 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                         </Avatar>
                     )}
                 </Badge>
-                <Typography variant={'caption'} align={'center'}>
+                <Typography
+                    variant={'caption'}
+                    align={'center'}
+                    color={disabled ? 'text.disabled' : 'text.primary'}
+                >
                     {getCaptiontext()}
                 </Typography>
             </Stack>

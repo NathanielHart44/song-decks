@@ -22,16 +22,21 @@ type AvailableSelectionProps = {
     type: 'unit' | 'ncu' | 'attachment';
     index: number;
     item: Unit | Attachment | NCU;
+    disabledItems: Unit[] | NCU[] | null;
     in_list: boolean;
     handleListClick: (props: ListClickProps) => void;
     handleOpenAttachments?: (unit: Unit) => void;
     gridItemStyles: SxProps<Theme>;
 };
 
-export function AvailableSelection({ type, index, item, in_list, handleListClick, handleOpenAttachments, gridItemStyles }: AvailableSelectionProps) {
+export function AvailableSelection({ type, index, item, disabledItems, in_list, handleListClick, handleOpenAttachments, gridItemStyles }: AvailableSelectionProps) {
 
     const theme = useTheme();
     const [viewedItem, setViewedItem] = useState<Unit | Attachment | NCU>(item);
+
+    const is_disabled = disabledItems ?
+        disabledItems.some(disabled_item => (disabled_item.temp_id === item.temp_id || disabled_item.id === item.id)) :
+        false;
 
     const { isMobile } = useContext(MetadataContext);
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -107,7 +112,7 @@ export function AvailableSelection({ type, index, item, in_list, handleListClick
                                 value={viewedItem.temp_id ? viewedItem.temp_id : viewedItem.id}
                                 exclusive
                                 size={'small'}
-                                // fullWidth={!isMobile}
+                                fullWidth={!isMobile}
                                 orientation={isMobile ? 'vertical' : 'horizontal'}
                             >
                                 <ToggleButton value={item.temp_id ? item.temp_id : item.id} onClick={() => { setViewedItem(item); }}>
@@ -136,7 +141,8 @@ export function AvailableSelection({ type, index, item, in_list, handleListClick
                                 <Button
                                     variant={'contained'}
                                     fullWidth
-                                    onClick={() => { handleListClick({ type: getType(viewedItem), item: viewedItem, in_list, index }); setDialogOpen(false); setViewedItem(item); }}
+                                    disabled={is_disabled}
+                                    onClick={() => { handleListClick({ type: getType(viewedItem), item: viewedItem, in_list: in_list, index }); setDialogOpen(false); setViewedItem(item); }}
                                 >
                                     {in_list ? 'Remove' : 'Add'}
                                 </Button>
@@ -172,6 +178,7 @@ export function AvailableSelection({ type, index, item, in_list, handleListClick
                 isMobile={false}
                 handleClick={() => { setDialogOpen(true); }}
                 attachments={type === 'unit' ? (item as Unit).attachments : undefined}
+                disabled={is_disabled}
             />
         </Grid>
     );

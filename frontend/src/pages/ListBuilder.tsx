@@ -86,12 +86,13 @@ export default function ListBuilder() {
         listDispatch({ type: 'SET_LIST_TITLE', payload: `${listState.selectedCommander.name} (${listState.selectedFaction.name})` });
 
         if (!listState.factionAttachments || !listState.availableAttachments) { return };
-        // remove all attachments from availableAttachments where is_commander === true
         let newAvailableAttachments = listState.availableAttachments.filter((attachment) => attachment.attachment_type !== 'commander');
         if (listState.selectedCommander.commander_type === 'attachment') {
             const commanderAttachment = listState.factionAttachments.find((attachment) => attachment.name === listState.selectedCommander!.name);
             if (commanderAttachment) {
                 listDispatch({ type: 'SET_AVAILABLE_ATTACHMENTS', payload: [...newAvailableAttachments, commanderAttachment] });
+            } else {
+                listDispatch({ type: 'SET_AVAILABLE_ATTACHMENTS', payload: newAvailableAttachments });
             }
         }
     }, [listState.selectedFaction, listState.selectedCommander]);
@@ -124,6 +125,18 @@ export default function ListBuilder() {
         listDispatch({ type: 'SET_USED_POINTS', payload: newUsedPoints });
     }, [listState.selectedUnits, listState.selectedNCUs]);
 
+    function getDisabledItems(type: 'ncu' | 'attachment') {
+        let disabled_items: Unit[] | NCU[] = [];
+        if (type === 'ncu') {
+            disabled_items = listState.selectedNCUs;
+        } else if (type === 'attachment') {
+            // attachments attached to selectedUnits whose field 'attachment_type' is 'commander' or 'character' should be disabled
+            const selected_attachments = listState.selectedUnits.map((unit) => unit.attachments).flat();
+            disabled_items = selected_attachments.filter((attachment) => attachment.attachment_type === 'commander' || attachment.attachment_type === 'character');
+        }
+        return disabled_items;
+    };
+
     return (
         <>
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
@@ -150,6 +163,7 @@ export default function ListBuilder() {
                             <ListAvailableSelections
                                 type={'unit'}
                                 availableItems={listState.selectedUnits}
+                                disabledItems={[]}
                                 in_list={true}
                                 handleListClick={handleListClick}
                                 handleOpenAttachments={handleOpenAttachments}
@@ -162,6 +176,7 @@ export default function ListBuilder() {
                             <ListAvailableSelections
                                 type={'ncu'}
                                 availableItems={listState.selectedNCUs}
+                                disabledItems={[]}
                                 in_list={true}
                                 handleListClick={handleListClick}
                             />
@@ -186,6 +201,11 @@ export default function ListBuilder() {
                                             listState.selectedView === 'ncus' ? listState.factionNCUs :
                                                 null
                                 }
+                                disabledItems={
+                                    listState.selectedView === 'attachments' ? getDisabledItems('attachment') :
+                                        listState.selectedView === 'ncus' ? getDisabledItems('ncu') :
+                                            null
+                                }
                                 in_list={false}
                                 handleListClick={handleListClick}
                                 handleOpenAttachments={handleOpenAttachments}
@@ -209,11 +229,12 @@ type ListAvailableSelectionsProps = {
     type: 'unit' | 'ncu' | 'attachment';
     in_list: boolean;
     availableItems: Unit[] | Attachment[] | NCU[] | null;
+    disabledItems: Unit[] | NCU[] | null;
     handleListClick: (props: ListClickProps) => void;
     handleOpenAttachments?: (unit: Unit) => void;
 };
 
-function ListAvailableSelections({ type, in_list, availableItems, handleListClick, handleOpenAttachments }: ListAvailableSelectionsProps) {
+function ListAvailableSelections({ type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments }: ListAvailableSelectionsProps) {
 
     return (
         <>
@@ -227,6 +248,7 @@ function ListAvailableSelections({ type, in_list, availableItems, handleListClic
                                 type={type}
                                 index={index}
                                 in_list={in_list}
+                                disabledItems={disabledItems}
                                 handleListClick={handleListClick}
                                 handleOpenAttachments={handleOpenAttachments}
                                 gridItemStyles={gridItemStyles}
