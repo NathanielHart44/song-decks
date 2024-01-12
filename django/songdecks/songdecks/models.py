@@ -51,6 +51,7 @@ class Faction(ExportModelOperationsMixin('faction'), models.Model):
     name = models.CharField(max_length=100)
     img_url = models.URLField(max_length=500)
     neutral = models.BooleanField(default=False)
+    can_use_neutral = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

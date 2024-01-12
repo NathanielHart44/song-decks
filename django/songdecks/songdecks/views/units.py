@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from songdecks.serializers import UnitSerializer  # Ensure you have this serializer
 from songdecks.models import Faction, Unit, Attachment
-from songdecks.views.helpers import upload_file_to_s3
+from songdecks.views.helpers import upload_file_to_s3, valid_for_neutrals
 from songdecks.settings import AWS_S3_BUCKET_NAME
 
 # ----------------------------------------------------------------------
@@ -13,7 +13,19 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 def get_units(request, faction_id=None):
     try:
         if faction_id:
-            units = Unit.objects.filter(faction_id=faction_id)
+            faction = Faction.objects.filter(id=faction_id).first()
+            if not faction:
+                return Response({"detail": "Faction not found."}, status=status.HTTP_400_BAD_REQUEST)
+            if valid_for_neutrals(faction):
+                neutral_faction = Faction.objects.filter(neutral=True).first()
+                if neutral_faction == faction:
+                    units = Unit.objects.filter(faction_id=faction_id)
+                else:
+                    faction_units = Unit.objects.filter(faction_id=faction_id)
+                    neutral_units = Unit.objects.filter(faction_id=neutral_faction.id)
+                    units = neutral_units | faction_units
+            else:
+                units = Unit.objects.filter(faction_id=faction_id)
         else:
             units = Unit.objects.all()
         serializer = UnitSerializer(units, many=True)

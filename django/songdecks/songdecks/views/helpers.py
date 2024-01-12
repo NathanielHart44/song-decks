@@ -11,6 +11,7 @@ from songdecks.models import PlayerCard, UserCardStats, Profile, User
 from datetime import datetime
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
+from songdecks.models import Faction
 
 # ----------------------------------------------------------------------
 
@@ -180,3 +181,16 @@ def check_inappropriate_language(text):
         return True
     else:
         return False
+
+def valid_for_neutrals(faction: Faction) -> bool:
+    if faction is None:
+        return False
+    if faction.neutral:
+        return True
+    if not faction.neutral and faction.can_use_neutral:
+        # Neutral units are not native to this faction, but this faction can use them
+        return True
+    if not faction.neutral and not faction.can_use_neutral:
+        # Neutral units are not native to this faction, and this faction cannot use them
+        return False
+    return False
