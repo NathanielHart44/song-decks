@@ -101,7 +101,8 @@ export default function EditAddUnit({
         formData.append('main_url', mainUnit.main_url);
         formData.append('faction_id', mainUnit.faction.id.toString());
         formData.append('is_commander', mainUnit.is_commander.toString());
-        formData.append('unit_type', mainUnit.unit_type);
+        const all_unit_types = ["infantry", "cavalry", "monster", "war_machine"];
+        formData.append('unit_type', (mainUnit.unit_type && all_unit_types.includes(mainUnit.unit_type)) ? mainUnit.unit_type : 'infantry');
         if (mainUnit.id !== -1) {
             formData.append('unit_id', mainUnit.id.toString());
         }
@@ -249,7 +250,7 @@ export default function EditAddUnit({
                         <TextField
                             select
                             fullWidth
-                            value={mainUnit.unit_type ? mainUnit.unit_type : 'infantry'}
+                            value={mainUnit.unit_type}
                             onChange={(event) => {
                                 const type = event.target.value;
                                 setMainUnit({ ...mainUnit, unit_type: type as 'infantry' | 'cavalry' | 'war_machine' | 'monster' });
