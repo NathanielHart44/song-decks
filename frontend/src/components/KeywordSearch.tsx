@@ -5,8 +5,6 @@ import {
     Dialog,
     DialogContent,
     Grid,
-    Input,
-    InputAdornment,
     Stack,
     TextField,
     Typography,
@@ -15,13 +13,13 @@ import {
 import AccordionSummaryDiv from "./workbench/AccordionSummaryDiv";
 import { useContext, useEffect, useState } from "react";
 import { KeywordPairType, KeywordType } from "src/@types/types";
-import Iconify from "./base/Iconify";
 import { objectToFormData, useApiCall } from "src/hooks/useApiCall";
 import { processTokens } from "src/utils/jwt";
 import AddNewWB from "./workbench/AddNewWB";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 import { TagDiv } from "./workbench/TagDisplay";
+import { Searchbar } from "./Searchbar";
 
 // ----------------------------------------------------------------------
 
@@ -280,40 +278,6 @@ function KeywordPair({ keyword_pair, contentState, onlySearched, is_game, handle
                     }
                 </AccordionDetails>
             </Accordion>
-        </Stack>
-    )
-};
-
-// ----------------------------------------------------------------------
-
-type SearchbarProps = {
-    searchTerm: string;
-    setSearchTerm: (arg0: string) => void;
-};
-
-function Searchbar({ searchTerm, setSearchTerm }: SearchbarProps) {
-
-    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-        setSearchTerm(event.target.value);
-    }
-
-    return (
-        <Stack width={'80%'} justifyContent={'center'} alignItems={'center'}>
-            <Input
-                fullWidth
-                placeholder="Search…"
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Iconify
-                            icon={'eva:search-fill'}
-                            sx={{ color: 'text.disabled', width: 20, height: 20 }}
-                        />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={handleChange}
-                sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
-            />
         </Stack>
     )
 };

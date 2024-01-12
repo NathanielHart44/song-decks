@@ -26,7 +26,7 @@ export default function NotistackProvider({ children }: Props) {
 
   const StyledDefaultSnackbar = styled(MaterialDesignContent)(() => ({
     '&.notistack-MuiContent-default': {
-      backgroundColor: theme.palette.grey[800],
+      backgroundColor: theme.palette.grey[700],
     }
   }));
 
