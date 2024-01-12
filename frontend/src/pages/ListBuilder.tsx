@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-    Box,
     Grid,
     Stack,
     SxProps,
@@ -20,9 +19,9 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
 import { SelectView } from "../components/list-build/SelectView";
 import { BuilderTopDisplay } from "../components/list-build/BuilderTopDisplay";
-import { AvailableSelection } from "../components/list-build/AvailableSelection";
 import useListBuildManager from "src/hooks/useListBuildManager";
 import { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/contexts/ListBuilderContext";
+import { ListAvailableSelections } from "../components/list-build/ListAvailableSelections";
 
 // ----------------------------------------------------------------------
 
@@ -55,6 +54,7 @@ export default function ListBuilder() {
 
     const { isMobile } = useContext(MetadataContext);
     const theme = useTheme();
+    const TESTING = false;
 
     const {
         listState,
@@ -88,7 +88,6 @@ export default function ListBuilder() {
 
     useEffect(() => {
         if (!listState.selectedFaction || !listState.selectedCommander) { return };
-        listDispatch({ type: 'SET_LIST_TITLE', payload: `${listState.selectedCommander.name} (${listState.selectedFaction.name})` });
 
         if (!listState.factionAttachments || !listState.availableAttachments) { return };
         let newAvailableAttachments = listState.availableAttachments.filter((attachment) => attachment.attachment_type !== 'commander');
@@ -103,7 +102,7 @@ export default function ListBuilder() {
     }, [listState.selectedFaction, listState.selectedCommander]);
 
     function getUnitTempID(unit: Unit, selected_units: Unit[]) {
-        const unit_index = selected_units.findIndex((selected_unit) => selected_unit.id === unit.id);
+        const unit_index = selected_units.findIndex((selected_unit) => selected_unit.temp_id === unit.temp_id);
         if (unit_index === -1) { return null };
         return selected_units[unit_index].temp_id;
     };
@@ -142,6 +141,7 @@ export default function ListBuilder() {
         <>
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 <BuilderTopDisplay
+                    testing={TESTING}
                     isMobile={isMobile}
                     handleFactionClick={handleFactionClick}
                     handleCommanderClick={handleCommanderClick}
@@ -155,7 +155,7 @@ export default function ListBuilder() {
                 >
                     {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'my_list' &&
                         <>
-                            <Typography variant={'h4'}>Units</Typography>
+                            <Typography variant={'h4'}>Selected Units</Typography>
                             { listState.selectedUnits.length === 0 &&
                                 <Typography color={theme.palette.text.disabled}>No Units Selected</Typography>
                             }
@@ -166,9 +166,10 @@ export default function ListBuilder() {
                                 in_list={true}
                                 handleListClick={handleListClick}
                                 handleOpenAttachments={handleOpenAttachments}
+                                testing={TESTING}
                             />
                             <Divider sx={{ width: '65%' }} />
-                            <Typography variant={'h4'}>NCUs</Typography>
+                            <Typography variant={'h4'}>Selected NCUs</Typography>
                             { listState.selectedNCUs.length === 0 &&
                                 <Typography color={theme.palette.text.disabled}>No NCUs Selected</Typography>
                             }
@@ -178,14 +179,36 @@ export default function ListBuilder() {
                                 disabledItems={[]}
                                 in_list={true}
                                 handleListClick={handleListClick}
+                                testing={TESTING}
                             />
                         </>
 
                     }
                     {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' && listState.selectedView !== 'settings' &&
                         <>
+                            {listState.selectedView === 'attachments' &&
+                                <>
+                                    <Typography variant={'h4'}>
+                                        Selected Unit
+                                    </Typography>
+                                    <ListAvailableSelections
+                                        type={"unit"}
+                                        availableItems={listState.selectedUnits.filter((unit) => unit.temp_id === listState.selectedUnitTempID)}
+                                        disabledItems={[]}
+                                        in_list={true}
+                                        handleListClick={
+                                            () => {
+                                                listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
+                                                listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
+                                            }
+                                        }
+                                        attachment_select={true}
+                                        testing={TESTING}
+                                    />
+                                </>
+                            }
                             <Typography variant={'h4'}>
-                                {listState.selectedView === 'units' ? 'Units' : listState.selectedView === 'attachments' ? 'Attachments' : 'NCUs'}
+                                Available {listState.selectedView === 'units' ? 'Units' : listState.selectedView === 'attachments' ? 'Attachments' : 'NCUs'}
                             </Typography>
                             <ListAvailableSelections
                                 type={
@@ -208,6 +231,7 @@ export default function ListBuilder() {
                                 in_list={false}
                                 handleListClick={handleListClick}
                                 handleOpenAttachments={handleOpenAttachments}
+                                testing={TESTING}
                             />
                         </>
                     }
@@ -221,44 +245,6 @@ export default function ListBuilder() {
                 {...listState}
             />
             { listState.awaitingResponse && <LoadingBackdrop /> }
-        </>
-    );
-};
-
-// ----------------------------------------------------------------------
-
-type ListAvailableSelectionsProps = {
-    type: 'unit' | 'ncu' | 'attachment';
-    in_list: boolean;
-    availableItems: Unit[] | Attachment[] | NCU[] | null;
-    disabledItems: Unit[] | NCU[] | null;
-    handleListClick: (props: ListClickProps) => void;
-    handleOpenAttachments?: (unit: Unit) => void;
-};
-
-function ListAvailableSelections({ type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments }: ListAvailableSelectionsProps) {
-
-    return (
-        <>
-            {availableItems &&
-                <Box sx={{ width: '100%' }}>
-                    <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'} sx={gridContainerStyles}>
-                        {availableItems.map((item, index) => (
-                            <AvailableSelection
-                                key={item.name + '_select_' + index}
-                                item={item}
-                                type={type}
-                                index={index}
-                                in_list={in_list}
-                                disabledItems={disabledItems}
-                                handleListClick={handleListClick}
-                                handleOpenAttachments={handleOpenAttachments}
-                                gridItemStyles={gridItemStyles}
-                            />
-                        ))}
-                    </Grid>
-                </Box>
-            }
         </>
     );
 };

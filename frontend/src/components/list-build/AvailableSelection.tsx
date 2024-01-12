@@ -10,7 +10,7 @@ import {
     ToggleButtonGroup,
     ToggleButton
 } from "@mui/material";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Attachment, NCU, Unit } from "src/@types/types";
 import { SelectableAvatar } from "src/components/base/SelectableAvatar";
 import { MetadataContext } from "src/contexts/MetadataContext";
@@ -27,26 +27,44 @@ type AvailableSelectionProps = {
     handleListClick: (props: ListClickProps) => void;
     handleOpenAttachments?: (unit: Unit) => void;
     gridItemStyles: SxProps<Theme>;
+    attachment_select?: boolean;
+    testing?: boolean;
 };
 
-export function AvailableSelection({ type, index, item, disabledItems, in_list, handleListClick, handleOpenAttachments, gridItemStyles }: AvailableSelectionProps) {
+export function AvailableSelection({ type, index, item, disabledItems, in_list, handleListClick, handleOpenAttachments, gridItemStyles, attachment_select, testing }: AvailableSelectionProps) {
 
     const theme = useTheme();
     const [viewedItem, setViewedItem] = useState<Unit | Attachment | NCU>(item);
+    const { isMobile } = useContext(MetadataContext);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (dialogOpen) {
+            setViewedItem(item);
+        };
+    }, [item, dialogOpen]);
 
     const is_disabled = disabledItems ?
         disabledItems.some(disabled_item => (disabled_item.temp_id === item.temp_id || disabled_item.id === item.id)) :
         false;
 
-    const { isMobile } = useContext(MetadataContext);
-    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     let item_title = item.name;
+    if (testing) {
+        item_title += ` ${item.temp_id === undefined ? item.id : item.temp_id}`;
+    }
     const contains_attachments = type === 'unit' && (item as Unit).attachments.length > 0;
     if (type === 'attachment') {
         item_title += ` (${(item as Attachment).attachment_type === 'commander' ? 'C' : item.points_cost})`;
     } else if (contains_attachments) {
-        const total_points = (item as Unit).attachments.reduce((total, attachment) => total + attachment.points_cost, item.points_cost);
-        item_title += ` (${total_points})`;
+        const includes_commander = (item as Unit).attachments.some(attachment => attachment.attachment_type === 'commander');
+        if (includes_commander) {
+            item_title = '(C) ' + item_title + ` (${item.points_cost})`;
+        };
+        const non_commander_attachments = (item as Unit).attachments.filter(attachment => attachment.attachment_type !== 'commander');
+        if (non_commander_attachments.length > 0) {
+            const total_attachment_points = (item as Unit).attachments.reduce((total, attachment) => total + attachment.points_cost, 0);
+            item_title += ` (${item.points_cost}+${total_attachment_points})`;
+        };
     } else {
         item_title += ` (${item.points_cost})`;
     };
@@ -142,9 +160,9 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                                     variant={'contained'}
                                     fullWidth
                                     disabled={is_disabled}
-                                    onClick={() => { handleListClick({ type: getType(viewedItem), item: viewedItem, in_list: in_list, index }); setDialogOpen(false); setViewedItem(item); }}
+                                    onClick={() => { setViewedItem(item); handleListClick({ type: getType(viewedItem), item: viewedItem, in_list: in_list, index }); setDialogOpen(false); setViewedItem(item); }}
                                 >
-                                    {in_list ? 'Remove' : 'Add'}
+                                    {attachment_select ? 'Unselect' : (in_list ? 'Remove' : 'Add')}
                                 </Button>
                             </Grid>
                             <Grid item xs={5.5} md={4}>

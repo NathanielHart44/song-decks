@@ -68,16 +68,18 @@ const useListBuildManager = () => {
     };
 
     const handleListClick = (props: ListClickProps) => {
-        const { type, item, in_list, index } = props;
+        const { type, item, in_list } = props;
         if (in_list) {
             if (type === 'unit') {
-                let unitToRemoveIndex = listState.selectedUnits.findIndex((unit) => unit.id === item.id);
-                if (index !== undefined) { unitToRemoveIndex = index };
+                let unitToRemoveIndex = listState.selectedUnits.findIndex((unit) => unit.temp_id === item.temp_id);
+                const unitToRemove = listState.selectedUnits[unitToRemoveIndex];
                     
                 if (unitToRemoveIndex !== -1) {
                     const newSelectedUnits = [...listState.selectedUnits];
-                    newSelectedUnits[unitToRemoveIndex].attachments = [];
-                    newSelectedUnits.splice(unitToRemoveIndex, 1);
+                    const newUnitToRemoveIndex = newSelectedUnits.findIndex((unit) => unit.temp_id === unitToRemove.temp_id);
+                    newSelectedUnits[newUnitToRemoveIndex].attachments = [];
+                    newSelectedUnits.splice(newUnitToRemoveIndex, 1);
+                    listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
                     listDispatch({ type: 'SET_SELECTED_UNITS', payload: newSelectedUnits });
                 }
                 enqueueSnackbar('Unit removed from List');
@@ -97,7 +99,8 @@ const useListBuildManager = () => {
                     let unitToRemoveIndex = listState.selectedUnits.findIndex((unit) => unit.temp_id === attachmentsUnit.temp_id);
                     if (unitToRemoveIndex !== -1) {
                         const newSelectedUnits = [...listState.selectedUnits];
-                        newSelectedUnits.splice(unitToRemoveIndex, 1);
+                        const newUnitToRemoveIndex = newSelectedUnits.findIndex((unit) => unit.temp_id === attachmentsUnit.temp_id);
+                        newSelectedUnits.splice(newUnitToRemoveIndex, 1);
                         newSelectedUnits.push(newAttachmentsUnit);
                         listDispatch({ type: 'SET_SELECTED_UNITS', payload: newSelectedUnits });
                     }

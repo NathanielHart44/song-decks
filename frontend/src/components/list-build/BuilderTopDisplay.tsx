@@ -9,12 +9,14 @@ type BuilderTopDisplayProps = {
     selectedFaction: Faction | null;
     selectedCommander: Commander | null;
     factionCommanders: Commander[] | null;
+    selectedUnitTempID: string | null;
     handleFactionClick: (arg0: Faction | null) => void;
     handleCommanderClick: (arg0: Commander | null) => void;
+    testing?: boolean;
 };
 export function BuilderTopDisplay(
     {
-        isMobile, allFactions, selectedFaction, selectedCommander, factionCommanders, handleFactionClick, handleCommanderClick
+        isMobile, allFactions, selectedFaction, selectedCommander, factionCommanders, selectedUnitTempID, handleFactionClick, handleCommanderClick, testing
     }: BuilderTopDisplayProps
 ) {
 
@@ -35,6 +37,9 @@ export function BuilderTopDisplay(
             />
             {selectedFaction && selectedCommander &&
                 <Divider sx={{ width: '65%' }} />
+            }
+            {testing &&
+                <Typography variant={'h4'}>{selectedUnitTempID}</Typography>
             }
         </>
     );
