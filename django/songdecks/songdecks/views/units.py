@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from songdecks.serializers import UnitSerializer  # Ensure you have this serializer
-from songdecks.models import Faction, Unit, Attachment
+from songdecks.models import Faction, Unit
 from songdecks.views.helpers import upload_file_to_s3, valid_for_neutrals
 from songdecks.settings import AWS_S3_BUCKET_NAME
 
@@ -47,12 +47,11 @@ def add_edit_unit(request, unit_id=None):
             'img_url': request.data.get('img_url'),
             'main_url': request.data.get('main_url'),
             'faction_id': request.data.get('faction_id'),
-            'attachment_ids': request.data.get('attachment_ids')  # List of attachment IDs
         }
 
         # Validate required fields
         for key, value in info.items():
-            if value is None and key != 'attachment_ids':  # attachments are optional
+            if value is None:
                 return Response({"detail": f"Missing {key}"}, status=status.HTTP_400_BAD_REQUEST)
             if key == 'is_commander':
                 info[key] = True if value == 'true' else False
@@ -99,11 +98,6 @@ def add_edit_unit(request, unit_id=None):
             unit.main_url = info['main_url']
             unit.faction = faction
             unit.save()
-
-        # Handle attachments
-        if 'attachment_ids' in info and isinstance(info['attachment_ids'], list):
-            attachments = Attachment.objects.filter(id__in=info['attachment_ids'])
-            unit.attachments.set(attachments)
 
         serializer = UnitSerializer(unit)
         return Response(serializer.data, status=status.HTTP_200_OK)

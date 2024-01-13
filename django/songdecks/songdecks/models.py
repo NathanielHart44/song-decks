@@ -118,7 +118,6 @@ class Unit(ExportModelOperationsMixin('unit'), models.Model):
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
     points_cost = models.PositiveIntegerField()
     unit_type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
-    attachments = models.ManyToManyField(Attachment, blank=True)
     img_url = models.URLField(max_length=500)
     main_url = models.URLField(max_length=500)
     is_commander = models.BooleanField(default=False)

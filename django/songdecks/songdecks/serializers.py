@@ -107,7 +107,6 @@ class AttachmentSerializer(serializers.ModelSerializer):
         depth = 1
 
 class UnitSerializer(serializers.ModelSerializer):
-    attachments = AttachmentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Unit
@@ -116,11 +115,15 @@ class UnitSerializer(serializers.ModelSerializer):
 
 class ListUnitSerializer(serializers.ModelSerializer):
     unit = UnitSerializer(read_only=True)
-    attachments = AttachmentSerializer(many=True, read_only=True)
+    attachments = serializers.SerializerMethodField()
 
     class Meta:
         model = ListUnit
         fields = ['unit', 'attachments', 'quantity']
+
+    def get_attachments(self, obj):
+        # Serialize the attachments for each ListUnit
+        return AttachmentSerializer(obj.attachments.all(), many=True).data
 
 class ListNcuSerializer(serializers.ModelSerializer):
     ncu = NcuSerializer(read_only=True)
@@ -128,7 +131,6 @@ class ListNcuSerializer(serializers.ModelSerializer):
     class Meta:
         model = ListNCU
         fields = ['ncu']
-
 
 class ListSerializer(serializers.ModelSerializer):
     faction = FactionSerializer(read_only=True)

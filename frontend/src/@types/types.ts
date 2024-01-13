@@ -132,8 +132,8 @@ export type FakeList = {
     points_allowed: number;
     faction: Faction | null;
     commander: FakeCommander | null;
-    units: FakeUnit[];
-    ncus: FakeNCU[];
+    units: { unit: Unit, attachments: Attachment[] }[];
+    ncus: { ncu: NCU }[];
     created_at: string;
     updated_at: string;
     is_draft: boolean;

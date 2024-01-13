@@ -20,9 +20,12 @@ logging.basicConfig(level=logging.INFO)
 # List Content
 
 @api_view(['GET'])
-def get_lists(request):
+def get_lists(request, user_id=None):
     try:
-        lists = List.objects.all()
+        if user_id:
+            lists = List.objects.filter(owner__user__id=user_id)
+        else:
+            lists = List.objects.all()
         serializer = ListSerializer(lists, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
@@ -104,12 +107,16 @@ def add_edit_list(request, list_id=None):
                             raise ValidationError("Multiple commanders assigned to the list.")
                         attached_commander = unit_instance
                     if unit_info['attachments']:
+                        logging.info(f"Unit {unit_instance.name} has attachments.")
                         attachments = Attachment.objects.filter(id__in=unit_info['attachments'])
+                        logging.info(f"Attachments: {attachments}")
                         if 'commander' in [attachment.attachment_type for attachment in attachments]:
                             if attached_commander:
                                 raise ValidationError("Multiple commanders assigned to the list.")
                             attached_commander = attachments.filter(attachment_type='commander').first()
                         list_unit.attachments.set(attachments)
+                    list_unit.save()
+                    logging.info(f'Attachments set for {list_unit.unit.name}: {[attachment.name for attachment in list_unit.attachments.all()]}')
 
                 if attached_commander is None:
                     raise ValidationError(f"Commander is not attached. {attached_commander}")

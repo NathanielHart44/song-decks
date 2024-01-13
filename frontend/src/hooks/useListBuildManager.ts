@@ -5,11 +5,15 @@ import { useApiCall } from "src/hooks/useApiCall";
 import { useContext } from "react";
 import { ALL_CONTENT_OPTIONS, DEFAULT_LIST_POINTS, ListBuilderContext } from "src/contexts/ListBuilderContext";
 import { useSnackbar } from "notistack";
+import delay from "src/utils/delay";
+import { useNavigate } from "react-router-dom";
+import { PATH_PAGE } from "src/routes/paths";
 
 // ----------------------------------------------------------------------
 
 const useListBuildManager = () => {
     const { apiCall } = useApiCall();
+    const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
     const { listDispatch, listState } = useContext(ListBuilderContext);
 
@@ -199,6 +203,18 @@ const useListBuildManager = () => {
 
         apiCall(url, 'POST', formData, (data) => {
             enqueueSnackbar('List Saved!');
+            // reset all the listState values.
+            listDispatch({ type: 'SET_SELECTED_FACTION', payload: null });
+            listDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
+            listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
+            listDispatch({ type: 'SET_LIST_TITLE', payload: '' });
+            listDispatch({ type: 'SET_USED_POINTS', payload: 0 });
+            listDispatch({ type: 'SET_MAX_POINTS', payload: DEFAULT_LIST_POINTS });
+            listDispatch({ type: 'SET_SELECTED_NCUs', payload: [] });
+            listDispatch({ type: 'SET_SELECTED_UNITS', payload: [] });
+            listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
+            
+            delay(500).then(() => { navigate(PATH_PAGE.list_manager) });
             console.log(data);
         });
         listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false });

@@ -148,7 +148,14 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
                 <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={2}>
                     {!in_list &&
                         <>
-                            <Stack width={'85%'} direction={'row'} spacing={2} justifyContent={'flex-end'} alignItems={'center'}>
+                            <Stack
+                                width={'85%'}
+                                direction={'row'}
+                                spacing={2}
+                                justifyContent={'flex-end'}
+                                alignItems={'center'}
+                                sx={{ pb: 2 }}
+                            >
                                 <Button
                                     variant={'outlined'}
                                     onClick={() => setFiltersOpen(true)}

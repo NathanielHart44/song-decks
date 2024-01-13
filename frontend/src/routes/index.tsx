@@ -47,6 +47,7 @@ export default function Router() {
         { path: 'game/:gameID', element: withAuthGuard(<Game />) },
         { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         { path: 'list-builder', element: withAuthGuard(<ListBuilder />) },
+        { path: 'list-manager', element: withAuthGuard(<ListManager />) },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" replace /> },
       ],
@@ -72,3 +73,4 @@ const AdminPage = Loadable(lazy(() => import('src/pages/AdminPage')));
 const Workbench = Loadable(lazy(() => import('src/pages/Workbench')));
 const ProfilePage = Loadable(lazy(() => import('src/pages/ProfilePage')));
 const ListBuilder = Loadable(lazy(() => import('src/pages/ListBuilder')));
+const ListManager = Loadable(lazy(() => import('src/pages/ListManager')));

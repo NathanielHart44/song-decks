@@ -112,6 +112,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('lists/', lists_views.get_lists),
+    path('lists/<int:user_id>/', lists_views.get_lists),
 
     path('add_edit_list/', lists_views.add_edit_list),
     path('add_edit_list/<int:list_id>/', lists_views.add_edit_list),
