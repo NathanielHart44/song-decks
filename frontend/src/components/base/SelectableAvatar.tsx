@@ -84,7 +84,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                             sx={avatarStyles}
                             onClick={() => { handleClick(item); }}
                         >
-                            <img src={defaultIcon} alt={altText} loading="lazy" />
+                            <img src={defaultIcon} alt={altText} loading="eager" />
                         </Avatar>
                     )}
                 </Badge>
