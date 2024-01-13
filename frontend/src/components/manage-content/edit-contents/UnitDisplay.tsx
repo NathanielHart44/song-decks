@@ -33,7 +33,7 @@ export function UnitDisplay({ isMobile, unit, units, setUnits, factions }: CardD
                 <img
                     src={unit.main_url}
                     alt={unit.name}
-                    loading="lazy"
+                    loading="eager"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                 />
             </Box>

@@ -188,7 +188,7 @@ export default function CardProbability({ gameID, deck_count, openModal, setOpen
                                     <img
                                         src={card.card_template.img_url}
                                         alt={card.card_template.card_name}
-                                        loading="lazy"
+                                        loading="eager"
                                         style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                                     />
                                 </Box>

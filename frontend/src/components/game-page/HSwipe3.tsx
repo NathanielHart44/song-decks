@@ -151,7 +151,7 @@ function CardContents({ scale, card_width, card_height, hide, card, position}: C
             <img
                 src={card.card_template.img_url}
                 alt="Overlay SVG"
-                loading="lazy"
+                loading="eager"
                 style={{
                     pointerEvents: 'none',
                     width: card_width,

@@ -154,7 +154,7 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                             <img
                                 src={viewedItem.main_url}
                                 alt={viewedItem.name + ' main image'}
-                                loading="lazy"
+                                loading="eager"
                                 style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                             />
                         </Box>

@@ -183,7 +183,7 @@ export function Popup({ image, open, handleClose }: PopupProps) {
                             maxHeight: '100vh',
                             objectFit: 'contain',
                         }}
-                        loading="lazy"
+                        loading="eager"
                     />
                 </Box>
             </DialogContent>

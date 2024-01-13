@@ -33,7 +33,7 @@ export function AttachmentDisplay({ isMobile, attachment, attachments, setAttach
                 <img
                     src={attachment.main_url}
                     alt={attachment.name}
-                    loading="lazy"
+                    loading="eager"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                 />
             </Box>

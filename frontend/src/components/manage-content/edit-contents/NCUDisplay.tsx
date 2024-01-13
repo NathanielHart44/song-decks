@@ -33,7 +33,7 @@ export function NCUDisplay({ isMobile, ncu, ncus, setNCUs, factions }: CardDispl
                 <img
                     src={ncu.main_url}
                     alt={ncu.name}
-                    loading="lazy"
+                    loading="eager"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
                 />
             </Box>
