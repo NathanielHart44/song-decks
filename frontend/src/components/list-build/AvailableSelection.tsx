@@ -45,8 +45,10 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
     }, [item, dialogOpen]);
 
     const is_disabled = disabledItems ?
-        disabledItems.some(disabled_item => (disabled_item.temp_id === item.temp_id || disabled_item.id === item.id)) :
-        false;
+        (type === 'unit' ?
+            disabledItems.some(disabled_item => (disabled_item.temp_id === item.temp_id || disabled_item.id === item.id)) :
+            disabledItems.some(disabled_item => (disabled_item.id === item.id))
+        ) : false;
 
     let item_title = item.name;
     if (testing) {
@@ -71,11 +73,11 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
 
     function getImgSizing() {
         let img_sizing: SxProps<Theme> = {
-            maxHeight: '65%',
+            maxHeight: '65%'
         };
         if (isMobile) {
             img_sizing = {
-                maxHeight: '70%',
+                maxHeight: '70%'
             };
         };
         return img_sizing;
@@ -121,8 +123,8 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                             height: '100vh',
                             width: '95%',
                             padding: isMobile ? 2 : 4,
+                            zIndex: (theme) => theme.zIndex.drawer + 2,
                         }}
-                        onClick={event => event.stopPropagation()}
                     >
                         {contains_attachments && in_list &&
                             <ToggleButtonGroup
@@ -132,6 +134,7 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                                 size={'small'}
                                 fullWidth={!isMobile}
                                 orientation={isMobile ? 'vertical' : 'horizontal'}
+                                onClick={event => event.stopPropagation()}
                             >
                                 <ToggleButton value={item.temp_id ? item.temp_id : item.id} onClick={() => { setViewedItem(item); }}>
                                     {item.name} ({item.points_cost})
@@ -147,36 +150,25 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                                 ))}
                             </ToggleButtonGroup>
                         }
-                        <Box sx={getImgSizing()}>
+                        <Box sx={getImgSizing()} onClick={event => event.stopPropagation()}>
                             <img
                                 src={viewedItem.main_url}
                                 alt={viewedItem.name + ' main image'}
                                 loading="lazy"
-                                style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }} />
+                                style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
+                            />
                         </Box>
-                        <Grid container columnGap={1} rowGap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                            <Grid item xs={5.5} md={4}>
-                                <Button
-                                    variant={'contained'}
-                                    fullWidth
-                                    disabled={is_disabled}
-                                    onClick={() => { setViewedItem(item); handleListClick({ type: getType(viewedItem), item: viewedItem, in_list: in_list, index }); setDialogOpen(false); setViewedItem(item); }}
-                                >
-                                    {attachment_select ? 'Unselect' : (in_list ? 'Remove' : 'Add')}
-                                </Button>
-                            </Grid>
-                            <Grid item xs={5.5} md={4}>
-                                <Button
-                                    variant={'contained'}
-                                    fullWidth
-                                    onClick={() => { setDialogOpen(false); setViewedItem(item); }}
-                                    color="secondary"
-                                >
-                                    Cancel
-                                </Button>
-                            </Grid>
+                        <Grid
+                            container
+                            columnGap={1}
+                            rowGap={2}
+                            width={'100%'}
+                            justifyContent={'center'}
+                            alignItems={'center'}
+                            onClick={event => event.stopPropagation()}
+                        >
                             {type === 'unit' && in_list && handleOpenAttachments && getType(viewedItem) === 'unit' &&
-                                <Grid item xs={12} md={8}>
+                                <Grid item xs={5.5} md={4}>
                                     <Button
                                         variant={'contained'}
                                         fullWidth
@@ -186,6 +178,17 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                                     </Button>
                                 </Grid>
                             }
+                            <Grid item xs={5.5} md={4}>
+                                <Button
+                                    variant={'contained'}
+                                    fullWidth
+                                    disabled={is_disabled}
+                                    color={attachment_select || in_list ? 'secondary' : 'primary'}
+                                    onClick={() => { setViewedItem(item); handleListClick({ type: getType(viewedItem), item: viewedItem, in_list: in_list, index }); setDialogOpen(false); setViewedItem(item); }}
+                                >
+                                    {attachment_select ? 'Unselect' : (in_list ? 'Remove' : 'Add')}
+                                </Button>
+                            </Grid>
                         </Grid>
                     </Stack>
                 </Stack>

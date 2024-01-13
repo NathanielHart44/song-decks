@@ -58,7 +58,12 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                                 alt={altText}
                                 src={attachments[0].img_url}
                                 variant={'rounded'}
-                                sx={{ cursor: 'pointer', width: avatar_size * 0.5, height: avatar_size * 0.5, border: `2px solid ${theme.palette.primary.main}` }}
+                                sx={{
+                                    cursor: 'pointer',
+                                    width: avatar_size * 0.5,
+                                    height: avatar_size * 0.5,
+                                    border: `2px solid ${theme.palette.primary.main}`
+                                }}
                                 onClick={() => { handleClick(item); }}
                             />
                         </Badge>

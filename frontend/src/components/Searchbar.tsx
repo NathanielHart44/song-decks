@@ -11,15 +11,16 @@ import Iconify from "./base/Iconify";
 type SearchbarProps = {
     searchTerm: string;
     setSearchTerm: (arg0: string) => void;
+    width: string;
 };
-export function Searchbar({ searchTerm, setSearchTerm }: SearchbarProps) {
+export function Searchbar({ searchTerm, setSearchTerm, width }: SearchbarProps) {
 
     function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
         setSearchTerm(event.target.value);
     }
 
     return (
-        <Stack width={'80%'} justifyContent={'center'} alignItems={'center'}>
+        <Stack width={width} justifyContent={'center'} alignItems={'center'}>
             <Input
                 fullWidth
                 placeholder="Search…"

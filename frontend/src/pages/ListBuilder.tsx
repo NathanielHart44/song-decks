@@ -11,8 +11,9 @@ import {
     ToggleButtonGroup,
     TextField,
     Button,
+    Container,
 } from "@mui/material";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Attachment, NCU, Unit } from "src/@types/types";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import { MetadataContext } from "src/contexts/MetadataContext";
@@ -22,6 +23,7 @@ import { BuilderTopDisplay } from "../components/list-build/BuilderTopDisplay";
 import useListBuildManager from "src/hooks/useListBuildManager";
 import { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/contexts/ListBuilderContext";
 import { ListAvailableSelections } from "../components/list-build/ListAvailableSelections";
+import Page from "src/components/base/Page";
 
 // ----------------------------------------------------------------------
 
@@ -48,6 +50,22 @@ export type ListClickProps = {
     index: number;
 };
 
+export type FilterSortType = {
+    pointsSort: 'asc' | 'desc';
+    pointsFilter: number[];
+    searchTerm: string;
+    factionFilter: 'faction' | 'neutral' | 'all';
+    unitTypeFilter: string[];
+};
+
+export const DEFAULT_FILTER_SORT: FilterSortType = {
+    pointsSort: 'desc',
+    pointsFilter: [0, 10],
+    searchTerm: '',
+    factionFilter: 'all',
+    unitTypeFilter: ['infantry', 'cavalry', 'monster', 'war_machine'],
+};
+
 // ----------------------------------------------------------------------
 
 export default function ListBuilder() {
@@ -64,6 +82,18 @@ export default function ListBuilder() {
         handleCommanderClick,
         handleListClick,
     } = useListBuildManager();
+
+    const [filterSort, setFilterSort] = useState<FilterSortType>(DEFAULT_FILTER_SORT);
+
+    useEffect(() => {
+        setFilterSort((prev) => ({
+            ...prev,
+            pointsFilter: DEFAULT_FILTER_SORT.pointsFilter,
+            searchTerm: DEFAULT_FILTER_SORT.searchTerm,
+            factionFilter: DEFAULT_FILTER_SORT.factionFilter,
+            unitTypeFilter: DEFAULT_FILTER_SORT.unitTypeFilter,
+        }));
+    }, [listState.selectedView, listState.selectedFaction]);
 
     useEffect(() => { processTokens(() => { getContent('factions') }) }, []);
     useEffect(() => {
@@ -138,114 +168,124 @@ export default function ListBuilder() {
     };
 
     return (
-        <>
-            <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <BuilderTopDisplay
-                    testing={TESTING}
-                    isMobile={isMobile}
-                    handleFactionClick={handleFactionClick}
-                    handleCommanderClick={handleCommanderClick}
+        <Page title="List Builder">
+            <Container maxWidth={false}>
+                <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    <BuilderTopDisplay
+                        testing={TESTING}
+                        isMobile={isMobile}
+                        handleFactionClick={handleFactionClick}
+                        handleCommanderClick={handleCommanderClick}
+                        {...listState}
+                    />
+                    <Stack
+                        spacing={3}
+                        width={'100%'}
+                        justifyContent={'center'}
+                        alignItems={'center'}
+                    >
+                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'my_list' &&
+                            <>
+                                <Typography variant={'h4'}>Selected Units</Typography>
+                                { listState.selectedUnits.length === 0 &&
+                                    <Typography color={theme.palette.text.disabled}>No Units Selected</Typography>
+                                }
+                                <ListAvailableSelections
+                                    type={'unit'}
+                                    availableItems={listState.selectedUnits}
+                                    disabledItems={[]}
+                                    in_list={true}
+                                    handleListClick={handleListClick}
+                                    handleOpenAttachments={handleOpenAttachments}
+                                    testing={TESTING}
+                                    filterSort={filterSort}
+                                    setFilterSort={setFilterSort}
+                                />
+                                <Divider sx={{ width: '65%' }} />
+                                <Typography variant={'h4'}>Selected NCUs</Typography>
+                                { listState.selectedNCUs.length === 0 &&
+                                    <Typography color={theme.palette.text.disabled}>No NCUs Selected</Typography>
+                                }
+                                <ListAvailableSelections
+                                    type={'ncu'}
+                                    availableItems={listState.selectedNCUs}
+                                    disabledItems={[]}
+                                    in_list={true}
+                                    handleListClick={handleListClick}
+                                    testing={TESTING}
+                                    filterSort={filterSort}
+                                    setFilterSort={setFilterSort}
+                                />
+                            </>
+
+                        }
+                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' && listState.selectedView !== 'settings' &&
+                            <>
+                                {listState.selectedView === 'attachments' &&
+                                    <>
+                                        <Typography variant={'h4'}>
+                                            Selected Unit
+                                        </Typography>
+                                        <ListAvailableSelections
+                                            type={"unit"}
+                                            availableItems={listState.selectedUnits.filter((unit) => unit.temp_id === listState.selectedUnitTempID)}
+                                            disabledItems={[]}
+                                            in_list={true}
+                                            handleListClick={
+                                                () => {
+                                                    listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
+                                                    listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
+                                                }
+                                            }
+                                            attachment_select={true}
+                                            testing={TESTING}
+                                            filterSort={filterSort}
+                                            setFilterSort={setFilterSort}
+                                        />
+                                    </>
+                                }
+                                <Typography variant={'h4'}>
+                                    Available {listState.selectedView === 'units' ? 'Units' : listState.selectedView === 'attachments' ? 'Attachments' : 'NCUs'}
+                                </Typography>
+                                <ListAvailableSelections
+                                    type={
+                                        listState.selectedView === 'units' ? 'unit' :
+                                            listState.selectedView === 'attachments' ? 'attachment' :
+                                                listState.selectedView === 'ncus' ? 'ncu' :
+                                                    'unit'
+                                    }
+                                    availableItems={
+                                        listState.selectedView === 'units' ? listState.factionUnits :
+                                            listState.selectedView === 'attachments' ? listState.availableAttachments :
+                                                listState.selectedView === 'ncus' ? listState.factionNCUs :
+                                                    null
+                                    }
+                                    disabledItems={
+                                        listState.selectedView === 'attachments' ? getDisabledItems('attachment') :
+                                            listState.selectedView === 'ncus' ? getDisabledItems('ncu') :
+                                                null
+                                    }
+                                    in_list={false}
+                                    handleListClick={handleListClick}
+                                    handleOpenAttachments={handleOpenAttachments}
+                                    testing={TESTING}
+                                    filterSort={filterSort}
+                                    setFilterSort={setFilterSort}
+                                />
+                            </>
+                        }
+                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'settings' &&
+                            <SettingsPage />
+                        }
+                    </Stack>
+                </Stack>
+                <SelectView
+                    setSelectedView={(view: VIEW_OPTIONS) => { listDispatch({ type: 'SET_SELECTED_VIEW', payload: view }) }}
                     {...listState}
                 />
-                <Stack
-                    spacing={3}
-                    width={'100%'}
-                    justifyContent={'center'}
-                    alignItems={'center'}
-                >
-                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'my_list' &&
-                        <>
-                            <Typography variant={'h4'}>Selected Units</Typography>
-                            { listState.selectedUnits.length === 0 &&
-                                <Typography color={theme.palette.text.disabled}>No Units Selected</Typography>
-                            }
-                            <ListAvailableSelections
-                                type={'unit'}
-                                availableItems={listState.selectedUnits}
-                                disabledItems={[]}
-                                in_list={true}
-                                handleListClick={handleListClick}
-                                handleOpenAttachments={handleOpenAttachments}
-                                testing={TESTING}
-                            />
-                            <Divider sx={{ width: '65%' }} />
-                            <Typography variant={'h4'}>Selected NCUs</Typography>
-                            { listState.selectedNCUs.length === 0 &&
-                                <Typography color={theme.palette.text.disabled}>No NCUs Selected</Typography>
-                            }
-                            <ListAvailableSelections
-                                type={'ncu'}
-                                availableItems={listState.selectedNCUs}
-                                disabledItems={[]}
-                                in_list={true}
-                                handleListClick={handleListClick}
-                                testing={TESTING}
-                            />
-                        </>
-
-                    }
-                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' && listState.selectedView !== 'settings' &&
-                        <>
-                            {listState.selectedView === 'attachments' &&
-                                <>
-                                    <Typography variant={'h4'}>
-                                        Selected Unit
-                                    </Typography>
-                                    <ListAvailableSelections
-                                        type={"unit"}
-                                        availableItems={listState.selectedUnits.filter((unit) => unit.temp_id === listState.selectedUnitTempID)}
-                                        disabledItems={[]}
-                                        in_list={true}
-                                        handleListClick={
-                                            () => {
-                                                listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
-                                                listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
-                                            }
-                                        }
-                                        attachment_select={true}
-                                        testing={TESTING}
-                                    />
-                                </>
-                            }
-                            <Typography variant={'h4'}>
-                                Available {listState.selectedView === 'units' ? 'Units' : listState.selectedView === 'attachments' ? 'Attachments' : 'NCUs'}
-                            </Typography>
-                            <ListAvailableSelections
-                                type={
-                                    listState.selectedView === 'units' ? 'unit' :
-                                        listState.selectedView === 'attachments' ? 'attachment' :
-                                            listState.selectedView === 'ncus' ? 'ncu' :
-                                                'unit'
-                                }
-                                availableItems={
-                                    listState.selectedView === 'units' ? listState.factionUnits :
-                                        listState.selectedView === 'attachments' ? listState.availableAttachments :
-                                            listState.selectedView === 'ncus' ? listState.factionNCUs :
-                                                null
-                                }
-                                disabledItems={
-                                    listState.selectedView === 'attachments' ? getDisabledItems('attachment') :
-                                        listState.selectedView === 'ncus' ? getDisabledItems('ncu') :
-                                            null
-                                }
-                                in_list={false}
-                                handleListClick={handleListClick}
-                                handleOpenAttachments={handleOpenAttachments}
-                                testing={TESTING}
-                            />
-                        </>
-                    }
-                    {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'settings' &&
-                        <SettingsPage />
-                    }
-                </Stack>
-            </Stack>
-            <SelectView
-                setSelectedView={(view: VIEW_OPTIONS) => { listDispatch({ type: 'SET_SELECTED_VIEW', payload: view }) }}
-                {...listState}
-            />
-            { listState.awaitingResponse && <LoadingBackdrop /> }
-        </>
+                { listState.awaitingResponse && <LoadingBackdrop /> }
+            </Container>
+        </Page>
     );
 };
 

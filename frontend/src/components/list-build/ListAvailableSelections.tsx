@@ -1,14 +1,28 @@
 import {
     Box,
     Grid,
-    Stack, Button, Slider, Typography, FormGroup, FormControlLabel, Checkbox
+    Stack,
+    Button,
+    Slider,
+    Typography,
+    FormGroup,
+    FormControlLabel,
+    Checkbox,
+    ToggleButtonGroup,
+    ToggleButton,
+    useTheme,
+    alpha,
+    Drawer,
+    Divider
 } from "@mui/material";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Attachment, NCU, Unit } from "src/@types/types";
 import { AvailableSelection } from "./AvailableSelection";
 import { Searchbar } from "src/components/Searchbar";
-import { ListClickProps, gridContainerStyles, gridItemStyles } from "../../pages/ListBuilder";
+import { DEFAULT_FILTER_SORT, FilterSortType, ListClickProps, gridContainerStyles, gridItemStyles } from "../../pages/ListBuilder";
 import { capWords } from "src/utils/capWords";
+import { MetadataContext } from "src/contexts/MetadataContext";
+import Iconify from "../base/Iconify";
 
 // ----------------------------------------------------------------------
 
@@ -18,46 +32,51 @@ type ListAvailableSelectionsProps = {
     availableItems: Unit[] | Attachment[] | NCU[] | null;
     disabledItems: Unit[] | NCU[] | null;
     handleListClick: (props: ListClickProps) => void;
+    filterSort: FilterSortType;
+    setFilterSort: (arg0: FilterSortType) => void;
     handleOpenAttachments?: (unit: Unit) => void;
     attachment_select?: boolean;
     testing?: boolean;
 };
 
-export function ListAvailableSelections({ type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments, attachment_select, testing }: ListAvailableSelectionsProps) {
+export function ListAvailableSelections({ type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments, attachment_select, testing, filterSort, setFilterSort }: ListAvailableSelectionsProps) {
 
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [pointsFilter, setPointsFilter] = useState<number[]>([0, 10]);
-    const [pointsSort, setPointsSort] = useState<'asc' | 'desc'>('desc');
-    const [factionFilter, setFactionFilter] = useState<'faction' | 'neutral' | 'all'>('all');
-    const [unitTypeFilter, setUnitTypeFilter] = useState<string[]>(['infantry', 'cavalry', 'monster', 'war_machine']);
+    const theme = useTheme();
+    const open_color = alpha(theme.palette.primary.main, 0.24);
+
+    const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
 
     function filterItems(items: Unit[] | NCU[] | Attachment[]): Unit[] | NCU[] | Attachment[] {
         return items.filter((item) => {
             const itemPointsCost = item.points_cost;
-            if (itemPointsCost < pointsFilter[0] || itemPointsCost > pointsFilter[1]) {
+            if (itemPointsCost < filterSort.pointsFilter[0] || itemPointsCost > filterSort.pointsFilter[1]) {
                 return false;
             }
             if (type === 'unit') {
                 const unit = item as Unit;
-                console.log(unit.unit_type, unitTypeFilter);
-                if (!unitTypeFilter.includes(unit.unit_type)) {
+                if (!filterSort.unitTypeFilter.includes(unit.unit_type)) {
+                    return false;
+                }
+                if (filterSort.factionFilter === 'faction' && unit.faction.neutral) {
+                    return false;
+                } else if (filterSort.factionFilter === 'neutral' && !unit.faction.neutral) {
                     return false;
                 }
 
                 const unit_name = unit.name.toLowerCase();
-                const search_terms = searchTerm.toLowerCase().split(' ');
+                const search_terms = filterSort.searchTerm.toLowerCase().split(' ');
                 const unit_matches = search_terms.some((term) => unit_name.includes(term));
                 return unit_matches;
             } else {
                 const item_name = item.name.toLowerCase();
-                const search_terms = searchTerm.toLowerCase().split(' ');
+                const search_terms = filterSort.searchTerm.toLowerCase().split(' ');
                 return search_terms.some((term) => item_name.includes(term));
             }
         });
     };
 
     function sortItems(items: Unit[] | NCU[] | Attachment[]): Unit[] | NCU[] | Attachment[] {
-        return items.sort((a, b) => {
+        items.sort((a, b) => {
             // Check if items are of type 'Unit'
             const isUnitA = 'attachments' in a;
             const isUnitB = 'attachments' in b;
@@ -78,38 +97,49 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
                 }
             }
 
-            // Calculate total points cost for Units including attachments, else use the item's points_cost
             if (isUnitA) {
                 a_cost = a.points_cost + (a as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
-                // Determine the priority for Units based on faction and whether they have attachments
-                a_priority = (a.faction.neutral ? 2 : 1) * 10 + ((a as Unit).attachments.some(att => att.attachment_type === 'commander') ? 0 : 5);
+                // Adjust priority based on faction, attachments
+                a_priority = (a.faction.neutral ? 10 : 0) + ((a as Unit).attachments.length === 0 ? 50 : 0);
             } else {
                 a_cost = a.points_cost;
-                a_priority = 30; // A default priority for NCU or Attachment
+                a_priority = 300; // Default higher priority for NCU or Attachment
             }
-    
+        
             if (isUnitB) {
                 b_cost = b.points_cost + (b as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
-                // Determine the priority for Units based on faction and whether they have attachments
-                b_priority = (b.faction.neutral ? 2 : 1) * 10 + ((b as Unit).attachments.some(att => att.attachment_type === 'commander') ? 0 : 5);
+                // Adjust priority based on faction, attachments
+                b_priority = (b.faction.neutral ? 10 : 0) + ((b as Unit).attachments.length === 0 ? 50 : 0);
             } else {
                 b_cost = b.points_cost;
-                b_priority = 30; // A default priority for NCU or Attachment
+                b_priority = 300; // Default higher priority for NCU or Attachment
             }
-    
-            // First, sort by priority
-            if (a_priority !== b_priority) {
+        
+            // Sort primarily by points cost, then by priority
+            if (a_cost !== b_cost) {
+                return filterSort.pointsSort === 'asc' ? a_cost - b_cost : b_cost - a_cost;
+            } else if (a_priority !== b_priority) {
                 return a_priority - b_priority;
             }
-    
-            // Then, apply pointsSort preference for sorting by total cost
-            if (a_cost !== b_cost) {
-                return pointsSort === 'asc' ? a_cost - b_cost : b_cost - a_cost;
-            }
-    
-            // If all else is equal, sort alphabetically by name
+
             return a.name.localeCompare(b.name);
         });
+
+        if (type === 'ncu') {
+            return items;
+        } else if (type === 'unit') {
+            return items.sort((a, b) => {
+                const containsCommanderA = (a as Unit).attachments.some(att => att.attachment_type === 'commander');
+                const containsCommanderB = (b as Unit).attachments.some(att => att.attachment_type === 'commander');
+        
+                if (containsCommanderA && !containsCommanderB) return -1;
+                if (!containsCommanderA && containsCommanderB) return 1;
+        
+                return 0; // Keep existing order for non-commander items
+            });
+        } else {
+            return items;
+        };
     };
 
     return (
@@ -118,68 +148,33 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
                 <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={2}>
                     {!in_list &&
                         <>
-                            <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                            <Grid container columnSpacing={2} rowSpacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                                <Grid item xs={12} md={5} lg={4}>
-                                    { type === 'unit' &&
-                                        <Stack spacing={2} justifyContent={'center'} alignItems={'center'} width={'95%'}>
-                                            <FormGroup row>
-                                                {['infantry', 'cavalry', 'monster', 'war_machine'].map(unitType => (
-                                                    <FormControlLabel
-                                                        key={unitType + '_checkbox'}
-                                                        control={
-                                                            <Checkbox
-                                                                defaultChecked
-                                                                value={unitType}
-                                                                onChange={(event) => {
-                                                                    if (event.target.checked) {
-                                                                        setUnitTypeFilter([...unitTypeFilter, unitType]);
-                                                                    } else {
-                                                                        setUnitTypeFilter(unitTypeFilter.filter(type => type !== unitType));
-                                                                    }
-                                                                }}
-                                                            />
-                                                        }
-                                                        label={capWords(unitType)}
-                                                    />
-                                                ))}
-                                            </FormGroup>
-                                            <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'} width={'95%'}>
-                                                <Typography variant={'body2'}>Points</Typography>
-                                                <Slider
-                                                    size={'small'}
-                                                    value={pointsFilter}
-                                                    onChange={(event, newValue) => setPointsFilter(newValue as number[])}
-                                                    valueLabelDisplay="auto"
-                                                    aria-labelledby="range-slider"
-                                                    getAriaValueText={(value) => `${value}`}
-                                                    marks
-                                                    min={0}
-                                                    max={10}
-                                                    step={1}
-                                                />
-                                            </Stack>
-                                        </Stack>
+                            <Stack width={'85%'} direction={'row'} spacing={2} justifyContent={'flex-end'} alignItems={'center'}>
+                                <Button
+                                    variant={'outlined'}
+                                    onClick={() => setFiltersOpen(true)}
+                                    sx={{ backgroundColor: filtersOpen ? open_color : 'transparent' }}
+                                >
+                                    Filters
+                                </Button>
+                                <Button
+                                    variant={'outlined'}
+                                    onClick={() => setFilterSort({ ...filterSort, pointsSort: filterSort.pointsSort === 'asc' ? 'desc' : 'asc' })}
+                                    endIcon={filterSort.pointsSort === 'asc' ?
+                                    <Iconify icon={'eva:arrow-upward-outline'} /> :
+                                    <Iconify icon={'eva:arrow-downward-outline'} />
                                     }
-                                    <Button
-                                        // variant={'contained'}
-                                        fullWidth
-                                        size={"small"}
-                                    >
-                                        Filters
-                                    </Button>
-                                </Grid>
-                                <Grid item xs={12} md={5} lg={4}>
-                                    <Button
-                                        // variant={'contained'}
-                                        fullWidth
-                                        size={"small"}
-                                    >
-                                        Sort
-                                    </Button>
-                                </Grid>
-                            </Grid>
-                        </>}
+                                >
+                                    Sort
+                                </Button>
+                            </Stack>
+                            <FilterComp
+                                filtersOpen={filtersOpen}
+                                setFiltersOpen={setFiltersOpen}
+                                filterSort={filterSort}
+                                setFilterSort={setFilterSort}
+                            />
+                        </>
+                    }
                     <Box sx={{ width: '100%' }}>
                         <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'} sx={gridContainerStyles}>
                             {sortItems(filterItems(availableItems)).map((item, index) => (
@@ -204,3 +199,121 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
         </>
     );
 };
+
+// ----------------------------------------------------------------------
+
+type FilterCompProps = {
+    filtersOpen: boolean;
+    setFiltersOpen: (arg0: boolean) => void;
+    filterSort: FilterSortType;
+    setFilterSort: (arg0: FilterSortType) => void;
+};
+
+function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: FilterCompProps) {
+
+    const { isMobile } = useContext(MetadataContext);
+
+    return (
+        <Drawer
+            anchor={'right'}
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            sx={{
+                '& .MuiDrawer-paper': { width: isMobile ? '60%' : '30%' },
+                position: 'relative'
+            }}
+        >
+            <Stack spacing={2} justifyContent={'center'} alignItems={'center'} width={'92%'} sx={{ mt: 2, px: 1, mx: 1 }}>
+                <Typography variant={'h4'}>Filters</Typography>
+                <Divider sx={{ width: '65%' }} />
+                <Searchbar
+                    searchTerm={filterSort.searchTerm}
+                    setSearchTerm={(newTerm) => setFilterSort({ ...filterSort, searchTerm: newTerm })}
+                    width={'100%'}
+                />
+                <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    <ToggleButtonGroup
+                        color="primary"
+                        value={filterSort.factionFilter}
+                        exclusive
+                        size={'small'}
+                        fullWidth
+                    >
+                        <ToggleButton value={'all'} onClick={() => { setFilterSort({ ...filterSort, factionFilter: 'all' }); } }>
+                            All
+                        </ToggleButton>
+                        <ToggleButton value={'faction'} onClick={() => { setFilterSort({ ...filterSort, factionFilter: 'faction' }); } }>
+                            Faction
+                        </ToggleButton>
+                        <ToggleButton value={'neutral'} onClick={() => { setFilterSort({ ...filterSort, factionFilter: 'neutral' }); } }>
+                            Neutral
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Stack>
+                <FormGroup>
+                    {['infantry', 'cavalry', 'monster', 'war_machine'].map(unitType => (
+                        <FormControlLabel
+                            key={unitType + '_checkbox'}
+                            control={
+                                <Checkbox
+                                    checked={filterSort.unitTypeFilter.includes(unitType)}
+                                    onChange={(event) => {
+                                        if (event.target.checked) {
+                                            setFilterSort({ ...filterSort, unitTypeFilter: [...filterSort.unitTypeFilter, unitType] });
+                                        } else {
+                                            setFilterSort({ ...filterSort, unitTypeFilter: filterSort.unitTypeFilter.filter(type => type !== unitType) });
+                                        }
+                                    }}
+                                />
+                            }
+                            label={capWords(unitType)}
+                        />
+                    ))}
+                </FormGroup>
+                <Stack justifyContent={'center'} alignItems={'center'} width={'95%'} sx={{ pb: 4 }}>
+                    <Slider
+                        size={'small'}
+                        value={filterSort.pointsFilter}
+                        onChange={(event, newValue) => setFilterSort({ ...filterSort, pointsFilter: newValue as number[] })}
+                        valueLabelDisplay="auto"
+                        aria-labelledby="range-slider"
+                        getAriaValueText={(value) => `${value}`}
+                        marks
+                        min={0}
+                        max={10}
+                        step={1}
+                    />
+                    <Typography variant={'body2'}>Points</Typography>
+                </Stack>
+            </Stack>
+            <Box
+                sx={{
+                    position: 'absolute',
+                    bottom: 10,
+                    left: 0,
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}
+            >
+                <Stack
+                    display={'flex'}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                    width={'80%'}
+                    spacing={2}
+                >
+                    <Button
+                        variant={'contained'}
+                        color={'secondary'}
+                        onClick={() => { setFilterSort(DEFAULT_FILTER_SORT) }}
+                        fullWidth
+                    >
+                        Reset All
+                    </Button>
+                </Stack>
+            </Box>
+        </Drawer>
+    );
+}

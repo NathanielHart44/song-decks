@@ -154,7 +154,7 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
 
     return (
         <Stack spacing={2} width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
-            <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} width={'80%'} />
             <KeywordTypeDisplay
                 is_main={true}
                 view_only={is_game}
