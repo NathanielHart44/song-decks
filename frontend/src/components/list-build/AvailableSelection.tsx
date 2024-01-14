@@ -50,26 +50,7 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
             disabledItems.some(disabled_item => (disabled_item.id === item.id))
         ) : false;
 
-    let item_title = item.name;
-    if (testing) {
-        item_title += ` ${item.temp_id === undefined ? item.id : item.temp_id}`;
-    }
-    const contains_attachments = type === 'unit' && (item as Unit).attachments.length > 0;
-    if (type === 'attachment') {
-        item_title += ` (${(item as Attachment).attachment_type === 'commander' ? 'C' : item.points_cost})`;
-    } else if (contains_attachments) {
-        const includes_commander = (item as Unit).attachments.some(attachment => attachment.attachment_type === 'commander');
-        if (includes_commander) {
-            item_title = '(C) ' + item_title + ` (${item.points_cost})`;
-        };
-        const non_commander_attachments = (item as Unit).attachments.filter(attachment => attachment.attachment_type !== 'commander');
-        if (non_commander_attachments.length > 0) {
-            const total_attachment_points = (item as Unit).attachments.reduce((total, attachment) => total + attachment.points_cost, 0);
-            item_title += ` (${item.points_cost}+${total_attachment_points})`;
-        };
-    } else {
-        item_title += ` (${item.points_cost})`;
-    };
+    const contains_attachments = containsAttachments(type, item);
 
     function getImgSizing() {
         let img_sizing: SxProps<Theme> = {
@@ -195,7 +176,7 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
             </Dialog>
             <SelectableAvatar
                 item={item}
-                altText={item_title}
+                altText={getItemTitle(item, type, testing)}
                 isMobile={false}
                 handleClick={() => { setDialogOpen(true); }}
                 attachments={type === 'unit' ? (item as Unit).attachments : undefined}
@@ -204,3 +185,39 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
         </Grid>
     );
 };
+
+// ----------------------------------------------------------------------
+
+export function getItemTitle(item: Unit | Attachment | NCU, type: 'unit' | 'attachment' | 'ncu', testing: boolean | undefined) {
+    let item_title = item.name;
+    if (testing) {
+        item_title += ` ${item.temp_id === undefined ? item.id : item.temp_id}`;
+    }
+
+    const contains_attachments = containsAttachments(type, item);
+
+    if (type === 'attachment') {
+        item_title += ` (${(item as Attachment).attachment_type === 'commander' ? 'C' : item.points_cost})`;
+    } else if (contains_attachments) {
+        const includes_commander = (item as Unit).attachments.some(attachment => attachment.attachment_type === 'commander');
+        if (includes_commander) {
+            item_title = '(C) ' + item_title + ` (${item.points_cost})`;
+        };
+        const non_commander_attachments = (item as Unit).attachments.filter(attachment => attachment.attachment_type !== 'commander');
+        if (non_commander_attachments.length > 0) {
+            const total_attachment_points = (item as Unit).attachments.reduce((total, attachment) => total + attachment.points_cost, 0);
+            item_title += ` (${item.points_cost}+${total_attachment_points})`;
+        };
+    } else {
+        item_title += ` (${item.points_cost})`;
+    };
+    return item_title;
+};
+
+function containsAttachments(type: 'unit' | 'ncu' | 'attachment', item: Unit | Attachment | NCU) {
+    const contains_attachments =
+        type === 'unit' &&
+        'attachments' in item &&
+        (item as Unit).attachments.length > 0;
+    return contains_attachments;
+}

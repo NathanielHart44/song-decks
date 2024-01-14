@@ -1,11 +1,10 @@
-import { Attachment, Commander, Faction, NCU, Unit } from "src/@types/types";
+import { Attachment, Commander, Faction, List, NCU, Unit } from "src/@types/types";
 import { ListClickProps } from "src/pages/ListBuilder";
 import { genUniqueID } from "src/utils/genUniqueID";
 import { useApiCall } from "src/hooks/useApiCall";
 import { useContext } from "react";
-import { ALL_CONTENT_OPTIONS, DEFAULT_LIST_POINTS, ListBuilderContext } from "src/contexts/ListBuilderContext";
+import { ALL_CONTENT_OPTIONS, ListBuilderContext, ListState, resetListState } from "src/contexts/ListBuilderContext";
 import { useSnackbar } from "notistack";
-import delay from "src/utils/delay";
 import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
 
@@ -19,15 +18,7 @@ const useListBuildManager = () => {
 
     const handleFactionClick = (faction: Faction | null) => {
         if (faction && faction.id === listState.selectedFaction?.id) {
-            listDispatch({ type: 'SET_SELECTED_FACTION', payload: null });
-            listDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
-            listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
-            listDispatch({ type: 'SET_LIST_TITLE', payload: '' });
-            listDispatch({ type: 'SET_USED_POINTS', payload: 0 });
-            listDispatch({ type: 'SET_MAX_POINTS', payload: DEFAULT_LIST_POINTS });
-            listDispatch({ type: 'SET_SELECTED_NCUs', payload: [] });
-            listDispatch({ type: 'SET_SELECTED_UNITS', payload: [] });
-            listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
+            resetListState(listDispatch);
         } else {
             listDispatch({ type: 'SET_SELECTED_FACTION', payload: faction });
         }
@@ -175,14 +166,26 @@ const useListBuildManager = () => {
         if (type === 'factions') { listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false }) };
     };
 
-    const handleSaveList = async (action: 'edit' | 'create') => {
+    const handleDeleteList = async (list_id?: number) => {
+        if (listState.awaitingResponse) return;
+        listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: true });
+
+        const url = list_id ? `delete_list/${list_id}` : `delete_list/${listState.originalList?.id}`;
+        apiCall(url, 'DELETE', null, () => {
+            enqueueSnackbar('List Deleted!');
+            navigate(PATH_PAGE.list_manager);
+        });
+        listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false });
+    }
+
+    const handleSaveList = async (type: 'create' | 'edit') => {
         if (listState.awaitingResponse) return;
         listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: true });
 
         let url = 'add_edit_list';
-        // if (action === 'edit') {
-        //     url = `${url}/${listState.selectedFaction?.id}`;
-        // };
+        if (type === 'edit' && listState.originalList) {
+            url = `${url}/${listState.originalList?.id}`;
+        };
 
         const list_units = listState.selectedUnits.map((unit) => {
             return {
@@ -201,26 +204,14 @@ const useListBuildManager = () => {
         formData.append('is_public', 'true');
         formData.append('is_valid', 'true');
 
-        apiCall(url, 'POST', formData, (data) => {
+        apiCall(url, 'POST', formData, () => {
             enqueueSnackbar('List Saved!');
-            // reset all the listState values.
-            listDispatch({ type: 'SET_SELECTED_FACTION', payload: null });
-            listDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
-            listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' });
-            listDispatch({ type: 'SET_LIST_TITLE', payload: '' });
-            listDispatch({ type: 'SET_USED_POINTS', payload: 0 });
-            listDispatch({ type: 'SET_MAX_POINTS', payload: DEFAULT_LIST_POINTS });
-            listDispatch({ type: 'SET_SELECTED_NCUs', payload: [] });
-            listDispatch({ type: 'SET_SELECTED_UNITS', payload: [] });
-            listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
-            
-            delay(500).then(() => { navigate(PATH_PAGE.list_manager) });
-            console.log(data);
+            navigate(PATH_PAGE.list_manager);
         });
         listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false });
     }
 
-    function validSubmission() {
+    function validSubmission(type: 'create' | 'edit') {
         let failure_reasons = [];
         if (!listState.selectedFaction) {
             failure_reasons.push('No Faction selected.');
@@ -249,13 +240,58 @@ const useListBuildManager = () => {
         } else {
             failure_reasons.push('No Commander selected.');
         }
+        if (type === 'edit' && listState.originalList) {
+            const listOutline = buildListOutline('list', listState.originalList);
+            const stateOutline = buildListOutline('state', listState);
+            if (JSON.stringify(listOutline) === JSON.stringify(stateOutline)) {
+                failure_reasons.push('No changes made to the List.');
+            }
+        }
         return {
             valid: failure_reasons.length === 0,
             failure_reasons
         };
     }
 
-    return { listState, listDispatch, getContent, handleFactionClick, handleCommanderClick, handleListClick, handleSaveList, validSubmission };
+    return { listState, listDispatch, getContent, handleFactionClick, handleCommanderClick, handleListClick, handleSaveList, handleDeleteList, validSubmission };
 };
 
 export default useListBuildManager;
+
+// ----------------------------------------------------------------------
+
+function buildListOutline(type: 'list' | 'state', obj: List | ListState) {
+    if (type === 'list') {
+        const list = obj as List;
+        const listOutline = {
+            list_name: list.name,
+            max_points: list.points_allowed,
+            faction: list.faction.id,
+            commander: list.commander.id,
+            units: list.units.map((unit: Unit) => {
+                return {
+                    id: unit.id,
+                    attachments: unit.attachments.map((attachment) => attachment.id)
+                };
+            }),
+            ncus: list.ncus.map((ncu: NCU) => ncu.id)
+        };
+        return listOutline;
+    } else {
+        const listState = obj as ListState;
+        const listOutline = {
+            list_name: listState.listTitle,
+            max_points: listState.maxPoints,
+            faction: listState.selectedFaction?.id,
+            commander: listState.selectedCommander?.id,
+            units: listState.selectedUnits.map((unit: Unit) => {
+                return {
+                    id: unit.id,
+                    attachments: unit.attachments.map((attachment) => attachment.id)
+                };
+            }),
+            ncus: listState.selectedNCUs.map((ncu: NCU) => ncu.id)
+        };
+        return listOutline;
+    };
+};

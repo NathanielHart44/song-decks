@@ -20,6 +20,7 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 import { TagDiv } from "./workbench/TagDisplay";
 import { Searchbar } from "./Searchbar";
+import { DeleteDialog } from "./base/DeleteDialog";
 
 // ----------------------------------------------------------------------
 
@@ -197,10 +198,15 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
                         handleCreate={handleCreate}
                     />
                     <DeleteDialog
-                        keyword_pair={contentState.selected_pair}
-                        contentState={contentState}
-                        setContentState={setContentState}
-                        handleDelete={handleDelete}
+                        open={contentState.delete_open}
+                        onClose={() => { setContentState({ ...contentState, delete_open: false }) }}
+                        onClick={() => {
+                            handleDelete('pair', contentState.selected_pair);
+                            setContentState({
+                                ...contentState,
+                                delete_open: false
+                            });
+                        }}
                     />
                 </>
             }
@@ -393,69 +399,6 @@ function CreationPair({ is_new, allTypes, contentState, setContentState, handleC
         </Dialog>
     )
 };
-
-// ----------------------------------------------------------------------
-
-type DeleteDialogProps = {
-    keyword_pair: KeywordPairType;
-    contentState: ContentStateType;
-    setContentState: (arg0: ContentStateType) => void;
-    handleDelete: (type: 'type' | 'pair', item: KeywordPairType | KeywordType) => void;
-};
-
-function DeleteDialog({ keyword_pair, contentState, setContentState, handleDelete }: DeleteDialogProps) {
-
-    return (
-        <Dialog
-            open={contentState.delete_open}
-            fullWidth={true}
-            onClose={() => {
-                setContentState({
-                    ...contentState,
-                    delete_open: false
-                });
-            }}
-        >
-            <DialogContent sx={{ p: 2 }}>
-                <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                    <Typography variant={'h6'} paragraph>Are you sure?</Typography>
-                    <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
-                            <Button
-                                variant={"contained"}
-                                onClick={() => {
-                                    handleDelete('pair', keyword_pair);
-                                    setContentState({
-                                        ...contentState,
-                                        delete_open: false
-                                    });
-                                }}
-                                fullWidth
-                            >
-                                Delete Keyword
-                            </Button>
-                        </Grid>
-                        <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
-                            <Button
-                                color={"secondary"}
-                                variant={"contained"}
-                                onClick={() => {
-                                    setContentState({
-                                        ...contentState,
-                                        delete_open: false
-                                    });
-                                }}
-                                fullWidth
-                            >
-                                Cancel
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Stack>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 // ----------------------------------------------------------------------
 

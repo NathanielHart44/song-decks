@@ -1,16 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-    Grid,
     Stack,
     SxProps,
     Theme,
     Typography,
     Divider,
     useTheme,
-    ToggleButton,
-    ToggleButtonGroup,
-    TextField,
-    Button,
     Container,
 } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
@@ -24,6 +19,8 @@ import useListBuildManager from "src/hooks/useListBuildManager";
 import { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/contexts/ListBuilderContext";
 import { ListAvailableSelections } from "../components/list-build/ListAvailableSelections";
 import Page from "src/components/base/Page";
+import { useParams } from "react-router-dom";
+import { SettingsPage } from "../components/list-build/SettingsPage";
 
 // ----------------------------------------------------------------------
 
@@ -73,6 +70,7 @@ export default function ListBuilder() {
     const { isMobile } = useContext(MetadataContext);
     const theme = useTheme();
     const TESTING = false;
+    const { lc } = useParams();
 
     const {
         listState,
@@ -84,6 +82,10 @@ export default function ListBuilder() {
     } = useListBuildManager();
 
     const [filterSort, setFilterSort] = useState<FilterSortType>(DEFAULT_FILTER_SORT);
+
+    useEffect(() => {
+        if (lc) { listDispatch({ type: 'LOAD_LIST', payload: lc }) }
+    }, [lc]);
 
     useEffect(() => {
         setFilterSort((prev) => ({
@@ -130,12 +132,6 @@ export default function ListBuilder() {
             }
         }
     }, [listState.selectedFaction, listState.selectedCommander]);
-
-    function getUnitTempID(unit: Unit, selected_units: Unit[]) {
-        const unit_index = selected_units.findIndex((selected_unit) => selected_unit.temp_id === unit.temp_id);
-        if (unit_index === -1) { return null };
-        return selected_units[unit_index].temp_id;
-    };
 
     const handleOpenAttachments = (unit: Unit) => {
         const temp_id = getUnitTempID(unit, listState.selectedUnits);
@@ -269,6 +265,10 @@ export default function ListBuilder() {
                                     handleListClick={handleListClick}
                                     handleOpenAttachments={handleOpenAttachments}
                                     testing={TESTING}
+                                    selectedUnit={
+                                        listState.selectedView === 'attachments' ? listState.selectedUnits.find((unit) => unit.temp_id === listState.selectedUnitTempID) :
+                                            undefined
+                                    }
                                     filterSort={filterSort}
                                     setFilterSort={setFilterSort}
                                 />
@@ -291,81 +291,8 @@ export default function ListBuilder() {
 
 // ----------------------------------------------------------------------
 
-function SettingsPage() {
-
-    const theme = useTheme();
-    const title_grey = theme.palette.grey[600];
-    const { isMobile } = useContext(MetadataContext);
-    const { listState, listDispatch, handleSaveList, validSubmission } = useListBuildManager();
-
-    const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        listDispatch({ type: 'SET_LIST_TITLE', payload: event.target.value });
-    };
-
-    const validation_info = validSubmission();
-
-    return (
-        <Stack width={isMobile ? '98%' : '65%'} justifyContent={'center'} alignItems={'center'} spacing={3}>
-            <TextField
-                label={'List Name'}
-                variant={'outlined'}
-                fullWidth
-                value={listState.listTitle}
-                onChange={handleTitleChange}
-            />
-            <Stack width={'100%'}>
-                <Typography color={title_grey} variant={'subtitle2'}>Max Points</Typography>
-                <ToggleButtonGroup
-                    color="primary"
-                    value={listState.maxPoints}
-                    exclusive
-                    fullWidth
-                    size={'small'}
-                >
-                    {[30, 40, 50].map((points) => (
-                        <ToggleButton
-                            key={'points_' + points}
-                            value={points}
-                            onClick={() => { listDispatch({ type: 'SET_MAX_POINTS', payload: points }); } }
-                        >
-                            {points}
-                        </ToggleButton>
-                    ))}
-                </ToggleButtonGroup>
-            </Stack>
-            <Grid container columnGap={2} rowGap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Grid item xs={12} md={5} lg={4}>
-                    <Button
-                        variant={'contained'}
-                        fullWidth
-                        onClick={() => { processTokens(() => { handleSaveList('create'); }); } }
-                        disabled={!validation_info.valid}
-                    >
-                        Save
-                    </Button>
-                </Grid>
-                <Grid item xs={12} md={5} lg={4}>
-                    <Button
-                        variant={'contained'}
-                        fullWidth
-                        color={'secondary'}
-                        onClick={() => { listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'my_list' }); } }
-                    >
-                        Delete
-                    </Button>
-                </Grid>
-            </Grid>
-            {validation_info.failure_reasons.length > 0 &&
-                <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={1}>
-                    <Typography color={theme.palette.secondary.main} variant={'subtitle2'}>Invalid Submission</Typography>
-                    <Divider sx={{ width: '65%' }} />
-                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        {validation_info.failure_reasons.map((reason, index) => (
-                            <Typography key={'reason_' + index} color={theme.palette.secondary.main} variant={'subtitle2'}>{reason}</Typography>
-                        ))}
-                    </Stack>
-                </Stack>
-            }
-        </Stack>
-    );
-}
+function getUnitTempID(unit: Unit, selected_units: Unit[]) {
+    const unit_index = selected_units.findIndex((selected_unit) => selected_unit.temp_id === unit.temp_id);
+    if (unit_index === -1) { return null };
+    return selected_units[unit_index].temp_id;
+};

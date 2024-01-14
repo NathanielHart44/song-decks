@@ -4,6 +4,7 @@ import Iconify from "src/components/base/Iconify";
 import useListBuildManager from "src/hooks/useListBuildManager";
 import Settings from '@mui/icons-material/Settings';
 import { VIEW_OPTIONS } from "src/contexts/ListBuilderContext";
+import { useParams } from "react-router-dom";
 
 // ----------------------------------------------------------------------
 type SelectViewProps = {
@@ -16,13 +17,16 @@ type SelectViewProps = {
 };
 export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCommander, selectedView, setSelectedView }: SelectViewProps) {
 
+    const { validSubmission } = useListBuildManager();
+    const { lc } = useParams();
+    const is_edit = (lc !== undefined && lc !== null);
+
     const theme = useTheme();
     const text_color = theme.palette.grey[500];
     const point_error_color = theme.palette.secondary.main;
-    const { validSubmission } = useListBuildManager();
 
     function getSettingsIcon() {
-        const validation_info = validSubmission();
+        const validation_info = validSubmission(is_edit ? 'edit' : 'create');
         if (!validation_info.valid) {
             return <Iconify icon={'eva:alert-triangle-outline'} width={'200%'} height={'200%'} color={theme.palette.secondary.main} />;
         } else {

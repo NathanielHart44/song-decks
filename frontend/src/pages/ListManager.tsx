@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Accordion, AccordionDetails, Box, Button, Container, Divider, Stack, Typography } from "@mui/material";
+import { Container, Grid, Stack, SxProps, Theme } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import Page from "src/components/base/Page";
 import { useApiCall } from "src/hooks/useApiCall";
@@ -10,7 +10,7 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import AddNewWB from "src/components/workbench/AddNewWB";
 import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
-import AccordionSummaryDiv from "src/components/workbench/AccordionSummaryDiv";
+import { ListDisplay } from "../components/list-manage/ListDisplay";
 
 // ----------------------------------------------------------------------
 
@@ -70,6 +70,21 @@ export default function ListManager() {
         };
     }, [currentLists]);
 
+    function sortListsByDate(lists: List[]) {
+        return lists.sort((a, b) => {
+            return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        });
+    }
+
+    const gridContainerStyles: SxProps<Theme> = {
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        display: 'grid',
+        width: '100%',
+        gridTemplateColumns: 'repeat(auto-fill, 320px)',
+        gap: '16px'
+    };
+
     return (
         <Page title="List Manager">
             {awaitingResponse && <LoadingBackdrop />}
@@ -79,90 +94,17 @@ export default function ListManager() {
                         isMobile={isMobile}
                         handleClick={() => { navigate(PATH_PAGE.list_builder) }}
                     />
-                    {currentLists && currentLists.map((list, index) => (
-                        <ListDisplay
-                            key={index}
-                            list={list}
-                        />
-                    ))}
+
+                    <Grid container sx={gridContainerStyles}>
+                        {currentLists && sortListsByDate(currentLists).map((list, index) => (
+                            <ListDisplay
+                                key={index}
+                                list={list}
+                            />
+                        ))}
+                    </Grid>
                 </Stack>
             </Container>
         </Page>
-    )
-};
-
-// ----------------------------------------------------------------------
-
-type ListDisplayProps = {
-    list: List;
-};
-
-function ListDisplay({ list }: ListDisplayProps) {
-
-    const [accordionOpen, setAccordionOpen] = useState<boolean>(false);
-
-    const unit_count = list.units.length;
-    const ncu_count = list.ncus.length;
-
-    return (
-        <Stack sx={{ width: '85%' }}>
-            <Accordion
-                disableGutters={true}
-                expanded={accordionOpen}
-                sx={{ ...(accordionOpen && { bgcolor: 'transparent' }) }}
-                TransitionProps={{ unmountOnExit: true }}
-            >
-                <AccordionSummaryDiv
-                    accordionOpen={accordionOpen}
-                    setAccordionOpen={setAccordionOpen}
-                    title={list.name + ` - (${unit_count} units, ${ncu_count} NCUs)`}
-                    icon={
-                        <Stack direction={'row'} spacing={1}>
-                            <Box sx={{ maxHeight: '100%', maxWidth: '34px' }}>
-                                <img alt={list.faction.name + ' icon'} src={list.faction.img_url}/>
-                            </Box>
-                            <Box sx={{ maxHeight: '100%', maxWidth: '34px' }}>
-                                <img
-                                    alt={list.commander.name + ' icon'}
-                                    src={list.commander.img_url}
-                                    style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
-                                />
-                            </Box>
-                        </Stack>
-                    }
-                />
-                <AccordionDetails sx={{ pt: 3 }}>
-                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={2}>
-                        <Typography variant={'h6'}>
-                            Units
-                        </Typography>
-                        <Divider sx={{ width: '65%' }} />
-                        {list.units.map((unit, index) => (
-                            <Typography key={index} variant={'body1'}>
-                                {unit.name} ({unit.points_cost}{unit.attachments.length > 0 && ` + ${unit.attachments.map((attachment) => attachment.points_cost).reduce((a, b) => a + b)}`})
-                            </Typography>
-                        ))}
-                    </Stack>
-                    <Stack width={'100%'} direction={'row'} justifyContent={'center'} alignItems={'center'} spacing={2}>
-                        <Button
-                            variant={'contained'}
-                            onClick={() => { }}
-                            fullWidth
-                        >
-                            Edit
-                        </Button>
-                        <Button
-                            variant={'contained'}
-                            onClick={() => { }}
-                            fullWidth
-                            color={'secondary'}
-                        >
-                            Delete
-                        </Button>
-                        {/* add copy link and share? */}
-                    </Stack>
-                </AccordionDetails>
-            </Accordion>
-        </Stack>
     )
 };

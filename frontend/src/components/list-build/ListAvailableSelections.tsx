@@ -36,10 +36,13 @@ type ListAvailableSelectionsProps = {
     setFilterSort: (arg0: FilterSortType) => void;
     handleOpenAttachments?: (unit: Unit) => void;
     attachment_select?: boolean;
+    selectedUnit?: Unit;
     testing?: boolean;
 };
 
-export function ListAvailableSelections({ type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments, attachment_select, testing, filterSort, setFilterSort }: ListAvailableSelectionsProps) {
+export function ListAvailableSelections({
+    type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments, attachment_select, selectedUnit, testing, filterSort, setFilterSort
+}: ListAvailableSelectionsProps) {
 
     const theme = useTheme();
     const open_color = alpha(theme.palette.primary.main, 0.24);
@@ -52,14 +55,20 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
             if (itemPointsCost < filterSort.pointsFilter[0] || itemPointsCost > filterSort.pointsFilter[1]) {
                 return false;
             }
+            if (filterSort.factionFilter === 'faction' && item.faction.neutral) {
+                return false;
+            } else if (filterSort.factionFilter === 'neutral' && !item.faction.neutral) {
+                return false;
+            }
+            if (type === 'attachment' && selectedUnit) {
+                const attachment = item as Attachment;
+                if (attachment.type !== selectedUnit.unit_type) {
+                    return false;
+                }
+            }
             if (type === 'unit') {
                 const unit = item as Unit;
                 if (!filterSort.unitTypeFilter.includes(unit.unit_type)) {
-                    return false;
-                }
-                if (filterSort.factionFilter === 'faction' && unit.faction.neutral) {
-                    return false;
-                } else if (filterSort.factionFilter === 'neutral' && !unit.faction.neutral) {
                     return false;
                 }
 
@@ -73,73 +82,6 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
                 return search_terms.some((term) => item_name.includes(term));
             }
         });
-    };
-
-    function sortItems(items: Unit[] | NCU[] | Attachment[]): Unit[] | NCU[] | Attachment[] {
-        items.sort((a, b) => {
-            // Check if items are of type 'Unit'
-            const isUnitA = 'attachments' in a;
-            const isUnitB = 'attachments' in b;
-            const isAttachmentA = 'attachment_type' in a;
-            const isAttachmentB = 'attachment_type' in b;
-    
-            let a_cost, b_cost, a_priority, b_priority;
-    
-            const a_is_commander = isAttachmentA && (a as Attachment).attachment_type === 'commander';
-            const b_is_commander = isAttachmentB && (b as Attachment).attachment_type === 'commander';
-
-            if (a_is_commander && !b_is_commander) return -1;
-            if (!a_is_commander && b_is_commander) return 1;
-            if (a_is_commander && b_is_commander) {
-                // Prioritize Faction commanders over Neutral commanders
-                if (a.faction.neutral !== b.faction.neutral) {
-                    return a.faction.neutral ? 1 : -1;
-                }
-            }
-
-            if (isUnitA) {
-                a_cost = a.points_cost + (a as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
-                // Adjust priority based on faction, attachments
-                a_priority = (a.faction.neutral ? 10 : 0) + ((a as Unit).attachments.length === 0 ? 50 : 0);
-            } else {
-                a_cost = a.points_cost;
-                a_priority = 300; // Default higher priority for NCU or Attachment
-            }
-        
-            if (isUnitB) {
-                b_cost = b.points_cost + (b as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
-                // Adjust priority based on faction, attachments
-                b_priority = (b.faction.neutral ? 10 : 0) + ((b as Unit).attachments.length === 0 ? 50 : 0);
-            } else {
-                b_cost = b.points_cost;
-                b_priority = 300; // Default higher priority for NCU or Attachment
-            }
-        
-            // Sort primarily by points cost, then by priority
-            if (a_cost !== b_cost) {
-                return filterSort.pointsSort === 'asc' ? a_cost - b_cost : b_cost - a_cost;
-            } else if (a_priority !== b_priority) {
-                return a_priority - b_priority;
-            }
-
-            return a.name.localeCompare(b.name);
-        });
-
-        if (type === 'ncu') {
-            return items;
-        } else if (type === 'unit') {
-            return items.sort((a, b) => {
-                const containsCommanderA = (a as Unit).attachments.some(att => att.attachment_type === 'commander');
-                const containsCommanderB = (b as Unit).attachments.some(att => att.attachment_type === 'commander');
-        
-                if (containsCommanderA && !containsCommanderB) return -1;
-                if (!containsCommanderA && containsCommanderB) return 1;
-        
-                return 0; // Keep existing order for non-commander items
-            });
-        } else {
-            return items;
-        };
     };
 
     return (
@@ -184,7 +126,7 @@ export function ListAvailableSelections({ type, in_list, availableItems, disable
                     }
                     <Box sx={{ width: '100%' }}>
                         <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'} sx={gridContainerStyles}>
-                            {sortItems(filterItems(availableItems)).map((item, index) => (
+                            {sortItems(type, filterItems(availableItems), filterSort).map((item, index) => (
                                 <AvailableSelection
                                     key={item.name + '_select_' + index}
                                     item={item}
@@ -219,6 +161,23 @@ type FilterCompProps = {
 function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: FilterCompProps) {
 
     const { isMobile } = useContext(MetadataContext);
+
+    function resetAllDisabled(){
+        const keys = Object.keys(filterSort);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (Array.isArray(filterSort[key as keyof FilterSortType]) && (typeof filterSort[key as keyof FilterSortType][0] === 'string' )) {
+                if (filterSort[key as keyof FilterSortType].length !== DEFAULT_FILTER_SORT[key as keyof FilterSortType].length) {
+                    return false;
+                }
+            } else {
+                if (JSON.stringify(filterSort[key as keyof FilterSortType]) !== JSON.stringify(DEFAULT_FILTER_SORT[key as keyof FilterSortType])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
 
     return (
         <Drawer
@@ -316,6 +275,7 @@ function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: 
                         color={'secondary'}
                         onClick={() => { setFilterSort(DEFAULT_FILTER_SORT) }}
                         fullWidth
+                        disabled={resetAllDisabled()}
                     >
                         Reset All
                     </Button>
@@ -323,4 +283,72 @@ function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: 
             </Box>
         </Drawer>
     );
-}
+};
+
+export function sortItems(type: 'unit' | 'ncu' | 'attachment', items: Unit[] | NCU[] | Attachment[], filterSort: FilterSortType): Unit[] | NCU[] | Attachment[] {
+    items.sort((a, b) => {
+        // Check if items are of type 'Unit'
+        const isUnitA = 'attachments' in a;
+        const isUnitB = 'attachments' in b;
+        const isAttachmentA = 'attachment_type' in a;
+        const isAttachmentB = 'attachment_type' in b;
+
+        let a_cost, b_cost, a_priority, b_priority;
+
+        const a_is_commander = isAttachmentA && (a as Attachment).attachment_type === 'commander';
+        const b_is_commander = isAttachmentB && (b as Attachment).attachment_type === 'commander';
+
+        if (a_is_commander && !b_is_commander) return -1;
+        if (!a_is_commander && b_is_commander) return 1;
+        if (a_is_commander && b_is_commander) {
+            // Prioritize Faction commanders over Neutral commanders
+            if (a.faction.neutral !== b.faction.neutral) {
+                return a.faction.neutral ? 1 : -1;
+            }
+        }
+
+        if (isUnitA) {
+            a_cost = a.points_cost + (a as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
+            // Adjust priority based on faction, attachments
+            a_priority = (a.faction.neutral ? 10 : 0) + ((a as Unit).attachments.length === 0 ? 50 : 0);
+        } else {
+            a_cost = a.points_cost;
+            a_priority = 300; // Default higher priority for NCU or Attachment
+        }
+    
+        if (isUnitB) {
+            b_cost = b.points_cost + (b as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
+            // Adjust priority based on faction, attachments
+            b_priority = (b.faction.neutral ? 10 : 0) + ((b as Unit).attachments.length === 0 ? 50 : 0);
+        } else {
+            b_cost = b.points_cost;
+            b_priority = 300; // Default higher priority for NCU or Attachment
+        }
+    
+        // Sort primarily by points cost, then by priority
+        if (a_cost !== b_cost) {
+            return filterSort.pointsSort === 'asc' ? a_cost - b_cost : b_cost - a_cost;
+        } else if (a_priority !== b_priority) {
+            return a_priority - b_priority;
+        }
+
+        return a.name.localeCompare(b.name);
+    });
+
+    if (type === 'ncu') {
+        return items;
+    } else if (type === 'unit') {
+        return items.sort((a, b) => {
+            if (!('attachments' in a) || !('attachments' in b)) return 0;
+            const containsCommanderA = (a as Unit).attachments.some(att => att.attachment_type === 'commander');
+            const containsCommanderB = (b as Unit).attachments.some(att => att.attachment_type === 'commander');
+    
+            if (containsCommanderA && !containsCommanderB) return -1;
+            if (!containsCommanderA && containsCommanderB) return 1;
+    
+            return 0; // Keep existing order for non-commander items
+        });
+    } else {
+        return items;
+    };
+};

@@ -9,10 +9,13 @@ import ListBuilderProvider from './contexts/ListBuilderContext';
 import MetadataProvider from './contexts/MetadataContext';
 import Router from './routes';
 import ThemeProvider from './theme';
+import { initializeBrotli } from './utils/convertList';
 
 // ----------------------------------------------------------------------
 
 function App() {
+
+  initializeBrotli();
 
   return (
     <ThemeProvider>
