@@ -1,10 +1,10 @@
 import { Tabs, Tab, Typography, Stack, Grid } from "@mui/material";
 import { useContext, useState } from "react";
-import Iconify from "./base/Iconify";
+import Iconify from "../base/Iconify";
 import { allSteps } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { GameContext } from "src/contexts/GameContext";
-import EndBackdrop from "./game-page/EndBackdrop";
+import EndBackdrop from "./EndBackdrop";
 import { useParams } from "react-router-dom";
 
 // ----------------------------------------------------------------------
@@ -84,12 +84,17 @@ export default function SectionStepper() {
                 />
             </Stack>
             <Grid container gap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Grid item xs={4} sm={3} md={2} lg={1}>
+                <Grid item sm={2} md={1}>
                     <Typography variant={'body1'} sx={{ textAlign: 'center', mx: 'auto' }}>
                         {selectedSection ? selectedSection : allSteps[0]}: {getStepCount(selectedSection ? selectedSection : allSteps[0])}
                     </Typography>
                 </Grid>
-                <Grid item xs={4} sm={3} md={2} lg={1}>
+                <Grid item sm={2} md={1}>
+                    <Typography variant={'body1'} sx={{ textAlign: 'center', mx: 'auto' }} color={'text.disabled'}>
+                        |
+                    </Typography>
+                </Grid>
+                <Grid item sm={2} md={1}>
                     <Typography variant={'body1'} sx={{ textAlign: 'center', mx: 'auto' }}>
                         Round: {gameRound}
                     </Typography>

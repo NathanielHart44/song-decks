@@ -5,7 +5,7 @@ import axios from "axios";
 import { MAIN_API } from "src/config";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../base/LoadingBackdrop";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { GameContext } from "src/contexts/GameContext";
 import HSwipe3 from "./HSwipe3";
 import { useWindowDimensions } from "src/utils/useWindowDimensions";
@@ -93,19 +93,5 @@ export default function GameContent() {
                 </Box>
             }
         </>
-    );
-};
-
-// ----------------------------------------------------------------------
-
-type GroupingHeaderProps = {
-    title: string;
-    count: number;
-    gameRound: number;
-};
-
-export function GroupingHeader({ title, count }: GroupingHeaderProps) {
-    return (
-        <Typography variant={'body1'}>{title} ({count})</Typography>
     );
 };

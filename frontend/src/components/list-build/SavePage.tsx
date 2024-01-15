@@ -17,7 +17,7 @@ import { useParams } from "react-router-dom";
 
 // ----------------------------------------------------------------------
 
-export function SettingsPage() {
+export function SavePage() {
 
     const theme = useTheme();
     const title_grey = theme.palette.grey[600];

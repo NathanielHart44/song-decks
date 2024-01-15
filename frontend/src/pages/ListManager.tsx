@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Container, Grid, Stack, SxProps, Theme } from "@mui/material";
+import { Container, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import Page from "src/components/base/Page";
 import { useApiCall } from "src/hooks/useApiCall";
@@ -19,6 +19,7 @@ export default function ListManager() {
     const navigate = useNavigate();
     const { apiCall } = useApiCall();
     const { isMobile } = useContext(MetadataContext);
+    const theme = useTheme();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
@@ -90,6 +91,7 @@ export default function ListManager() {
             {awaitingResponse && <LoadingBackdrop />}
             <Container maxWidth={false}>
                 <Stack justifyContent={'center'} alignItems={'center'} spacing={2} width={'100%'}>
+                    <Typography variant={'h3'}>List Manager</Typography>
                     <AddNewWB
                         isMobile={isMobile}
                         handleClick={() => { navigate(PATH_PAGE.list_builder) }}
@@ -103,6 +105,9 @@ export default function ListManager() {
                             />
                         ))}
                     </Grid>
+                    {currentLists && currentLists.length === 0 &&
+                        <Typography color={theme.palette.text.disabled}>No Lists Created</Typography>
+                    }
                 </Stack>
             </Container>
         </Page>
