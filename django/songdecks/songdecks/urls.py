@@ -121,6 +121,7 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('get_all_users/', admin_views.get_all_users),
+    path('get_all_admins/', admin_views.get_all_admins),
     path('toggle_moderator/<str:username>/', admin_views.toggle_moderator),
     path('toggle_admin/<str:username>/', admin_views.toggle_admin),
     path('reset_password/<str:username>/', admin_views.reset_password),
