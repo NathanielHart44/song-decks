@@ -2,9 +2,11 @@ import { Badge, BottomNavigation, BottomNavigationAction, Paper, Stack, Typograp
 import { Commander, Faction } from "src/@types/types";
 import Iconify from "src/components/base/Iconify";
 import useListBuildManager from "src/hooks/useListBuildManager";
-import Settings from '@mui/icons-material/Settings';
+import SaveIcon from '@mui/icons-material/Save';
 import { VIEW_OPTIONS } from "src/contexts/ListBuilderContext";
 import { useParams } from "react-router-dom";
+import { useContext } from "react";
+import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
 type SelectViewProps = {
@@ -17,6 +19,7 @@ type SelectViewProps = {
 };
 export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCommander, selectedView, setSelectedView }: SelectViewProps) {
 
+    const { isMobile } = useContext(MetadataContext);
     const { validSubmission } = useListBuildManager();
     const { lc } = useParams();
     const is_edit = (lc !== undefined && lc !== null);
@@ -32,13 +35,14 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
         } else {
             return <Iconify icon={'eva:checkmark-outline'} width={'200%'} height={'200%'} color={theme.palette.success.main} />;
         };
-    }
+    };
 
     return (
         <>
             {selectedFaction && selectedCommander &&
                 <Paper square sx={{ position: 'fixed', bottom: -2, left: 0, right: 0, width: '100%', zIndex: 999 }} elevation={10}>
                     <BottomNavigation
+                        showLabels={!isMobile}
                         value={selectedView}
                         onChange={(event, newValue) => {
                             setSelectedView(newValue);
@@ -62,8 +66,8 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
                         <BottomNavigationAction value={'units'} label={"Units"} icon={<Iconify icon={'game-icons:swords-emblem'} width={'55%'} height={'55%'} />} />
                         <BottomNavigationAction value={'ncus'} label={"NCUs"} icon={<Iconify icon={'mdi:quill'} width={'55%'} height={'55%'} />} />
                         <BottomNavigationAction
-                            value={'settings'}
-                            label={"Settings"}
+                            value={'save'}
+                            label={"Save"}
                             icon={
                                 <Badge
                                     overlap="rectangular"
@@ -71,7 +75,7 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
                                     badgeContent={getSettingsIcon()}
                                     invisible={false}
                                 >
-                                    <Settings />
+                                    <SaveIcon />
                                 </Badge>
                             }
                         />

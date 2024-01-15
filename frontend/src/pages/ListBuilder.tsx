@@ -20,7 +20,7 @@ import { ALL_CONTENT_OPTIONS, VIEW_OPTIONS } from "src/contexts/ListBuilderConte
 import { ListAvailableSelections } from "../components/list-build/ListAvailableSelections";
 import Page from "src/components/base/Page";
 import { useParams } from "react-router-dom";
-import { SettingsPage } from "../components/list-build/SettingsPage";
+import { SavePage } from "../components/list-build/SavePage";
 
 // ----------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ export default function ListBuilder() {
                             </>
 
                         }
-                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' && listState.selectedView !== 'settings' &&
+                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView !== 'my_list' && listState.selectedView !== 'save' &&
                             <>
                                 {listState.selectedView === 'attachments' &&
                                     <>
@@ -251,6 +251,7 @@ export default function ListBuilder() {
                                             filterSort={filterSort}
                                             setFilterSort={setFilterSort}
                                         />
+                                        <Divider sx={{ width: '65%' }} />
                                     </>
                                 }
                                 <Typography variant={'h4'}>
@@ -288,8 +289,8 @@ export default function ListBuilder() {
                                 />
                             </>
                         }
-                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'settings' &&
-                            <SettingsPage />
+                        {listState.selectedFaction && listState.selectedCommander && listState.selectedView === 'save' &&
+                            <SavePage />
                         }
                     </Stack>
                 </Stack>

@@ -1,5 +1,6 @@
 import {
     Box,
+    Divider,
     Grid,
     Stack,
     useTheme
@@ -64,6 +65,8 @@ export function FactionAndCommanderSelect(
                     }
                 </Stack>
             </Stack>
+
+            <Divider sx={{ width: '65%' }} />
 
             {!selectedFaction &&
                 <Box sx={{ width: '100%' }}>

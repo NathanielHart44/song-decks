@@ -20,7 +20,7 @@ const initialState = {
     factionAttachments: null,
     availableAttachments: null,
     factionNCUs: null,
-    selectedView: 'settings' as VIEW_OPTIONS,
+    selectedView: 'save' as VIEW_OPTIONS,
     listTitle: '',
     usedPoints: 0,
     maxPoints: DEFAULT_LIST_POINTS,
@@ -110,7 +110,7 @@ export default function ListBuilderProvider({ children }: Props) {
 
     useEffect(() => {
         if (!location.pathname.includes('list-builder')) {
-            if (listState.listTitle === '') { return };
+            if (!listState.selectedFaction && !listState.selectedCommander) { return };
             resetListState(listDispatch);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,7 +135,7 @@ export default function ListBuilderProvider({ children }: Props) {
 export function resetListState(listDispatch: React.Dispatch<ListAction>) {
     listDispatch({ type: 'SET_SELECTED_FACTION', payload: null });
     listDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
-    listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'settings' });
+    listDispatch({ type: 'SET_SELECTED_VIEW', payload: 'save' });
     listDispatch({ type: 'SET_LIST_TITLE', payload: '' });
     listDispatch({ type: 'SET_USED_POINTS', payload: 0 });
     listDispatch({ type: 'SET_MAX_POINTS', payload: DEFAULT_LIST_POINTS });
@@ -144,7 +144,7 @@ export function resetListState(listDispatch: React.Dispatch<ListAction>) {
     listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
 };
 
-export type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus' | 'settings';
+export type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus' | 'save';
 export type ALL_CONTENT_OPTIONS = 'factions' | 'commanders' | VIEW_OPTIONS;
 
 export type ListState = {

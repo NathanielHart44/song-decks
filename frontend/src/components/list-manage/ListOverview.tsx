@@ -1,4 +1,4 @@
-import { Box, Container, Dialog, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Box, Container, Dialog, Divider, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { useContext } from "react";
 import { List, NCU, Unit } from "src/@types/types";
 import { SelectableAvatar } from "../base/SelectableAvatar";
@@ -89,6 +89,9 @@ export function ListOverview({ currentList, dialogOpen, setDialogOpen }: ListOve
                             ))}
                         </Grid>
                     </Box>
+
+                    <Divider sx={{ width: '65%' }} />
+
                     <Typography variant={'h4'}>
                         NCUs
                     </Typography>
@@ -108,6 +111,8 @@ export function ListOverview({ currentList, dialogOpen, setDialogOpen }: ListOve
                             ))}
                         </Grid>
                     </Box>
+
+                    <Divider sx={{ width: '65%' }} />
 
                     <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} width={'65%'}>
                         <Stack spacing={1} justifyContent={'center'} alignItems={'center'}>

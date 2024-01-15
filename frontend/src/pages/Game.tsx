@@ -2,7 +2,7 @@ import Page from "src/components/base/Page";
 import { useContext, useState } from "react";
 import GameContent from "src/components/game-page/GameContent";
 import { Stack, useTheme } from "@mui/material";
-import SectionStepper from "src/components/SectionStepper";
+import SectionStepper from "src/components/game-page/SectionStepper";
 import { GameContext } from "src/contexts/GameContext";
 import { ActionButtons } from "src/components/game-page/ActionButtons";
 import { useParams } from "react-router-dom";
