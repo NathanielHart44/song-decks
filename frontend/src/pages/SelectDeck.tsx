@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Stack } from "@mui/material";
+import { Button, Divider, Stack, Switch, Typography } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Commander, Faction } from "src/@types/types";
+import { Commander, Faction, FakeList, List } from "src/@types/types";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import Page from "src/components/base/Page";
 import { MAIN_API } from "src/config";
@@ -14,13 +14,16 @@ import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
 import { useApiCall } from "src/hooks/useApiCall";
 import { FactionAndCommanderSelect } from "src/components/list-build/FactionAndCommanderSelect";
+import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
+import { parseLists } from "./ListManager";
+import { encodeList } from "src/utils/convertList";
 
 // ----------------------------------------------------------------------
 
 export default function SelectDeck() {
 
     const { enqueueSnackbar } = useSnackbar();
-    const { isMobile } = useContext(MetadataContext);
+    const { isMobile, currentUser } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
     const navigate = useNavigate();
 
@@ -32,6 +35,19 @@ export default function SelectDeck() {
     const [allCommanders, setAllCommanders] = useState<Commander[]>();
     const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
+
+    const [currentLists, setCurrentLists] = useState<List[]>();
+    const [playWithLists, setPlayWithLists] = useState<boolean>(false);
+    const [selectedList, setSelectedList] = useState<List | null>(null);
+    const [availableLists, setAvailableLists] = useState<List[] | null>(null);
+
+    const getUserLists = async () => {
+        const url = `lists/${currentUser?.id}`;
+        apiCall(url, 'GET', null, (data: FakeList[]) => {
+            const lists = parseLists(data);
+            setCurrentLists(lists);
+        });
+    };
 
     const getContent = async (type: 'factions' | 'commanders') => {
         apiCall(type, 'GET', null, (data) => {
@@ -56,7 +72,12 @@ export default function SelectDeck() {
                 const res = response.data.response;
                 delay(750).then(() => {
                     setAwaitingResponse(false);
-                    navigate(PATH_PAGE.game + `/${res[0].game.id}`);
+                    let redirect_url = `${PATH_PAGE.game}/${res[0].game.id}`;
+                    if (selectedList) {
+                        const encoded_list = encodeList(selectedList);
+                        redirect_url += `/${encoded_list}`;
+                    }
+                    navigate(redirect_url);
                 });
             } else {
                 enqueueSnackbar(response.data.response);
@@ -71,12 +92,22 @@ export default function SelectDeck() {
         processTokens(() => {
             getContent('factions');
             getContent('commanders');
+            getUserLists();
         });
     }, []);
 
     useEffect(() => {
-        if (factions && allCommanders) { setAwaitingResponse(false) };
-    }, [factions, allCommanders]);
+        if (currentLists && selectedFaction && selectedCommander) {
+            let availableLists = currentLists.filter((list) => list.faction.id === selectedFaction?.id && list.commander.id === selectedCommander?.id);
+            setAvailableLists(availableLists);
+        } else {
+            setAvailableLists(null);
+        }
+    }, [currentLists, selectedFaction, selectedCommander]);
+
+    useEffect(() => {
+        if (factions && allCommanders && currentLists) { setAwaitingResponse(false) };
+    }, [factions, allCommanders && currentLists]);
     
     useEffect(() => {
         if (selectedFaction && allCommanders) {
@@ -110,6 +141,7 @@ export default function SelectDeck() {
         <Page title="Select Deck">
             { awaitingResponse && <LoadingBackdrop /> }
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Typography variant={'h3'}>Select Deck</Typography>
                 {factions &&
                     <FactionAndCommanderSelect
                         isMobile={isMobile}
@@ -122,18 +154,42 @@ export default function SelectDeck() {
                     />
                 }
 
-                { selectedFaction && selectedCommander && (
-                    <Button
-                        variant={'contained'}
-                        color={'primary'}
-                        size={'large'}
-                        onClick={() => { processTokens(beginGame) }}
-                        disabled={awaitingResponse}
-                    >
-                        Confirm
-                    </Button>
-                )}
-                
+                {selectedFaction && selectedCommander &&
+                    <>
+                        <Button
+                            variant={'contained'}
+                            color={'primary'}
+                            size={'large'}
+                            onClick={() => { processTokens(beginGame) }}
+                            disabled={awaitingResponse}
+                        >
+                            Confirm
+                        </Button>
+                        {currentUser?.moderator &&
+                            <Stack direction={'row'} alignItems={'center'}>
+                                <Typography>Play With List</Typography>
+                                <Switch
+                                    checked={playWithLists}
+                                    onChange={() => { setPlayWithLists(!playWithLists) }}
+                                />
+                            </Stack>
+                        }
+                        {playWithLists &&
+                            <>
+                                <Divider sx={{ width: '65%' }} />
+                                <Typography variant={'h4'}>
+                                    {selectedList ? 'Selected List' : 'Available Lists'}
+                                </Typography>
+                                <CurrentListsDisplay
+                                    type={'select'}
+                                    currentLists={selectedList ? [selectedList] : (availableLists ? availableLists : [])}
+                                    selectedList={selectedList}
+                                    selectList={setSelectedList}
+                                />
+                            </>
+                        }
+                    </>
+                }                
             </Stack>
         </Page>
     );

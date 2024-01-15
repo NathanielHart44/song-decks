@@ -11,10 +11,9 @@ type SelectableAvatarProps = {
     attachments?: Attachment[];
     defaultIcon?: string;
     disabled?: boolean;
-    no_hover?: boolean;
     sxOverrides?: SxProps<Theme>;
 };
-export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, disabled, no_hover, sxOverrides }: SelectableAvatarProps) {
+export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, disabled, sxOverrides }: SelectableAvatarProps) {
 
     const theme = useTheme();
     const avatar_size = isMobile ? 100 : 80;
@@ -22,7 +21,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
     const avatarStyles = {
         width: avatar_size,
         height: avatar_size,
-        ...(!isMobile && !no_hover) ? {
+        ...(!isMobile) ? {
             transition: 'transform 0.3s',
             cursor: 'pointer',
             '&:hover': { transform: 'scale(1.1)' },
@@ -44,7 +43,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
     }
 
     return (
-        <Box>
+        <Box onClick={event => event.stopPropagation()}>
             <Stack spacing={1} display={'flex'} justifyContent={'center'} alignItems={'center'}>
                 <Badge
                     overlap="circular"
@@ -60,7 +59,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                                 src={attachments[0].img_url}
                                 variant={'rounded'}
                                 sx={{
-                                    cursor: no_hover ? 'auto' : 'pointer',
+                                    cursor: 'pointer',
                                     width: avatar_size * 0.5,
                                     height: avatar_size * 0.5,
                                     border: `2px solid ${theme.palette.primary.main}`

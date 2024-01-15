@@ -99,13 +99,15 @@ def games_played_info(request):
             last_30_days_game_count=Coalesce(Count('game', filter=Q(game__created_at__gte=thirty_days_ago), distinct=True), 0)
         )
 
-        moderators = profiles.filter(moderator=True)
+        moderators = profiles.filter(moderator=True, admin=False)
+        admins = profiles.filter(admin=True)
         players = profiles.filter(moderator=False)
 
         data = {}
         profile_querysets: Tuple[Tuple[str, QuerySet[Profile]], ...] = [
             ('active_players', players),
-            ('moderators', moderators)
+            ('moderators', moderators),
+            ('admins', admins)
         ]
 
         for key, profile_queryset in profile_querysets:

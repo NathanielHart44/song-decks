@@ -52,18 +52,6 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
 
     const contains_attachments = containsAttachments(type, item);
 
-    function getImgSizing() {
-        let img_sizing: SxProps<Theme> = {
-            maxHeight: '65%'
-        };
-        if (isMobile) {
-            img_sizing = {
-                maxHeight: '70%'
-            };
-        };
-        return img_sizing;
-    };
-
     function getType(viewed_item: Unit | Attachment | NCU) {
         if (type !== 'unit') {
             return type;
@@ -131,7 +119,7 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                                 ))}
                             </ToggleButtonGroup>
                         }
-                        <Box sx={getImgSizing()} onClick={event => event.stopPropagation()}>
+                        <Box sx={getImgSizing(isMobile)} onClick={event => event.stopPropagation()}>
                             <img
                                 src={viewedItem.main_url}
                                 alt={viewedItem.name + ' main image'}
@@ -214,10 +202,22 @@ export function getItemTitle(item: Unit | Attachment | NCU, type: 'unit' | 'atta
     return item_title;
 };
 
-function containsAttachments(type: 'unit' | 'ncu' | 'attachment', item: Unit | Attachment | NCU) {
+export function containsAttachments(type: 'unit' | 'ncu' | 'attachment', item: Unit | Attachment | NCU) {
     const contains_attachments =
         type === 'unit' &&
         'attachments' in item &&
         (item as Unit).attachments.length > 0;
     return contains_attachments;
-}
+};
+
+export function getImgSizing(is_mobile: boolean) {
+    let img_sizing: SxProps<Theme> = {
+        maxHeight: '65%'
+    };
+    if (is_mobile) {
+        img_sizing = {
+            maxHeight: '70%'
+        };
+    };
+    return img_sizing;
+};

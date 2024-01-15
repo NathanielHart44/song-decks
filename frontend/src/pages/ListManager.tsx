@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Container, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Container, Stack, Typography } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import Page from "src/components/base/Page";
 import { useApiCall } from "src/hooks/useApiCall";
@@ -10,7 +10,7 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import AddNewWB from "src/components/workbench/AddNewWB";
 import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
-import { ListDisplay } from "../components/list-manage/ListDisplay";
+import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
 
 // ----------------------------------------------------------------------
 
@@ -19,7 +19,6 @@ export default function ListManager() {
     const navigate = useNavigate();
     const { apiCall } = useApiCall();
     const { isMobile } = useContext(MetadataContext);
-    const theme = useTheme();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
@@ -30,30 +29,7 @@ export default function ListManager() {
         let url = 'lists';
         apiCall(url, 'GET', null, (data: FakeList[]) => {
 
-            let new_data: any[] = [];
-            data.forEach((list: FakeList) => {
-                let new_list: any = {};
-                new_list.id = list.id;
-                new_list.name = list.name;
-                new_list.owner = list.owner;
-                new_list.points_allowed = list.points_allowed;
-                new_list.faction = list.faction;
-                new_list.commander = list.commander;
-                new_list.units = list.units.map((listUnitObj) => {
-                    let unit = listUnitObj.unit;
-                    unit.attachments = listUnitObj.attachments;
-            
-                    return unit;
-                });
-                new_list.ncus = list.ncus.map((ncuObj) => { return ncuObj.ncu });
-                new_list.created_at = list.created_at;
-                new_list.updated_at = list.updated_at;
-                new_list.is_draft = list.is_draft;
-                new_list.is_public = list.is_public;
-                new_list.is_valid = list.is_valid;
-                new_list.shared_from = list.shared_from;
-                new_data.push(new_list);
-            });
+            let new_data: List[] = parseLists(data);
 
             setCurrentLists(new_data);
         });
@@ -71,21 +47,6 @@ export default function ListManager() {
         };
     }, [currentLists]);
 
-    function sortListsByDate(lists: List[]) {
-        return lists.sort((a, b) => {
-            return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        });
-    }
-
-    const gridContainerStyles: SxProps<Theme> = {
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        display: 'grid',
-        width: '100%',
-        gridTemplateColumns: 'repeat(auto-fill, 320px)',
-        gap: '16px'
-    };
-
     return (
         <Page title="List Manager">
             {awaitingResponse && <LoadingBackdrop />}
@@ -96,20 +57,39 @@ export default function ListManager() {
                         isMobile={isMobile}
                         handleClick={() => { navigate(PATH_PAGE.list_builder) }}
                     />
-
-                    <Grid container sx={gridContainerStyles}>
-                        {currentLists && sortListsByDate(currentLists).map((list, index) => (
-                            <ListDisplay
-                                key={index}
-                                list={list}
-                            />
-                        ))}
-                    </Grid>
-                    {currentLists && currentLists.length === 0 &&
-                        <Typography color={theme.palette.text.disabled}>No Lists Created</Typography>
-                    }
+                    <CurrentListsDisplay type={'manage'} currentLists={currentLists} />
                 </Stack>
             </Container>
         </Page>
     )
 };
+
+// ----------------------------------------------------------------------
+
+export function parseLists(data: FakeList[]) {
+    let new_data: any[] = [];
+    data.forEach((list: FakeList) => {
+        let new_list: any = {};
+        new_list.id = list.id;
+        new_list.name = list.name;
+        new_list.owner = list.owner;
+        new_list.points_allowed = list.points_allowed;
+        new_list.faction = list.faction;
+        new_list.commander = list.commander;
+        new_list.units = list.units.map((listUnitObj) => {
+            let unit = listUnitObj.unit;
+            unit.attachments = listUnitObj.attachments;
+
+            return unit;
+        });
+        new_list.ncus = list.ncus.map((ncuObj) => { return ncuObj.ncu; });
+        new_list.created_at = list.created_at;
+        new_list.updated_at = list.updated_at;
+        new_list.is_draft = list.is_draft;
+        new_list.is_public = list.is_public;
+        new_list.is_valid = list.is_valid;
+        new_list.shared_from = list.shared_from;
+        new_data.push(new_list);
+    });
+    return new_data;
+}

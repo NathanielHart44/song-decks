@@ -40,12 +40,18 @@ export default function Router() {
         { path: 'workbench', element: withAuthGuard(<Workbench />) },
         { path: 'landing', element: withGuestGuard(<LandingPage />) },
         { path: 'home', element: withAuthGuard(<Home />) },
-        { path: 'game', element: withAuthGuard(<Game />) },
+        {
+          path: 'game',
+          element: withAuthGuard(<Game />),
+          children: [
+            { path: ':gameID', element: withAuthGuard(<Game />) },
+            { path: ':gameID/:lc', element: withAuthGuard(<Game />) }
+          ],
+        },
+        { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         { path: 'manage', element: withModeratorGuard(<ManageContent />) },
         { path: 'admin', element: withAdminGuard(<AdminPage />) },
         { path: 'profile', element: withAuthGuard(<ProfilePage />) },
-        { path: 'game/:gameID', element: withAuthGuard(<Game />) },
-        { path: 'select-deck', element: withAuthGuard(<SelectDeck />) },
         {
           path: 'list-builder',
           element: withAuthGuard(<ListBuilder />),

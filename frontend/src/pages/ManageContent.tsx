@@ -23,7 +23,7 @@ export default function ManageContent() {
     const [selectedContent, setSelectedContent] = useState<ContentOptionType | null>(null);
 
     return (
-        <Page title="Manage">
+        <Page title="Manage Content">
             { awaitingResponse && <LoadingBackdrop /> }
             { selectedContent === 'cards' &&
                 <ManageCardContent

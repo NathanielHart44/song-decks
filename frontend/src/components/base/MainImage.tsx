@@ -1,7 +1,7 @@
 import { LazyLoadImage, LazyLoadImageProps } from 'react-lazy-load-image-component';
 // @mui
 import { Theme } from '@mui/material/styles';
-import { Box, BoxProps, SxProps } from '@mui/material';
+import { Box, BoxProps, Skeleton, SxProps } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -15,13 +15,25 @@ interface Props extends IProps {
   disabledEffect?: boolean;
 }
 
-export default function Image({
+export default function MainImage({
   ratio,
   disabledEffect = false,
   effect = 'blur',
   sx,
   ...other
 }: Props) {
+
+  const skeleton = (
+    <Skeleton
+      variant="rectangular"
+      // sx={{
+      //   width: 1, // Full width
+      //   height: ratio ? getRatio(ratio) : 'auto' // Use the ratio for height if provided
+      // }}
+      sx={{ width: '50px', height: '50px' }}
+    />
+  );
+
   if (ratio) {
     return (
       <Box
@@ -47,9 +59,9 @@ export default function Image({
       >
         <Box
           component={LazyLoadImage}
-          wrapperClassName="wrapper"
+          wrapperclassname="wrapper"
           effect={disabledEffect ? undefined : effect}
-          placeholderSrc="https://zone-assets-api.vercel.app/assets/img_placeholder.svg"
+          placeholder={skeleton}
           sx={{ width: 1, height: 1, objectFit: 'cover' }}
           {...other}
         />
@@ -70,9 +82,9 @@ export default function Image({
     >
       <Box
         component={LazyLoadImage}
-        wrapperClassName="wrapper"
+        wrapperclassname="wrapper"
         effect={disabledEffect ? undefined : effect}
-        placeholderSrc="https://zone-assets-api.vercel.app/assets/img_placeholder.svg"
+        placeholder={skeleton}
         sx={{ width: 1, height: 1, objectFit: 'cover' }}
         {...other}
       />

@@ -1,39 +1,53 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Page from "src/components/base/Page";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import GameContent from "src/components/game-page/GameContent";
-import { Stack, useTheme } from "@mui/material";
+import { Stack } from "@mui/material";
 import SectionStepper from "src/components/game-page/SectionStepper";
 import { GameContext } from "src/contexts/GameContext";
 import { ActionButtons } from "src/components/game-page/ActionButtons";
 import { useParams } from "react-router-dom";
 import CardProbability from "src/components/game-page/CardProbability";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
-import Iconify from "src/components/base/Iconify";
 import KeywordSearch from "src/components/KeywordSearch";
-import SpeedDialDiv from "src/components/SpeedDialDiv";
+import SpeedDialDiv, { SpeedDialOptions } from "src/components/SpeedDialDiv";
+import { decodeList } from "src/utils/convertList";
+import { List } from "src/@types/types";
+import { ListOverviewDiv } from "src/components/list-manage/ListOverview";
 
 // ----------------------------------------------------------------------
 
-export type GameModalOptions = 'probability' | 'word_search' | 'game';
+export type GameModalOptions = 'probability' | 'word_search' | 'game' | 'list';
+
+// ----------------------------------------------------------------------
 
 export default function Game() {
 
-    const theme = useTheme();
-    const { gameID = '' } = useParams();
+    const { gameID = '', lc } = useParams();
     const { allCards } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [openModal, setOpenModal] = useState<GameModalOptions>('game');
+    const [gameList, setGameList] = useState<List>();
+    const [speedDialOptions, setSpeedDialOptions] = useState<SpeedDialOptions[]>(defaultSpeedDialOptions);
 
     // TODO: Preload images here, but running into issues with allCards containing cards not partaining to the current game.
 
-    const getDialColor = (option: GameModalOptions) => {
-        if (option === openModal) {
-            return theme.palette.primary.main;
-        } else {
-            return 'default';
-        }
-    };
+    const using_list = (lc !== undefined && lc !== null);
+    useEffect(() => {
+        if (using_list && !gameList) {
+            const loaded_list = decodeList(lc);
+            setGameList(loaded_list);
+            const new_speed_dial_options = [...speedDialOptions];
+            new_speed_dial_options.push({
+                name: 'List',
+                source: 'list',
+                icon: 'game-icons:swords-emblem'
+            });
+            setSpeedDialOptions(new_speed_dial_options);
+
+        };
+    }, [gameList, lc]);
 
     return (
         <Page title="Play">
@@ -56,25 +70,16 @@ export default function Game() {
                     setAwaitingResponse={setAwaitingResponse}
                 />
             }
+            { openModal === 'list' &&
+                <ListOverviewDiv
+                    isMobile={false}
+                    currentList={gameList as List}
+                />
+            }
                 <SpeedDialDiv
                     setOpenModal={setOpenModal}
-                    options={[
-                        {
-                            name: 'Game',
-                            source: 'game' as GameModalOptions,
-                            icon: <Iconify icon={'ri:sword-line'} width={'55%'} height={'55%'} color={getDialColor('game')} />
-                        },
-                        {
-                            name: 'Deck Cards',
-                            source: 'probability' as GameModalOptions,
-                            icon: <Iconify icon={'eva:percent-outline'} width={'55%'} height={'55%'} color={getDialColor('probability')} />
-                        },
-                        {
-                            name: 'Keyword Search',
-                            source: 'word_search' as GameModalOptions,
-                            icon: <Iconify icon={'eva:search-outline'} width={'55%'} height={'55%'} color={getDialColor('word_search')} />
-                        },
-                    ]}
+                    options={speedDialOptions}
+                    openModal={openModal}
                 />
         </Page>
     );
@@ -116,3 +121,23 @@ function GameContentDiv({ setAwaitingResponse }: GameContentDivProps) {
         </Stack>
     );
 };
+
+// ----------------------------------------------------------------------
+
+const defaultSpeedDialOptions: SpeedDialOptions[] = [
+    {
+        name: 'Tactics Deck',
+        source: 'game',
+        icon: 'mdi:cards'
+    },
+    {
+        name: 'Cards In Deck',
+        source: 'probability',
+        icon: 'icon-park-solid:layers'
+    },
+    {
+        name: 'Keyword Search',
+        source: 'word_search',
+        icon: 'eva:search-outline'
+    },
+];

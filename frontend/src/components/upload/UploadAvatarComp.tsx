@@ -6,7 +6,7 @@ import { fData } from 'src/utils/formatNumber';
 import { useDropzone } from 'react-dropzone';
 import Iconify from '../base/Iconify';
 import RejectionFiles from './RejectionFiles';
-import LazyImage from '../base/Image';
+import LazyImage from '../base/MainImage';
 import { Attachment, Commander, Faction, Unit, NCU } from "src/@types/types";
 import createImageURL from 'src/utils/createImgURL';
 import isValidHttpUrl from 'src/utils/isValidHttpUrl';
