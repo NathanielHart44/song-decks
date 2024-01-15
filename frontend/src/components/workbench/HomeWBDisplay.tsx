@@ -1,4 +1,4 @@
-import { Box, Divider, Stack } from "@mui/material";
+import { Divider, Stack } from "@mui/material";
 import ProposalCardView from "./ProposalCardView";
 import TaskCardView from "./TaskCardView";
 import { Proposal } from "src/@types/types";
@@ -95,9 +95,7 @@ export default function HomeWBDisplay() {
                 handleProposal={handleProposal}
                 allTags={allTags}
             />
-            <Box width={'75%'}>
-                <Divider flexItem />
-            </Box>
+            <Divider sx={{ width: '65%' }} />
             <TaskCardView
                 grid_sizing={grid_sizing}
                 tasks={allTasks || []}

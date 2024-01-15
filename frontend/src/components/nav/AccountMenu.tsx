@@ -145,12 +145,6 @@ export default function AccountMenu() {
                             </ListItemIcon>
                             {currentUser ? currentUser.username : '--'}
                         </MenuItem>
-                        <MenuItem onClick={ ()=> handleClose('feedback')}>
-                            <ListItemIcon>
-                                <FeedbackIcon fontSize="small" />
-                            </ListItemIcon>
-                            Feedback & Bugs
-                        </MenuItem>
                         <Divider />
                         { is_admin &&
                             [
@@ -184,6 +178,12 @@ export default function AccountMenu() {
                                 <Divider key={"divider_2"} />
                             ]
                         }
+                        <MenuItem onClick={ ()=> handleClose('feedback')}>
+                            <ListItemIcon>
+                                <FeedbackIcon fontSize="small" />
+                            </ListItemIcon>
+                            Feedback & Bugs
+                        </MenuItem>
                         <MenuItem onClick={ ()=> handleClose('home')}>
                             <ListItemIcon>
                                 <HomeIcon fontSize="small" />

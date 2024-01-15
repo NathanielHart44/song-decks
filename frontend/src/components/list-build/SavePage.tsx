@@ -13,7 +13,9 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { processTokens } from "src/utils/jwt";
 import useListBuildManager from "src/hooks/useListBuildManager";
 import { DeleteDialog } from "../base/DeleteDialog";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { PATH_PAGE } from "src/routes/paths";
+import { resetListState } from "src/contexts/ListBuilderContext";
 
 // ----------------------------------------------------------------------
 
@@ -22,6 +24,7 @@ export function SavePage() {
     const theme = useTheme();
     const title_grey = theme.palette.grey[600];
     const { isMobile } = useContext(MetadataContext);
+    const navigate = useNavigate();
     const { lc } = useParams();
     const is_edit = (lc !== undefined && lc !== null);
     const { listState, listDispatch, handleSaveList, handleDeleteList, validSubmission } = useListBuildManager();
@@ -64,7 +67,7 @@ export function SavePage() {
                 </ToggleButtonGroup>
             </Stack>
             <Grid container columnGap={2} rowGap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Grid item xs={12} md={5} lg={4}>
+                <Grid item xs={12} md={3.5}>
                     <Button
                         variant={'contained'}
                         fullWidth
@@ -74,21 +77,42 @@ export function SavePage() {
                         Save
                     </Button>
                 </Grid>
-                <Grid item xs={12} md={5} lg={4}>
+                <Grid item xs={12} md={3.5}>
                     <Button
                         variant={'contained'}
                         fullWidth
                         color={'secondary'}
                         onClick={() => { setDeleteOpen(true) }}
                     >
-                        Delete
+                        {is_edit ? 'Delete' : 'Cancel'}
                     </Button>
                     <DeleteDialog
                         open={deleteOpen}
                         onClose={() => { setDeleteOpen(false) }}
-                        onClick={() => { processTokens(() => { handleDeleteList() }) }}
+                        onClick={() => {
+                            if (is_edit) {
+                                processTokens(() => { handleDeleteList() });
+                            } else {
+                                resetListState(listDispatch);
+                                navigate(PATH_PAGE.list_manager);
+                            }
+                        }}
                     />
                 </Grid>
+                {is_edit &&
+                    <Grid item xs={12} md={3.5}>
+                        <Button
+                            variant={'contained'}
+                            fullWidth
+                            onClick={() => {
+                                resetListState(listDispatch);
+                                navigate(PATH_PAGE.list_manager);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </Grid>
+                }
             </Grid>
             {validation_info.failure_reasons.length > 0 &&
                 <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={1}>
