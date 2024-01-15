@@ -17,6 +17,7 @@ export const WORKBENCH_SETTINGS = {
             { id: 'status', label: 'Status', align: 'center' },
             { id: 'creator', label: 'Creator', align: 'center' },
             { id: 'creator_status', label: 'Creator Status', align: 'center' },
+            { id: 'is_private', label: 'Public', align: 'center' },
             { id: 'created', label: 'Created', align: 'right' },
         ],
         tasks: [

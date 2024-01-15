@@ -154,7 +154,6 @@ def update_proposal(request, proposal_id):
                 {"detail": "You are not authorized to update this proposal."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
         serializer = ProposalSerializer(proposal, data=request.data, context={'request': request}, partial=True)
         if serializer.is_valid():
             serializer.save()
