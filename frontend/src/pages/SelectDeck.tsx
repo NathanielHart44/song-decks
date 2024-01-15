@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Box, Button, Grid, Stack, SxProps, Theme, useTheme } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -12,8 +12,8 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
-import { SelectableAvatar } from "../components/base/SelectableAvatar";
 import { useApiCall } from "src/hooks/useApiCall";
+import { FactionAndCommanderSelect } from "src/components/list-build/FactionAndCommanderSelect";
 
 // ----------------------------------------------------------------------
 
@@ -22,7 +22,6 @@ export default function SelectDeck() {
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
-    const theme = useTheme();
     const navigate = useNavigate();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
@@ -107,108 +106,20 @@ export default function SelectDeck() {
         }
     }
 
-    const gridContainerStyles: SxProps<Theme> = {
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        display: 'grid',
-        width: '100%',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))'
-    };
-
-    const gridItemStyles: SxProps<Theme> = {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        width: '100%',
-        height: '100%',
-    };
-
     return (
         <Page title="Select Deck">
             { awaitingResponse && <LoadingBackdrop /> }
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'flex-start'}>
-                    <Grid item xs={4} md={3} lg={2}>
-                        { selectedFaction ?
-                            <SelectableAvatar
-                                item={selectedFaction}
-                                altText={`SELECTED ${selectedFaction.name}`}
-                                isMobile={isMobile}
-                                handleClick={handleFactionClick}
-                            /> :
-                            <SelectableAvatar
-                                item={selectedFaction}
-                                altText={'DEFAULT FACTION'}
-                                defaultIcon={'/icons/throne.png'}
-                                isMobile={isMobile}
-                                handleClick={handleFactionClick}
-                                sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                            />
-                        }
-                    </Grid>
-
-                    <Grid item xs={4} md={3} lg={2}>
-                        { selectedCommander ?
-                            <SelectableAvatar
-                                item={selectedCommander}
-                                altText={`SELECTED ${selectedCommander.name}`}
-                                isMobile={isMobile}
-                                handleClick={handleCommanderClick}
-                            /> :
-                            <SelectableAvatar
-                                item={selectedCommander}
-                                altText={'DEFAULT COMMANDER'}
-                                defaultIcon={'/icons/crown.svg'}
-                                isMobile={isMobile}
-                                handleClick={handleCommanderClick}
-                                sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                            />
-                        }
-                    </Grid>
-                </Grid>
-
-                {  factions && !selectedFaction &&
-                    <Box sx={{ width: '100%' }}>
-                        <Grid
-                            container
-                            rowSpacing={2}
-                            columnSpacing={2}
-                            sx={gridContainerStyles}
-                        >
-                            {factions.map((faction) => (
-                                <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                    <SelectableAvatar
-                                        item={faction}
-                                        altText={faction.name}
-                                        isMobile={isMobile}
-                                        handleClick={handleFactionClick}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
-                }
-
-                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander &&
-                    <Box sx={{ width: '100%' }}>
-                        <Grid
-                            container
-                            rowSpacing={2}
-                            columnSpacing={2}
-                            sx={gridContainerStyles}
-                        >
-                            {viewedCommanders.map((commander) => (
-                                <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                    <SelectableAvatar
-                                        item={commander}
-                                        altText={commander.name}
-                                        isMobile={isMobile}
-                                        handleClick={handleCommanderClick}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
+                {factions &&
+                    <FactionAndCommanderSelect
+                        isMobile={isMobile}
+                        allFactions={factions}
+                        selectedFaction={selectedFaction}
+                        selectedCommander={selectedCommander}
+                        factionCommanders={viewedCommanders}
+                        handleFactionClick={handleFactionClick as any}
+                        handleCommanderClick={handleCommanderClick as any}
+                    />
                 }
 
                 { selectedFaction && selectedCommander && (

@@ -2,8 +2,7 @@
 import {
     Stack,
     SxProps,
-    Theme,
-    keyframes
+    Theme
 } from "@mui/material";
 import { useEffect, useReducer } from "react";
 import { Commander, Faction, CardTemplate, Attachment, NCU } from "src/@types/types";
@@ -355,17 +354,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
         height: '100%',
     };
 
-    function getFadeIn () {
-        return keyframes({
-            '0%': {
-                opacity: 0,
-            },
-            '100%': {
-                opacity: 1,
-            },
-        });
-    };
-
     return (
         <>
             { !awaitingResponse &&
@@ -374,7 +362,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
                     justifyContent={'center'}
                     alignItems={'center'}
                     width={'100%'}
-                    sx={{ animation: `${getFadeIn()} 2s` }}
                 >
                     <ContentTop
                         contentState={contentState}

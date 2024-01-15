@@ -80,25 +80,11 @@ export default function Home() {
                     <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <Button
                             variant={'contained'}
-                            onClick={handleFeedback}
-                            size={'large'}
-                            fullWidth
-                        >
-                            Leave Feedback
-                        </Button>
-                    </Grid>
-                    <ContactPop
-                        popOpen={feedbackOpen}
-                        setPopOpen={setFeedbackOpen}
-                    />
-                    <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
-                        <Button
-                            variant={'contained'}
                             onClick={() => { navigate(PATH_PAGE.list_manager) }}
                             size={'large'}
                             fullWidth
                         >
-                            Build List
+                            Manage Lists
                         </Button>
                     </Grid>
                 </Grid>

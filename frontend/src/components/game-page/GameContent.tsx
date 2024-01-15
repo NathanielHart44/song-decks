@@ -82,7 +82,6 @@ export default function GameContent() {
                         overflow: 'hidden',
                         pt: 4,
                         // border: '2px solid blue'
-                        // 
                     }}
                 >
                     <HSwipe3
@@ -102,6 +101,7 @@ export default function GameContent() {
 type GroupingHeaderProps = {
     title: string;
     count: number;
+    gameRound: number;
 };
 
 export function GroupingHeader({ title, count }: GroupingHeaderProps) {

@@ -146,19 +146,8 @@ function VStack({ isMobile, stat }: CardStatsProps) {
     const animation_duration = 1000;
     const bar_width = 25;
 
-    function getFadeIn () {
-        return keyframes({
-            '0%': {
-                opacity: 0,
-            },
-            '100%': {
-                opacity: 1,
-            },
-        });
-    };
-
     return (
-        <Box sx={{ width: '100%', animation: `${getFadeIn()} 2s` }}>
+        <Box sx={{ width: '100%' }}>
             <Box position="relative">
                 <Box
                     position="absolute"

@@ -1,4 +1,4 @@
-import { Tabs, Tab, Typography, Stack } from "@mui/material";
+import { Tabs, Tab, Typography, Stack, Grid } from "@mui/material";
 import { useContext, useState } from "react";
 import Iconify from "./base/Iconify";
 import { allSteps } from "src/@types/types";
@@ -12,7 +12,7 @@ import { useParams } from "react-router-dom";
 export default function SectionStepper() {
 
     const { isMobile } = useContext(MetadataContext);
-    const { inDeck, inHand, inPlay, inDiscard, selectedSection, setSelectedSection } = useContext(GameContext);
+    const { inDeck, inHand, inPlay, inDiscard, selectedSection, setSelectedSection, gameRound } = useContext(GameContext);
 
     const { gameID = '' } = useParams();
     const [open, setOpen] = useState<boolean>(false);
@@ -83,9 +83,18 @@ export default function SectionStepper() {
                     setOpen={setOpen}
                 />
             </Stack>
-            <Typography variant={'body1'} sx={{ mx: 'auto' }}>
-                {selectedSection ? selectedSection : allSteps[0]} ({getStepCount(selectedSection ? selectedSection : allSteps[0])})
-            </Typography>
+            <Grid container gap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Grid item xs={4} sm={3} md={2} lg={1}>
+                    <Typography variant={'body1'} sx={{ textAlign: 'center', mx: 'auto' }}>
+                        {selectedSection ? selectedSection : allSteps[0]}: {getStepCount(selectedSection ? selectedSection : allSteps[0])}
+                    </Typography>
+                </Grid>
+                <Grid item xs={4} sm={3} md={2} lg={1}>
+                    <Typography variant={'body1'} sx={{ textAlign: 'center', mx: 'auto' }}>
+                        Round: {gameRound}
+                    </Typography>
+                </Grid>
+            </Grid>
         </Stack>
     )
 };
