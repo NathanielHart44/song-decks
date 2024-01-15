@@ -102,9 +102,9 @@ def add_edit_list(request, list_id=None):
                         list=list_instance,
                         unit=unit_instance,
                     )
-                    if unit_instance.is_commander:
+                    if unit_instance.status == 'commander':
                         if attached_commander:
-                            raise ValidationError("Multiple commanders assigned to the list.")
+                            raise ValidationError(f"Multiple commanders assigned to the list: {attached_commander.name} and {unit_instance.name}")
                         attached_commander = unit_instance
                     if unit_info['attachments']:
                         logging.info(f"Unit {unit_instance.name} has attachments.")

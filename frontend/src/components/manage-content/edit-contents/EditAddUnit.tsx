@@ -3,14 +3,14 @@ import {
     Button,
     Dialog,
     Stack,
-    Switch,
     TextField,
-    Typography,
+    ToggleButton,
+    ToggleButtonGroup,
     useTheme
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
-import { Unit, Faction, FakeUnit } from "src/@types/types";
+import { Unit, Faction, FakeUnit, Commander } from "src/@types/types";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import LoadingBackdrop from "../../base/LoadingBackdrop";
 import UploadAvatarComp, { FileWithPreview } from "../../upload/UploadAvatarComp";
@@ -42,6 +42,7 @@ export default function EditAddUnit({
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
 
     const [mainUnit, setMainUnit] = useState<Unit | FakeUnit>(unit);
+    const [commanderOptions, setCommanderOptions] = useState<Commander[]>([]);
 
     const [uploadFile, setUploadFile] = useState<FileWithPreview | null>(null);
     const [urlLock, setURLLock] = useState<boolean>(false);
@@ -53,7 +54,20 @@ export default function EditAddUnit({
         setMainUnit(unit);
         setUploadFile(null);
         setMainFile(null);
+        setURLLock(false);
+        setMainURLLock(false);
+        if (!editOpen) {
+            setCommanderOptions([]);
+        }
     }, [unit, editOpen]);
+
+    useEffect(() => {
+        if (mainUnit.status !== 'generic') {
+            setMainUnit({ ...mainUnit, max_in_list: 1 });
+        } else {
+            setMainUnit({ ...mainUnit, max_in_list: 0 });
+        }
+    }, [mainUnit.status]);
 
     const handleUnitNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMainUnit({ ...mainUnit, name: event.target.value });
@@ -76,6 +90,15 @@ export default function EditAddUnit({
         }
     };
 
+    const handleMaxInListChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        if (isNaN(parseInt(value))){
+            setMainUnit({ ...mainUnit, max_in_list: 0 });
+        } else {
+            setMainUnit({ ...mainUnit, max_in_list: parseInt(value) });
+        }
+    }
+
     const formValid = () => {
         if (!mainUnit.name || !mainUnit.img_url || !mainUnit.faction || !mainUnit.main_url || !mainUnit.points_cost) {
             return false;
@@ -87,6 +110,27 @@ export default function EditAddUnit({
         setEditOpen(false);
         setAwaitingResponse(false);
     };
+
+    const getFactionCommanders = (faction: Faction) => {
+        if (awaitingResponse) return;
+        setAwaitingResponse(true);
+
+        processTokens(() => {
+            let url = `commanders/${faction.id}`;
+            const requestType = 'GET';
+
+            apiCall(url, requestType, null, (data) => {
+                setCommanderOptions(data);
+            });
+            setAwaitingResponse(false);
+        });
+    };
+
+    useEffect(() => {
+        if (editOpen && mainUnit.faction && commanderOptions.length === 0) {
+            getFactionCommanders(mainUnit.faction);
+        };
+    }, [mainUnit.faction, editOpen]);
 
     const getFormData = () => {
         const formData = new FormData();
@@ -100,7 +144,13 @@ export default function EditAddUnit({
         formData.append('img_url', mainUnit.img_url);
         formData.append('main_url', mainUnit.main_url);
         formData.append('faction_id', mainUnit.faction.id.toString());
-        formData.append('is_commander', mainUnit.is_commander.toString());
+        formData.append('status', mainUnit.status);
+        if (mainUnit.attached_commander && mainUnit.status !== 'generic') {
+            formData.append('attached_commander', mainUnit.attached_commander.id.toString());
+        }
+        if (mainUnit.max_in_list) {
+            formData.append('max_in_list', mainUnit.max_in_list.toString());
+        };
         const all_unit_types = ["infantry", "cavalry", "monster", "war_machine"];
         formData.append('unit_type', (mainUnit.unit_type && all_unit_types.includes(mainUnit.unit_type)) ? mainUnit.unit_type : 'infantry');
         if (mainUnit.id !== -1) {
@@ -166,7 +216,7 @@ export default function EditAddUnit({
                 });
             } else {
                 // Handle DELETE request
-                    apiCall(url, requestType, null, () => {
+                apiCall(url, requestType, null, () => {
                     setUnits(units.filter(a => a.id !== mainUnit.id));
                     closeScreen();
                 });
@@ -200,8 +250,8 @@ export default function EditAddUnit({
                         justifyContent="center"
                         alignItems="center"
                         sx={{
-                            width: isMobile ? '85%' : '65%',
-                            padding: isMobile ? 2 : 4,
+                            width: isMobile ? '80%' : '65%',
+                            py: isMobile ? 2 : 4
                         }}
                         onClick={event => event.stopPropagation()}
                     >
@@ -240,13 +290,55 @@ export default function EditAddUnit({
                             onChange={handlePointsCostChange}
                             label="Points Cost"
                         />
-                        <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
-                            <Typography>Is Commander</Typography>
-                            <Switch
-                                checked={mainUnit.is_commander}
-                                onChange={(event) => { setMainUnit({ ...mainUnit, is_commander: event.target.checked }) }}
-                            />
-                        </Stack>
+                        <ToggleButtonGroup
+                            color="primary"
+                            value={mainUnit.status}
+                            exclusive
+                            size={'small'}
+                            fullWidth
+                        >
+                            <ToggleButton value={'generic'} onClick={() => { setMainUnit({ ...mainUnit, status: 'generic' }) }}>Generic</ToggleButton>
+                            <ToggleButton value={'commander'} onClick={() => { setMainUnit({ ...mainUnit, status: 'commander' }) }}>Commander</ToggleButton>
+                            <ToggleButton value={'commander_unit'} onClick={() => { setMainUnit({ ...mainUnit, status: 'commander_unit' }) }}>Commander Unit</ToggleButton>
+                        </ToggleButtonGroup>
+                        {mainUnit.status !== 'generic' && commanderOptions.length > 0 &&
+                            <TextField
+                                select
+                                fullWidth
+                                value={mainUnit.attached_commander ? mainUnit.attached_commander.id : ''}
+                                onChange={(event) => {
+                                    const commander_id = event.target.value;
+                                    const commander = commanderOptions.find((commander) => commander.id === parseInt(commander_id));
+                                    if (commander) {
+                                        setMainUnit({
+                                            ...mainUnit,
+                                            name: commander.name,
+                                            img_url: commander.img_url,
+                                            faction: commander.faction,
+                                            attached_commander: commander,
+                                        });
+                                    }
+                                }}
+                                SelectProps={{ native: true }}
+                                variant="outlined"
+                                sx={{ labelWidth: "text".length * 9 }}
+                                label="Commander"
+                            >
+                                <option value={''}></option>
+                                {commanderOptions.map((commander) => (
+                                    <option key={commander.id} value={commander.id}>
+                                        {commander.name}
+                                    </option>
+                                ))}
+                            </TextField>
+                        }
+                        <TextField
+                            variant="outlined"
+                            value={mainUnit.max_in_list}
+                            onChange={handleMaxInListChange}
+                            label="Max In List"
+                            fullWidth
+                        />
                         <TextField
                             select
                             fullWidth
@@ -326,6 +418,7 @@ export default function EditAddUnit({
                                 size="large"
                                 onClick={() => handleUnitAction(mainUnit.id === -1 ? 'create' : 'edit')}
                                 disabled={!formValid() || awaitingResponse}
+                                fullWidth
                             >
                                 Confirm
                             </Button>
@@ -335,6 +428,7 @@ export default function EditAddUnit({
                                 onClick={() => handleUnitAction('delete')}
                                 color="secondary"
                                 disabled={mainUnit.id === -1 || awaitingResponse}
+                                fullWidth
                             >
                                 Delete
                             </Button>

@@ -391,9 +391,11 @@ export function ContentTop({
                             img_url: '',
                             main_url: '',
                             points_cost: 0,
+                            max_in_list: 0,
                             type: 'infantry',
                             faction: contentState.selectedFaction,
-                            is_commander: false
+                            status: 'generic',
+                            attached_commander: null
                         }}
                     editOpen={contentState.addNewUnit}
                     setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_UNIT' }); }}

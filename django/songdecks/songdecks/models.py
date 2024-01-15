@@ -114,13 +114,21 @@ class Unit(ExportModelOperationsMixin('unit'), models.Model):
         ('war_machine', 'War Machine'),
     ]
 
+    UNIT_STATUS_CHOICES = [
+        ('commander', 'Commander'),
+        ('commander_unit', 'Commander Unit'),
+        ('generic', 'Generic'),
+    ]
+
     name = models.CharField(max_length=100)
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
     points_cost = models.PositiveIntegerField()
     unit_type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
     img_url = models.URLField(max_length=500)
     main_url = models.URLField(max_length=500)
-    is_commander = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=UNIT_STATUS_CHOICES, default='generic')
+    attached_commander = models.ForeignKey(Commander, null=True, blank=True, on_delete=models.SET_NULL)
+    max_in_list = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.unit_type} - {self.faction.name}'
@@ -128,19 +136,18 @@ class Unit(ExportModelOperationsMixin('unit'), models.Model):
 class ListUnit(models.Model):
     list = models.ForeignKey('List', on_delete=models.CASCADE, related_name='unit_list')
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
     attachments = models.ManyToManyField(Attachment, blank=True)
     commander = models.ForeignKey(Commander, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return f'{self.unit.name} x{self.quantity} in {self.list.name}'
+        return f'{self.unit.name} in list: {self.list.id}'
     
 class ListNCU(models.Model):
     list = models.ForeignKey('List', on_delete=models.CASCADE, related_name='ncu_list')
     ncu = models.ForeignKey(NCU, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.ncu.name} in {self.list.name}'
+        return f'{self.ncu.name} in list: {self.list.id}'
     
 class List(models.Model):
     name = models.CharField(max_length=100)

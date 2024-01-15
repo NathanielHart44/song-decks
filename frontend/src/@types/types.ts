@@ -92,7 +92,9 @@ export type Unit = {
     attachments: Attachment[];
     img_url: string;
     main_url: string;
-    is_commander: boolean;
+    status: 'commander' | 'commander_unit' | 'generic';
+    attached_commander: Commander | null;
+    max_in_list: number | null;
 };
 
 export type FakeUnit = {
@@ -105,7 +107,9 @@ export type FakeUnit = {
     attachments: FakeAttachment[];
     img_url: string;
     main_url: string;
-    is_commander: boolean;
+    status: 'commander' | 'commander_unit' | 'generic';
+    attached_commander: Commander | null;
+    max_in_list: number | null;
 };
 
 export type List = {
@@ -225,6 +229,7 @@ export type Proposal = {
     status: 'pending' | 'rejected' | 'closed' | 'confirmed';
     text: string;
     tags: Tag[];
+    is_private: boolean;
     favorited_by: number[];
     created_at: string;
 };

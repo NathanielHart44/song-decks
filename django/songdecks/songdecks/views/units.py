@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from songdecks.serializers import UnitSerializer  # Ensure you have this serializer
-from songdecks.models import Faction, Unit
+from songdecks.models import Commander, Faction, Unit
 from songdecks.views.helpers import upload_file_to_s3, valid_for_neutrals
 from songdecks.settings import AWS_S3_BUCKET_NAME
 
@@ -42,7 +42,9 @@ def add_edit_unit(request, unit_id=None):
         info = {
             'name': request.data.get('name'),
             'points_cost': request.data.get('points_cost'),
-            'is_commander': request.data.get('is_commander'),
+            'status': request.data.get('status'),
+            'attached_commander': request.data.get('attached_commander'),  # 'None' or 'commander_id'
+            'max_in_list': request.data.get('max_in_list'),
             'unit_type': request.data.get('unit_type'),
             'img_url': request.data.get('img_url'),
             'main_url': request.data.get('main_url'),
@@ -51,10 +53,12 @@ def add_edit_unit(request, unit_id=None):
 
         # Validate required fields
         for key, value in info.items():
+            if key == 'max_in_list':
+                continue
+            if key == 'attached_commander':
+                continue
             if value is None:
                 return Response({"detail": f"Missing {key}"}, status=status.HTTP_400_BAD_REQUEST)
-            if key == 'is_commander':
-                info[key] = True if value == 'true' else False
 
         # Handle image file upload
         img_file = request.data.get('img_file')
@@ -80,24 +84,35 @@ def add_edit_unit(request, unit_id=None):
             unit = Unit.objects.create(
                 name=info['name'],
                 points_cost=info['points_cost'],
-                is_commander=info['is_commander'],
+                status=info['status'],
                 unit_type=info['unit_type'],
                 img_url=info['img_url'],
                 main_url=info['main_url'],
                 faction=faction
             )
+            if info['max_in_list'] is not None:
+                unit.max_in_list = info['max_in_list']
+            if info['attached_commander'] is not None:
+                unit.attached_commander_id = info['attached_commander']
         else:
             unit = Unit.objects.filter(id=unit_id).first()
             if not unit:
                 return Response({"detail": "Unit not found."}, status=status.HTTP_404_NOT_FOUND)
             unit.name = info['name']
             unit.points_cost = info['points_cost']
-            unit.is_commander = info['is_commander']
+            unit.status = info['status']
+            if info['max_in_list'] is not None:
+                unit.max_in_list = info['max_in_list']
+            if info['attached_commander'] is not None:
+                attached_commander = Commander.objects.filter(id=info['attached_commander']).first()
+                if not attached_commander:
+                    return Response({"detail": "Commander not found."}, status=status.HTTP_404_NOT_FOUND)
+                unit.attached_commander = attached_commander
             unit.unit_type = info['unit_type']
             unit.img_url = info['img_url']
             unit.main_url = info['main_url']
             unit.faction = faction
-            unit.save()
+        unit.save()
 
         serializer = UnitSerializer(unit)
         return Response(serializer.data, status=status.HTTP_200_OK)

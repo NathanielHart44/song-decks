@@ -151,15 +151,28 @@ export default function ListBuilder() {
         listDispatch({ type: 'SET_USED_POINTS', payload: newUsedPoints });
     }, [listState.selectedUnits, listState.selectedNCUs]);
 
-    function getDisabledItems(type: 'ncu' | 'attachment') {
+    function getDisabledItems(type: 'ncu' | 'attachment' | 'unit') {
         let disabled_items: Unit[] | NCU[] = [];
         if (type === 'ncu') {
             disabled_items = listState.selectedNCUs;
         } else if (type === 'attachment') {
-            // attachments attached to selectedUnits whose field 'attachment_type' is 'commander' or 'character' should be disabled
             const selected_attachments = listState.selectedUnits.map((unit) => unit.attachments).flat();
             disabled_items = selected_attachments.filter((attachment) => attachment.attachment_type === 'commander' || attachment.attachment_type === 'character');
-        }
+        } else if (type === 'unit') {
+            const selected_units = listState.selectedUnits;
+
+            const new_disabled_items = listState.factionUnits?.filter((unit) => {
+                const max_in_list = unit.max_in_list;
+
+                if (max_in_list) {
+                    const num_in_list = selected_units.filter((selected_unit) => selected_unit.name === unit.name).length;
+                    if (num_in_list >= max_in_list) { return true };
+                };
+                return false;
+            });
+
+            if (new_disabled_items) { disabled_items = new_disabled_items };
+        };
         return disabled_items;
     };
 
@@ -259,7 +272,8 @@ export default function ListBuilder() {
                                     disabledItems={
                                         listState.selectedView === 'attachments' ? getDisabledItems('attachment') :
                                             listState.selectedView === 'ncus' ? getDisabledItems('ncu') :
-                                                null
+                                                listState.selectedView === 'units' ? getDisabledItems('unit') :
+                                                    null
                                     }
                                     in_list={false}
                                     handleListClick={handleListClick}

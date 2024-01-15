@@ -46,7 +46,7 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
 
     const is_disabled = disabledItems ?
         (type === 'unit' ?
-            disabledItems.some(disabled_item => (disabled_item.temp_id === item.temp_id || disabled_item.id === item.id)) :
+            disabledItems.some(disabled_item => ((disabled_item.temp_id !== undefined && disabled_item.temp_id === item.temp_id) || disabled_item.id === item.id)) :
             disabledItems.some(disabled_item => (disabled_item.id === item.id))
         ) : false;
 

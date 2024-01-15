@@ -237,8 +237,8 @@ export default function EditAddAttachment({
                         justifyContent="center"
                         alignItems="center"
                         sx={{
-                            width: isMobile ? '85%' : '65%',
-                            padding: isMobile ? 2 : 4,
+                            width: isMobile ? '80%' : '65%',
+                            py: isMobile ? 2 : 4
                         }}
                         onClick={event => event.stopPropagation()}
                     >
@@ -399,6 +399,7 @@ export default function EditAddAttachment({
                                 size="large"
                                 onClick={() => handleAttachmentAction(attachment.id === -1 ? 'create' : 'edit')}
                                 disabled={!formValid() || awaitingResponse}
+                                fullWidth
                             >
                                 Confirm
                             </Button>
@@ -408,6 +409,7 @@ export default function EditAddAttachment({
                                 onClick={() => handleAttachmentAction('delete')}
                                 color="secondary"
                                 disabled={attachment.id === -1 || awaitingResponse}
+                                fullWidth
                             >
                                 Delete
                             </Button>

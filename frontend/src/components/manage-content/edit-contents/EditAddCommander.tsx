@@ -164,8 +164,8 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                         justifyContent="center"
                         alignItems="center"
                         sx={{
-                            width: isMobile ? '85%' : '65%',
-                            padding: isMobile ? 2 : 4,
+                            width: isMobile ? '80%' : '65%',
+                            py: isMobile ? 2 : 4
                         }}
                         onClick={event => event.stopPropagation()}
                     >
@@ -252,6 +252,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 onClick={() => { processTokens(() => handleCommanderAction(commander.id === -1 ? 'create' : 'edit')) }}
                                 sx={{ width: isMobile ? '35%' : '25%' }}
                                 disabled={!formValid() || awaitingResponse}
+                                fullWidth
                             >
                                 Confirm
                             </Button>
@@ -262,6 +263,7 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 sx={{ width: isMobile ? '35%' : '25%' }}
                                 color={'secondary'}
                                 disabled={commander.id === -1 || awaitingResponse}
+                                fullWidth
                             >
                                 Delete
                             </Button>

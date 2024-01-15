@@ -195,8 +195,8 @@ export default function EditAddNCU({
                         justifyContent="center"
                         alignItems="center"
                         sx={{
-                            width: isMobile ? '85%' : '65%',
-                            padding: isMobile ? 2 : 4,
+                            width: isMobile ? '80%' : '65%',
+                            py: isMobile ? 2 : 4
                         }}
                         onClick={event => event.stopPropagation()}
                     >
@@ -296,6 +296,7 @@ export default function EditAddNCU({
                                 size="large"
                                 onClick={() => handleNCUAction(mainNCU.id === -1 ? 'create' : 'edit')}
                                 disabled={!formValid() || awaitingResponse}
+                                fullWidth
                             >
                                 Confirm
                             </Button>
@@ -305,6 +306,7 @@ export default function EditAddNCU({
                                 onClick={() => handleNCUAction('delete')}
                                 color="secondary"
                                 disabled={mainNCU.id === -1 || awaitingResponse}
+                                fullWidth
                             >
                                 Delete
                             </Button>

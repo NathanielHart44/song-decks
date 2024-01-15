@@ -154,8 +154,8 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                         justifyContent="center"
                         alignItems="center"
                         sx={{
-                            width: isMobile ? '85%' : '65%',
-                            padding: isMobile ? 2 : 4,
+                            width: isMobile ? '80%' : '65%',
+                            py: isMobile ? 2 : 4
                         }}
                         onClick={event => event.stopPropagation()}
                     >
@@ -218,6 +218,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 onClick={() => { processTokens(() => handleFactionAction(faction ? 'edit' : 'create')) }}
                                 sx={{ width: isMobile ? '35%' : '25%' }}
                                 disabled={!formValid() || awaitingResponse}
+                                fullWidth
                             >
                                 Confirm
                             </Button>
@@ -228,6 +229,7 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 sx={{ width: isMobile ? '35%' : '25%' }}
                                 color={'secondary'}
                                 disabled={!faction || awaitingResponse}
+                                fullWidth
                             >
                                 Delete
                             </Button>

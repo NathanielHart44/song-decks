@@ -119,7 +119,7 @@ class ListUnitSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ListUnit
-        fields = ['unit', 'attachments', 'quantity']
+        fields = ['unit', 'attachments']
 
     def get_attachments(self, obj):
         # Serialize the attachments for each ListUnit

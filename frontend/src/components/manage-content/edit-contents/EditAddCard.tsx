@@ -164,8 +164,8 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                         justifyContent="center"
                         alignItems="center"
                         sx={{
-                            width: isMobile ? '85%' : '65%',
-                            padding: isMobile ? 2 : 4,
+                            width: isMobile ? '80%' : '65%',
+                            py: isMobile ? 2 : 4
                         }}
                         onClick={event => event.stopPropagation()}
                     >
@@ -287,6 +287,7 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 onClick={() => { processTokens(() => { handleCardAction(card.id === -1 ? 'create' : 'edit') }) }}
                                 sx={{ width: isMobile ? '35%' : '25%' }}
                                 disabled={!formValid() || awaitingResponse}
+                                fullWidth
                             >
                                 Confirm
                             </Button>
@@ -297,6 +298,7 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 sx={{ width: isMobile ? '35%' : '25%' }}
                                 color={'secondary'}
                                 disabled={card.id === -1 || awaitingResponse}
+                                fullWidth
                             >
                                 Delete
                             </Button>

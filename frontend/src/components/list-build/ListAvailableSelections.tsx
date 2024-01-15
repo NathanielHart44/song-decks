@@ -23,6 +23,7 @@ import { DEFAULT_FILTER_SORT, FilterSortType, ListClickProps, gridContainerStyle
 import { capWords } from "src/utils/capWords";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import Iconify from "../base/Iconify";
+import useListBuildManager from "src/hooks/useListBuildManager";
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +45,7 @@ export function ListAvailableSelections({
     type, in_list, availableItems, disabledItems, handleListClick, handleOpenAttachments, attachment_select, selectedUnit, testing, filterSort, setFilterSort
 }: ListAvailableSelectionsProps) {
 
+    const { listState } = useListBuildManager();
     const theme = useTheme();
     const open_color = alpha(theme.palette.primary.main, 0.24);
 
@@ -70,6 +72,15 @@ export function ListAvailableSelections({
                 const unit = item as Unit;
                 if (!filterSort.unitTypeFilter.includes(unit.unit_type)) {
                     return false;
+                }
+                if (unit.status === 'commander_unit') {
+                    if (listState.selectedCommander && unit.attached_commander) {
+                        if (listState.selectedCommander.id !== unit.attached_commander.id) {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
                 }
 
                 const unit_name = unit.name.toLowerCase();
