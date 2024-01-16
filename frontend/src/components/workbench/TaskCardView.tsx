@@ -38,8 +38,8 @@ export default function TaskCardView({ grid_sizing, tasks, setAllTasks }: TaskCa
     const [viewedTasks, setViewedTasks] = useState<Task[]>([]);
     const [filter, setFilter] = useState<'finished' | 'backlog' | 'in_progress'>('in_progress');
     const filter_options = ['in_progress', 'backlog', 'finished'];
-    const [sort, setSort] = useState<'date' | 'popular'>('date');
-    const sort_options = ['date', 'popular'];
+    const [sort, setSort] = useState<'popular' | 'date'>('popular');
+    const sort_options = ['popular', 'date'];
 
     const handleSelection = (type: 'filter' | 'sort', value: string) => {
         if (type === 'filter' && filter_options.includes(value as any)) {
