@@ -11,6 +11,7 @@ import AddNewWB from "src/components/workbench/AddNewWB";
 import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
 import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
+import { Searchbar } from "src/components/Searchbar";
 
 // ----------------------------------------------------------------------
 
@@ -21,8 +22,9 @@ export default function ListManager() {
     const { isMobile } = useContext(MetadataContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
-
     const [currentLists, setCurrentLists] = useState<List[]>();
+    const [viewedLists, setViewedLists] = useState<List[]>([]); // used for filters
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     const getLists = async (type: 'all' | 'player') => {
         setAwaitingResponse(true);
@@ -42,8 +44,22 @@ export default function ListManager() {
     }, []);
 
     useEffect(() => {
+        if (searchTerm) {
+            const filteredLists = currentLists?.filter((list) => {
+                return list.faction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    list.commander.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    list.name.toLowerCase().includes(searchTerm.toLowerCase());
+            }) ?? [];
+            setViewedLists(filteredLists);
+        } else {
+            setViewedLists(currentLists ?? []);
+        };
+    }, [searchTerm]);
+
+    useEffect(() => {
         if (currentLists) {
             setAwaitingResponse(false);
+            setViewedLists(currentLists);
         };
     }, [currentLists]);
 
@@ -53,11 +69,12 @@ export default function ListManager() {
             <Container maxWidth={false}>
                 <Stack justifyContent={'center'} alignItems={'center'} spacing={2} width={'100%'}>
                     <Typography variant={'h3'}>List Manager</Typography>
+                    <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} width={'80%'} />
                     <AddNewWB
                         isMobile={isMobile}
                         handleClick={() => { navigate(PATH_PAGE.list_builder) }}
                     />
-                    <CurrentListsDisplay type={'manage'} currentLists={currentLists} />
+                    <CurrentListsDisplay type={'manage'} currentLists={viewedLists} />
                 </Stack>
             </Container>
         </Page>

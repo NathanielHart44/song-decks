@@ -53,7 +53,7 @@ export function CurrentListsDisplay({ type, currentLists, selectedList, selectLi
                 ))}
             </Grid>
             {currentLists && currentLists.length === 0 &&
-                <Typography color={theme.palette.text.disabled}>No Lists Created</Typography>
+                <Typography color={theme.palette.text.disabled}>No Lists Available</Typography>
             }
         </>
     );
