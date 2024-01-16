@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Box, Button, Grid, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Button, Divider, Stack, Switch, Typography } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Commander, Faction } from "src/@types/types";
+import { Commander, Faction, FakeList, List } from "src/@types/types";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import Page from "src/components/base/Page";
 import { MAIN_API } from "src/config";
@@ -12,17 +12,19 @@ import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
-import { SelectableAvatar } from "../components/base/SelectableAvatar";
 import { useApiCall } from "src/hooks/useApiCall";
+import { FactionAndCommanderSelect } from "src/components/list-build/FactionAndCommanderSelect";
+import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
+import { parseLists } from "./ListManager";
+import { encodeList } from "src/utils/convertList";
 
 // ----------------------------------------------------------------------
 
 export default function SelectDeck() {
 
     const { enqueueSnackbar } = useSnackbar();
-    const { isMobile } = useContext(MetadataContext);
+    const { isMobile, currentUser } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
-    const theme = useTheme();
     const navigate = useNavigate();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
@@ -33,6 +35,19 @@ export default function SelectDeck() {
     const [allCommanders, setAllCommanders] = useState<Commander[]>();
     const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
+
+    const [currentLists, setCurrentLists] = useState<List[]>();
+    const [playWithLists, setPlayWithLists] = useState<boolean>(false);
+    const [selectedList, setSelectedList] = useState<List | null>(null);
+    const [availableLists, setAvailableLists] = useState<List[] | null>(null);
+
+    const getUserLists = async () => {
+        const url = `lists/${currentUser?.id}`;
+        apiCall(url, 'GET', null, (data: FakeList[]) => {
+            const lists = parseLists(data);
+            setCurrentLists(lists);
+        });
+    };
 
     const getContent = async (type: 'factions' | 'commanders') => {
         apiCall(type, 'GET', null, (data) => {
@@ -57,7 +72,12 @@ export default function SelectDeck() {
                 const res = response.data.response;
                 delay(750).then(() => {
                     setAwaitingResponse(false);
-                    navigate(PATH_PAGE.game + `/${res[0].game.id}`);
+                    let redirect_url = `${PATH_PAGE.game}/${res[0].game.id}`;
+                    if (selectedList) {
+                        const encoded_list = encodeList(selectedList);
+                        redirect_url += `/${encoded_list}`;
+                    }
+                    navigate(redirect_url);
                 });
             } else {
                 enqueueSnackbar(response.data.response);
@@ -72,12 +92,22 @@ export default function SelectDeck() {
         processTokens(() => {
             getContent('factions');
             getContent('commanders');
+            getUserLists();
         });
     }, []);
 
     useEffect(() => {
-        if (factions && allCommanders) { setAwaitingResponse(false) };
-    }, [factions, allCommanders]);
+        if (currentLists && selectedFaction && selectedCommander) {
+            let availableLists = currentLists.filter((list) => list.faction.id === selectedFaction?.id && list.commander.id === selectedCommander?.id);
+            setAvailableLists(availableLists);
+        } else {
+            setAvailableLists(null);
+        }
+    }, [currentLists, selectedFaction, selectedCommander]);
+
+    useEffect(() => {
+        if (factions && allCommanders && currentLists) { setAwaitingResponse(false) };
+    }, [factions, allCommanders && currentLists]);
     
     useEffect(() => {
         if (selectedFaction && allCommanders) {
@@ -107,118 +137,59 @@ export default function SelectDeck() {
         }
     }
 
-    const gridContainerStyles: SxProps<Theme> = {
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        display: 'grid',
-        width: '100%',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))'
-    };
-
-    const gridItemStyles: SxProps<Theme> = {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-        width: '100%',
-        height: '100%',
-    };
-
     return (
         <Page title="Select Deck">
             { awaitingResponse && <LoadingBackdrop /> }
             <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'center'}>
-                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        { selectedFaction ?
-                            <SelectableAvatar
-                                item={selectedFaction}
-                                altText={`SELECTED ${selectedFaction.name}`}
-                                isMobile={isMobile}
-                                handleClick={handleFactionClick}
-                            /> :
-                            <SelectableAvatar
-                                item={selectedFaction}
-                                altText={'DEFAULT FACTION'}
-                                defaultIcon={'/icons/throne.png'}
-                                isMobile={isMobile}
-                                handleClick={handleFactionClick}
-                                sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                            />
-                        }
-                        <Typography variant={'h4'} sx={{ textAlign: 'center' }}>Faction</Typography>
-                    </Stack>
-
-                    <Stack spacing={1} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        { selectedCommander ?
-                            <SelectableAvatar
-                            item={selectedCommander}
-                            altText={`SELECTED ${selectedCommander.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                            /> :
-                            <SelectableAvatar
-                            item={selectedCommander}
-                            altText={'DEFAULT COMMANDER'}
-                            defaultIcon={'/icons/crown.svg'}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick}
-                            sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                            />
-                        }
-                        <Typography variant={'h4'} sx={{ textAlign: 'center' }}>Commander</Typography>
-                    </Stack>
-                </Stack>
-
-                {  factions && !selectedFaction &&
-                    <Box sx={{ width: '100%' }}>
-                        <Grid
-                            container
-                            rowSpacing={2}
-                            columnSpacing={2}
-                            sx={gridContainerStyles}
-                        >
-                            {factions.map((faction) => (
-                                <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                    <SelectableAvatar
-                                        item={faction}
-                                        altText={faction.name}
-                                        isMobile={isMobile}
-                                        handleClick={handleFactionClick}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
+                <Typography variant={'h3'}>Select Deck</Typography>
+                {factions &&
+                    <FactionAndCommanderSelect
+                        isMobile={isMobile}
+                        allFactions={factions}
+                        selectedFaction={selectedFaction}
+                        selectedCommander={selectedCommander}
+                        factionCommanders={viewedCommanders}
+                        handleFactionClick={handleFactionClick as any}
+                        handleCommanderClick={handleCommanderClick as any}
+                    />
                 }
 
-                { selectedFaction && allCommanders && viewedCommanders && !selectedCommander &&
-                    <Box sx={{ width: '100%' }}>
-                        <Grid
-                            container
-                            rowSpacing={2}
-                            columnSpacing={2}
-                            sx={gridContainerStyles}
+                {selectedFaction && selectedCommander &&
+                    <>
+                        <Button
+                            variant={'contained'}
+                            color={'primary'}
+                            size={'large'}
+                            onClick={() => { processTokens(beginGame) }}
+                            disabled={awaitingResponse}
                         >
-                            {viewedCommanders.map((commander) => (
-                                <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                    <SelectableAvatar
-                                        item={commander}
-                                        altText={commander.name}
-                                        isMobile={isMobile}
-                                        handleClick={handleCommanderClick}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Box>
-                }
-
-                { selectedFaction && selectedCommander && (
-                    <Button variant={'contained'} color={'primary'} onClick={() => { processTokens(beginGame) }} disabled={awaitingResponse}>
-                        Confirm
-                    </Button>
-                )}
-                
+                            Confirm
+                        </Button>
+                        {currentUser?.moderator &&
+                            <Stack direction={'row'} alignItems={'center'}>
+                                <Typography>Play With List</Typography>
+                                <Switch
+                                    checked={playWithLists}
+                                    onChange={() => { setPlayWithLists(!playWithLists) }}
+                                />
+                            </Stack>
+                        }
+                        {playWithLists &&
+                            <>
+                                <Divider sx={{ width: '65%' }} />
+                                <Typography variant={'h4'}>
+                                    {selectedList ? 'Selected List' : 'Available Lists'}
+                                </Typography>
+                                <CurrentListsDisplay
+                                    type={'select'}
+                                    currentLists={selectedList ? [selectedList] : (availableLists ? availableLists : [])}
+                                    selectedList={selectedList}
+                                    selectList={setSelectedList}
+                                />
+                            </>
+                        }
+                    </>
+                }                
             </Stack>
         </Page>
     );

@@ -80,7 +80,7 @@ export default function ContactPop({ popOpen, setPopOpen }: Props) {
                                 multiline={true}
                                 minRows={5}
                                 value={feedback}
-                                label={"Feedback"}
+                                label={"Feedback & Bugs"}
                                 onChange={handleFeedbackChange}
                                 disabled={sendDisabled}
                             />

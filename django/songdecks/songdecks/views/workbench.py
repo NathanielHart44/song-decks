@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 def get_all_moderators(request):
+    if not request.user.profile.moderator:
+        return Response(
+            {"detail": "You are not authorized to view moderators."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     moderators = Profile.objects.filter(moderator=True)
     serializer = ProfileSerializer(moderators, many=True)
     return Response(serializer.data)
@@ -154,7 +159,6 @@ def update_proposal(request, proposal_id):
                 {"detail": "You are not authorized to update this proposal."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
         serializer = ProposalSerializer(proposal, data=request.data, context={'request': request}, partial=True)
         if serializer.is_valid():
             serializer.save()

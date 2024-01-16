@@ -11,8 +11,10 @@ import Iconify from '../base/Iconify';
 import HomeIcon from '@mui/icons-material/Home';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
-import HelpIcon from '@mui/icons-material/Help';
+// import HelpIcon from '@mui/icons-material/Help';
 import ConstructionIcon from '@mui/icons-material/Construction';
+import FeedbackIcon from '@mui/icons-material/Feedback';
+import ContactPop from '../ContactPop';
 
 // ----------------------------------------------------------------------
 
@@ -31,10 +33,17 @@ export default function AccountMenu() {
         setAnchorEl(event.currentTarget);
     };
 
+    const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
+
+    const handleFeedback = () => { setFeedbackOpen(!feedbackOpen) };
+
     const handleClose = (type: string) => {
         switch (type) {
             case 'home':
                 navigate(PATH_PAGE.home);
+                break;
+            case 'feedback':
+                handleFeedback();
                 break;
             case 'workbench':
                 navigate(PATH_PAGE.workbench);
@@ -136,12 +145,6 @@ export default function AccountMenu() {
                             </ListItemIcon>
                             {currentUser ? currentUser.username : '--'}
                         </MenuItem>
-                        <MenuItem onClick={ ()=> handleClose('home')} disabled>
-                            <ListItemIcon>
-                                <HelpIcon fontSize="small" />
-                            </ListItemIcon>
-                            How To Use
-                        </MenuItem>
                         <Divider />
                         { is_admin &&
                             [
@@ -175,6 +178,12 @@ export default function AccountMenu() {
                                 <Divider key={"divider_2"} />
                             ]
                         }
+                        <MenuItem onClick={ ()=> handleClose('feedback')}>
+                            <ListItemIcon>
+                                <FeedbackIcon fontSize="small" />
+                            </ListItemIcon>
+                            Feedback & Bugs
+                        </MenuItem>
                         <MenuItem onClick={ ()=> handleClose('home')}>
                             <ListItemIcon>
                                 <HomeIcon fontSize="small" />
@@ -228,13 +237,12 @@ export default function AccountMenu() {
                             <Divider orientation="vertical" flexItem />
                         </>
                     }
-                    <Tooltip title={"How To Use"} placement={"bottom"} arrow>
+                    <Tooltip title={"Feedback & Bugs"} placement={"bottom"} arrow>
                         <IconButton
-                            onClick={ () => handleClose('home') }
+                            onClick={ () => handleClose('feedback') }
                             size="small"
-                            disabled
                         >
-                            <HelpIcon fontSize="small" />
+                            <FeedbackIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
                     <Tooltip title={"Home"} placement={"bottom"} arrow>
@@ -264,6 +272,10 @@ export default function AccountMenu() {
                     </Tooltip>
                 </Stack>
             }
+            <ContactPop
+                popOpen={feedbackOpen}
+                setPopOpen={setFeedbackOpen}
+            />
         </Box>
     );
 }

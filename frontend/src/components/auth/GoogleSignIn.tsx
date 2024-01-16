@@ -21,7 +21,7 @@ export function GoogleSignIn() {
             }}
             endIcon={
                 <Box sx={{ maxHeight: '100%', maxWidth: '60px' }}>
-                    <img src="/icons/ic_google.svg" alt="ASOIAF Logo" loading="lazy" />
+                    <img src="/icons/ic_google.svg" alt="Google Logo For Sign-In" loading="lazy" />
                 </Box>
             }
         >

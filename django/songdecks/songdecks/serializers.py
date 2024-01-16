@@ -91,8 +91,56 @@ class FactionSerializer(serializers.ModelSerializer):
 class CommanderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commander
-        fields = ('id', 'name', 'img_url', 'faction')
+        fields = ('id', 'name', 'img_url', 'faction', 'commander_type')
         depth = 1
+
+class NcuSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NCU
+        fields = '__all__'
+        depth = 1
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachment
+        fields = '__all__'
+        depth = 1
+
+class UnitSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Unit
+        fields = '__all__'
+        depth = 1
+
+class ListUnitSerializer(serializers.ModelSerializer):
+    unit = UnitSerializer(read_only=True)
+    attachments = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ListUnit
+        fields = ['unit', 'attachments']
+
+    def get_attachments(self, obj):
+        # Serialize the attachments for each ListUnit
+        return AttachmentSerializer(obj.attachments.all(), many=True).data
+
+class ListNcuSerializer(serializers.ModelSerializer):
+    ncu = NcuSerializer(read_only=True)
+
+    class Meta:
+        model = ListNCU
+        fields = ['ncu']
+
+class ListSerializer(serializers.ModelSerializer):
+    faction = FactionSerializer(read_only=True)
+    commander = CommanderSerializer(read_only=True)
+    units = ListUnitSerializer(many=True, read_only=True, source='unit_list')
+    ncus = ListNcuSerializer(many=True, read_only=True, source='ncu_list')
+
+    class Meta:
+        model = List
+        fields = '__all__'
 
 class CardTemplateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,9 +149,11 @@ class CardTemplateSerializer(serializers.ModelSerializer):
         depth = 1
 
 class GameSerializer(serializers.ModelSerializer):
+    owner_list = ListSerializer(read_only=True)
+
     class Meta:
         model = Game
-        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round')
+        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round', 'owner_list')
         depth = 1
 
 class PlayerCardSerializer(serializers.ModelSerializer):

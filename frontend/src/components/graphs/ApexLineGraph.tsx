@@ -3,10 +3,8 @@ import {
     Typography,
     useTheme,
 } from "@mui/material";
-import { useContext } from "react";
 import ReactApexChart from 'react-apexcharts';
 import { ChartDataCohort, ChartDataCohortGroup } from "src/@types/types";
-import { MetadataContext } from "src/contexts/MetadataContext";
 import { capWords } from "src/utils/capWords";
 import { fShortenNumber, fNumber } from "src/utils/formatNumber";
 
@@ -70,7 +68,6 @@ type MomentumGraphProps = {
 export function ApexLineGraph({ group_cohorts }: MomentumGraphProps) {
 
     const theme = useTheme();
-    const { isMobile } = useContext(MetadataContext);
     
     const chartOptions = {
         colors: [theme.palette.primary.main, theme.palette.primary.lighter, theme.palette.primary.darker],

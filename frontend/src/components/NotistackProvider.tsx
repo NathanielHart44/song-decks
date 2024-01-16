@@ -1,54 +1,14 @@
 import { ReactNode, useRef } from 'react';
 import { IconifyIcon } from '@iconify/react';
-import { SnackbarProvider, SnackbarKey } from 'notistack';
+import { SnackbarProvider, SnackbarKey, MaterialDesignContent } from 'notistack';
 // @mui
 import { alpha, useTheme } from '@mui/material/styles';
-import { Box, GlobalStyles } from '@mui/material';
+import { Box } from '@mui/material';
+import { styled } from '@mui/material/styles';
 // theme
 import { ColorSchema } from '../theme/palette';
 //
 import Iconify from './base/Iconify';
-
-// ----------------------------------------------------------------------
-
-function SnackbarStyles() {
-  const theme = useTheme();
-
-  return (
-    <GlobalStyles
-      styles={{
-        '#root': {
-          '& .SnackbarContent-root': {
-            width: '100%',
-            padding: theme.spacing(1),
-            margin: theme.spacing(0.25, 0),
-            boxShadow: theme.customShadows.z8,
-            borderRadius: theme.shape.borderRadius,
-            color: theme.palette.grey[ 800],
-            backgroundColor: theme.palette.grey[0],
-            '&.SnackbarItem-variantSuccess, &.SnackbarItem-variantError, &.SnackbarItem-variantWarning, &.SnackbarItem-variantInfo':
-              {
-                color: theme.palette.text.primary,
-                backgroundColor: theme.palette.background.paper,
-              },
-            [theme.breakpoints.up('md')]: {
-              minWidth: 240,
-            },
-          },
-          '& .SnackbarItem-message': {
-            padding: '0 !important',
-            fontWeight: theme.typography.fontWeightMedium,
-          },
-          '& .SnackbarItem-action': {
-            marginRight: 0,
-            color: theme.palette.action.active,
-            '& svg': { width: 20, height: 20 },
-          },
-        },
-      }}
-    />
-  );
-}
 
 // ----------------------------------------------------------------------
 
@@ -58,36 +18,42 @@ type Props = {
 
 export default function NotistackProvider({ children }: Props) {
   const notistackRef = useRef<any>(null);
+  const theme = useTheme();
 
   const onClose = (key: SnackbarKey) => () => {
     notistackRef.current.closeSnackbar(key);
   };
 
-  return (
-    <>
-      <SnackbarStyles />
+  const StyledDefaultSnackbar = styled(MaterialDesignContent)(() => ({
+    '&.notistack-MuiContent-default': {
+      backgroundColor: theme.palette.grey[700],
+    }
+  }));
 
-      <SnackbarProvider
-        ref={notistackRef}
-        dense
-        maxSnack={3}
-        autoHideDuration={2000}
-        variant="default" // Set default variant
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        iconVariant={{
-          info: <SnackbarIcon icon={'eva:checkmark-circle-2-fill'} color="info" />,
-          success: <SnackbarIcon icon={'eva:checkmark-circle-2-fill'} color="success" />,
-          warning: <SnackbarIcon icon={'eva:alert-triangle-fill'} color="warning" />,
-          error: <SnackbarIcon icon={'eva:alert-circle-fill'} color="error" />,
-        }}
-        // With close as default
-        action={(key) => (
-          <Iconify icon={'eva:close-fill'} onClick={onClose(key)} sx={{ p: 0.5 }} width={30} height={30}/>
-        )}
-      >
-        {children}
-      </SnackbarProvider>
-    </>
+  return (
+    <SnackbarProvider
+      ref={notistackRef}
+      dense
+      maxSnack={4}
+      autoHideDuration={3000}
+      variant="default" // Set default variant
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      iconVariant={{
+        info: <SnackbarIcon icon={'eva:checkmark-circle-2-fill'} color="info" />,
+        success: <SnackbarIcon icon={'eva:checkmark-circle-2-fill'} color="success" />,
+        warning: <SnackbarIcon icon={'eva:alert-triangle-fill'} color="warning" />,
+        error: <SnackbarIcon icon={'eva:alert-circle-fill'} color="error" />,
+      }}
+      // With close as default
+      action={(key) => (
+        <Iconify icon={'eva:close-fill'} onClick={onClose(key)} sx={{ p: 0.5 }} width={30} height={30}/>
+      )}
+      Components={{
+        default: StyledDefaultSnackbar,
+      }}
+    >
+      {children}
+    </SnackbarProvider>
   );
 }
 

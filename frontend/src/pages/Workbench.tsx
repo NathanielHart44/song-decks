@@ -149,7 +149,7 @@ export default function Workbench() {
         setAwaitingResponse(true);
         const formData = objectToFormData(proposal);
         const url_path = is_new ? 'create_proposal' : `update_proposal/${proposal.id}`;
-    
+
         apiCall(url_path, 'POST', formData, (data) => {
             const updated_proposal = data;
     
@@ -197,6 +197,7 @@ export default function Workbench() {
             text: '',
             tags: [],
             status: 'pending',
+            is_private: false,
             favorited_by: [],
             created_at: ''
         };

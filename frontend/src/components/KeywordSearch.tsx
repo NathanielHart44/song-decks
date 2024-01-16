@@ -5,8 +5,6 @@ import {
     Dialog,
     DialogContent,
     Grid,
-    Input,
-    InputAdornment,
     Stack,
     TextField,
     Typography,
@@ -15,13 +13,14 @@ import {
 import AccordionSummaryDiv from "./workbench/AccordionSummaryDiv";
 import { useContext, useEffect, useState } from "react";
 import { KeywordPairType, KeywordType } from "src/@types/types";
-import Iconify from "./base/Iconify";
 import { objectToFormData, useApiCall } from "src/hooks/useApiCall";
 import { processTokens } from "src/utils/jwt";
 import AddNewWB from "./workbench/AddNewWB";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 import { TagDiv } from "./workbench/TagDisplay";
+import { Searchbar } from "./Searchbar";
+import { DeleteDialog } from "./base/DeleteDialog";
 
 // ----------------------------------------------------------------------
 
@@ -156,7 +155,7 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
 
     return (
         <Stack spacing={2} width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
-            <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} width={'80%'} />
             <KeywordTypeDisplay
                 is_main={true}
                 view_only={is_game}
@@ -199,10 +198,15 @@ export default function KeywordSearch({ is_game, awaitingResponse, setAwaitingRe
                         handleCreate={handleCreate}
                     />
                     <DeleteDialog
-                        keyword_pair={contentState.selected_pair}
-                        contentState={contentState}
-                        setContentState={setContentState}
-                        handleDelete={handleDelete}
+                        open={contentState.delete_open}
+                        onClose={() => { setContentState({ ...contentState, delete_open: false }) }}
+                        onClick={() => {
+                            handleDelete('pair', contentState.selected_pair);
+                            setContentState({
+                                ...contentState,
+                                delete_open: false
+                            });
+                        }}
                     />
                 </>
             }
@@ -280,40 +284,6 @@ function KeywordPair({ keyword_pair, contentState, onlySearched, is_game, handle
                     }
                 </AccordionDetails>
             </Accordion>
-        </Stack>
-    )
-};
-
-// ----------------------------------------------------------------------
-
-type SearchbarProps = {
-    searchTerm: string;
-    setSearchTerm: (arg0: string) => void;
-};
-
-function Searchbar({ searchTerm, setSearchTerm }: SearchbarProps) {
-
-    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-        setSearchTerm(event.target.value);
-    }
-
-    return (
-        <Stack width={'80%'} justifyContent={'center'} alignItems={'center'}>
-            <Input
-                fullWidth
-                placeholder="Search…"
-                startAdornment={
-                    <InputAdornment position="start">
-                        <Iconify
-                            icon={'eva:search-fill'}
-                            sx={{ color: 'text.disabled', width: 20, height: 20 }}
-                        />
-                    </InputAdornment>
-                }
-                value={searchTerm}
-                onChange={handleChange}
-                sx={{ mr: 1, fontWeight: 'fontWeightBold' }}
-            />
         </Stack>
     )
 };
@@ -429,69 +399,6 @@ function CreationPair({ is_new, allTypes, contentState, setContentState, handleC
         </Dialog>
     )
 };
-
-// ----------------------------------------------------------------------
-
-type DeleteDialogProps = {
-    keyword_pair: KeywordPairType;
-    contentState: ContentStateType;
-    setContentState: (arg0: ContentStateType) => void;
-    handleDelete: (type: 'type' | 'pair', item: KeywordPairType | KeywordType) => void;
-};
-
-function DeleteDialog({ keyword_pair, contentState, setContentState, handleDelete }: DeleteDialogProps) {
-
-    return (
-        <Dialog
-            open={contentState.delete_open}
-            fullWidth={true}
-            onClose={() => {
-                setContentState({
-                    ...contentState,
-                    delete_open: false
-                });
-            }}
-        >
-            <DialogContent sx={{ p: 2 }}>
-                <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                    <Typography variant={'h6'} paragraph>Are you sure?</Typography>
-                    <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
-                            <Button
-                                variant={"contained"}
-                                onClick={() => {
-                                    handleDelete('pair', keyword_pair);
-                                    setContentState({
-                                        ...contentState,
-                                        delete_open: false
-                                    });
-                                }}
-                                fullWidth
-                            >
-                                Delete Keyword
-                            </Button>
-                        </Grid>
-                        <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
-                            <Button
-                                color={"secondary"}
-                                variant={"contained"}
-                                onClick={() => {
-                                    setContentState({
-                                        ...contentState,
-                                        delete_open: false
-                                    });
-                                }}
-                                fullWidth
-                            >
-                                Cancel
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Stack>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 // ----------------------------------------------------------------------
 

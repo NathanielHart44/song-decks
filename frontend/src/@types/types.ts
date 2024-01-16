@@ -27,6 +27,7 @@ export type Commander = {
     name: string;
     img_url: string;
     faction: Faction;
+    commander_type: 'attachment' | 'unit';
 };
 
 export type FakeCommander = {
@@ -34,7 +35,118 @@ export type FakeCommander = {
     name: string;
     img_url: string;
     faction: Faction | null;
+    commander_type: 'attachment' | 'unit';
 };
+
+export type NCU = {
+    id: number;
+    temp_id?: string;
+    name: string;
+    faction: Faction;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+};
+
+export type FakeNCU = {
+    id: number;
+    temp_id?: string;
+    name: string;
+    faction: Faction | null;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+};
+
+export type Attachment = {
+    temp_id?: string
+    id: number;
+    name: string;
+    faction: Faction;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+    type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    attachment_type: 'generic' | 'character' | 'commander';
+};
+
+export type FakeAttachment = {
+    temp_id?: string
+    id: number;
+    name: string;
+    faction: Faction | null;
+    points_cost: number;
+    img_url: string;
+    main_url: string;
+    type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    attachment_type: 'generic' | 'character' | 'commander';
+};
+
+export type Unit = {
+    temp_id?: string;
+    id: number;
+    name: string;
+    faction: Faction;
+    points_cost: number;
+    unit_type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    attachments: Attachment[];
+    img_url: string;
+    main_url: string;
+    status: 'commander' | 'commander_unit' | 'generic';
+    attached_commander: Commander | null;
+    max_in_list: number | null;
+};
+
+export type FakeUnit = {
+    temp_id?: string;
+    id: number;
+    name: string;
+    faction: Faction | null;
+    points_cost: number;
+    unit_type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
+    attachments: FakeAttachment[];
+    img_url: string;
+    main_url: string;
+    status: 'commander' | 'commander_unit' | 'generic';
+    attached_commander: Commander | null;
+    max_in_list: number | null;
+};
+
+export type List = {
+    id: number;
+    name: string;
+    owner: Profile;
+    points_allowed: number;
+    faction: Faction;
+    commander: Commander;
+    units: Unit[];
+    ncus: NCU[];
+    created_at: string;
+    updated_at: string;
+    is_draft: boolean;
+    is_public: boolean;
+    is_valid: boolean;
+    shared_from: Profile | null;
+};
+
+export type FakeList = {
+    id: number;
+    name: string;
+    owner: Profile;
+    points_allowed: number;
+    faction: Faction | null;
+    commander: FakeCommander | null;
+    units: { unit: Unit, attachments: Attachment[] }[];
+    ncus: { ncu: NCU }[];
+    created_at: string;
+    updated_at: string;
+    is_draft: boolean;
+    is_public: boolean;
+    is_valid: boolean;
+    shared_from: Profile | null;
+};
+
+// ----------------------------------------------------------------------
 
 export type Game = {
     id: number;
@@ -117,6 +229,7 @@ export type Proposal = {
     status: 'pending' | 'rejected' | 'closed' | 'confirmed';
     text: string;
     tags: Tag[];
+    is_private: boolean;
     favorited_by: number[];
     created_at: string;
 };

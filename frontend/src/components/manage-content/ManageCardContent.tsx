@@ -1,30 +1,27 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
-    Box,
-    Button,
-    Divider,
-    Grid,
     Stack,
     SxProps,
-    Theme,
-    Typography,
-    keyframes,
-    useTheme
+    Theme
 } from "@mui/material";
 import { useEffect, useReducer } from "react";
-import { Commander, Faction, CardTemplate } from "src/@types/types";
-import { SelectableAvatar } from "src/components/base/SelectableAvatar";
-import EditAddCard from "src/components/manage-content/edit-contents/EditAddCard";
-import EditAddCommander from "src/components/manage-content/edit-contents/EditAddCommander";
-import EditAddFaction from "src/components/manage-content/edit-contents/EditAddFaction";
+import { Commander, Faction, CardTemplate, Attachment, NCU } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
-import { CardOptions } from "./edit-contents/CardOptions";
-import { AddNew } from "./edit-contents/AddNew";
+import { ContentTop } from "./ContentTop";
+
+// hooks
 import { useApiCall } from "src/hooks/useApiCall";
+import useFactions from "src/hooks/useFactions";
+import useCommanders from "src/hooks/useCommanders";
+import useAttachments from "src/hooks/useAttachments";
+import useNCUs from "src/hooks/useNCUs";
+import useUnits from "src/hooks/useUnits";
+import ContentBottom from "./ContentBottom";
 
 // ----------------------------------------------------------------------
 
-type State = {
+export type State = {
+    mode: string;
     factions: Faction[];
     selectedFaction: Faction | null;
     factionCards: CardTemplate[] | null;
@@ -35,9 +32,24 @@ type State = {
     addNewFaction: boolean;
     addNewCommander: boolean;
     addNewCard: boolean;
+    
+    allAttachments: Attachment[];
+    factionAttachments: Attachment[] | null;
+    selectedAttachment: Attachment | null;
+    addNewAttachment: boolean;
+
+    allNCUs: NCU[];
+    factionNCUs: NCU[] | null;
+    selectedNCU: NCU | null;
+    addNewNCU: boolean;
+
+    allUnits: any[];
+    factionUnits: any[] | null;
+    selectedUnit: any | null;
+    addNewUnit: boolean;
 };
 
-type Action =
+export type Action =
     | { type: 'SET_FACTIONS'; payload: Faction[] }
     | { type: 'SET_SELECTED_FACTION'; payload: Faction | null }
     | { type: 'SET_FACTION_CARDS'; payload: CardTemplate[] | null }
@@ -47,9 +59,27 @@ type Action =
     | { type: 'SET_COMMANDER_CARDS'; payload: CardTemplate[] | null }
     | { type: 'TOGGLE_ADD_NEW_FACTION' }
     | { type: 'TOGGLE_ADD_NEW_COMMANDER' }
-    | { type: 'TOGGLE_ADD_NEW_CARD' };
+    | { type: 'TOGGLE_ADD_NEW_CARD' }
+
+    | { type: 'SET_MODE'; payload: 'faction_select' | 'type_select' | 'commander_select' | 'commander' | 'attachments' | 'ncus' | 'units' }
+    
+    | { type: 'SET_ALL_ATTACHMENTS'; payload: Attachment[] }
+    | { type: 'SET_FACTION_ATTACHMENTS'; payload: Attachment[] | null }
+    | { type: 'SET_SELECTED_ATTACHMENT'; payload: Attachment | null }
+    | { type: 'TOGGLE_ADD_NEW_ATTACHMENT' }
+    
+    | { type: 'SET_ALL_NCUs'; payload: NCU[] }
+    | { type: 'SET_FACTION_NCUs'; payload: NCU[] | null }
+    | { type: 'SET_SELECTED_NCU'; payload: NCU | null }
+    | { type: 'TOGGLE_ADD_NEW_NCU' }
+    
+    | { type: 'SET_ALL_UNITS'; payload: any[] }
+    | { type: 'SET_FACTION_UNITS'; payload: any[] | null }
+    | { type: 'SET_SELECTED_UNIT'; payload: any | null }
+    | { type: 'TOGGLE_ADD_NEW_UNIT' };
 
 const initialState = {
+    mode: 'faction',
     factions: [],
     selectedFaction: null,
     factionCards: null,
@@ -60,6 +90,21 @@ const initialState = {
     addNewFaction: false,
     addNewCommander: false,
     addNewCard: false,
+    
+    allAttachments: [],
+    factionAttachments: null,
+    selectedAttachment: null,
+    addNewAttachment: false,
+
+    allNCUs: [],
+    factionNCUs: null,
+    selectedNCU: null,
+    addNewNCU: false,
+
+    allUnits: [],
+    factionUnits: null,
+    selectedUnit: null,
+    addNewUnit: false,
 };
 
 // ----------------------------------------------------------------------
@@ -73,9 +118,16 @@ type Props = {
 export default function ManageCardContent({ isMobile, awaitingResponse, setAwaitingResponse }: Props) {
 
     const { apiCall } = useApiCall();
-    
+    const { allFactions } = useFactions();
+    const { allCommanders, fetchAllCommanders } = useCommanders();
+    const { allAttachments, fetchAllAttachments } = useAttachments();
+    const { allNCUs, fetchAllNCUs } = useNCUs();
+    const { allUnits, fetchAllUnits } = useUnits();
+
     function contentReducer(state: State, action: Action) {
         switch (action.type) {
+            case 'SET_MODE':
+                return { ...state, mode: action.payload };
             case 'SET_FACTIONS':
                 return { ...state, factions: action.payload };
             case 'SET_SELECTED_FACTION':
@@ -96,6 +148,33 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
                 return { ...state, addNewCommander: !state.addNewCommander };
             case 'TOGGLE_ADD_NEW_CARD':
                 return { ...state, addNewCard: !state.addNewCard };
+
+            case 'SET_ALL_ATTACHMENTS':
+                return { ...state, allAttachments: action.payload };
+            case 'SET_FACTION_ATTACHMENTS':
+                return { ...state, factionAttachments: action.payload };
+            case 'SET_SELECTED_ATTACHMENT':
+                return { ...state, selectedAttachment: action.payload };
+            case 'TOGGLE_ADD_NEW_ATTACHMENT':
+                return { ...state, addNewAttachment: !state.addNewAttachment };
+
+            case 'SET_ALL_NCUs':
+                return { ...state, allNCUs: action.payload };
+            case 'SET_FACTION_NCUs':
+                return { ...state, factionNCUs: action.payload };
+            case 'SET_SELECTED_NCU':
+                return { ...state, selectedNCU: action.payload };
+            case 'TOGGLE_ADD_NEW_NCU':
+                return { ...state, addNewNCU: !state.addNewNCU };
+
+            case 'SET_ALL_UNITS':
+                return { ...state, allUnits: action.payload };
+            case 'SET_FACTION_UNITS':
+                return { ...state, factionUnits: action.payload };
+            case 'SET_SELECTED_UNIT':
+                return { ...state, selectedUnit: action.payload };
+            case 'TOGGLE_ADD_NEW_UNIT':
+                return { ...state, addNewUnit: !state.addNewUnit };
             default:
                 throw new Error('Unhandled action type!');
         }
@@ -103,20 +182,26 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
 
     const [contentState, contentDispatch] = useReducer(contentReducer, initialState);
 
-    const getContent = async (type: 'factions' | 'faction_cards' | 'commanders' | 'commander_cards') => {
+    useEffect(() => {
+        if (contentState.mode === 'commander_select') {
+            fetchAllCommanders();
+        } else if (contentState.mode === 'attachments') {
+            fetchAllAttachments();
+        } else if (contentState.mode === 'ncus') {
+            fetchAllNCUs();
+        } else if (contentState.mode === 'units') {
+            fetchAllUnits();
+        }
+    }, [contentState.mode]);
+
+    const getContent = async (type: 'faction_cards' | 'commander_cards') => {
         if (awaitingResponse) { return };
         setAwaitingResponse(true);
 
         let url;
         switch (type) {
-            case 'factions':
-                url = `factions`;
-                break;
             case 'faction_cards':
                 url = `get_cards_of_faction/${contentState.selectedFaction?.id}`;
-                break;
-            case 'commanders':
-                url = `commanders`;
                 break;
             case 'commander_cards':
                 url = `get_cards_of_commander/${contentState.selectedCommander?.id}`;
@@ -124,14 +209,8 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
         }
         apiCall(url, 'GET', null, (data) => {
             switch (type) {
-                case 'factions':
-                    contentDispatch({ type: 'SET_FACTIONS', payload: data });
-                    break;
                 case 'faction_cards':
                     contentDispatch({ type: 'SET_FACTION_CARDS', payload: data });
-                    break;
-                case 'commanders':
-                    contentDispatch({ type: 'SET_ALL_COMMANDERS', payload: data });
                     break;
                 case 'commander_cards':
                     contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: data });
@@ -141,20 +220,39 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
         setAwaitingResponse(false);
     };
 
-    useEffect(() => { processTokens(() => { getContent('factions') }) }, []);
-
-    useEffect(() => { if (contentState.factions) { processTokens(() => { getContent('commanders') }) } }, [contentState.factions]);
-
     useEffect(() => {
-        if (contentState.selectedFaction && contentState.allCommanders) {
+        if (!contentState.selectedFaction) return;
+        if (contentState.allCommanders) {
             const filteredCommanders = contentState.allCommanders?.filter((commander) => commander.faction.id === contentState.selectedFaction?.id);
             contentDispatch({ type: 'SET_VIEWED_COMMANDERS', payload: filteredCommanders });
             processTokens(() => { getContent('faction_cards') });
         }
+        if (contentState.allAttachments) {
+            const filteredAttachments = contentState.allAttachments?.filter((attachment) => attachment.faction.id === contentState.selectedFaction?.id);
+            contentDispatch({ type: 'SET_FACTION_ATTACHMENTS', payload: filteredAttachments });
+        }
+        if (contentState.allNCUs) {
+            const filteredNCUs = contentState.allNCUs?.filter((ncu) => ncu.faction.id === contentState.selectedFaction?.id);
+            contentDispatch({ type: 'SET_FACTION_NCUs', payload: filteredNCUs });
+        }
+        if (contentState.allUnits) {
+            const filteredUnits = contentState.allUnits?.filter((unit) => unit.faction.id === contentState.selectedFaction?.id);
+            contentDispatch({ type: 'SET_FACTION_UNITS', payload: filteredUnits });
+        }
     }, [contentState.selectedFaction]);
 
     useEffect(() => {
-        if (contentState.selectedFaction && contentState.allCommanders) {
+        if (allFactions) { contentDispatch({ type: 'SET_FACTIONS', payload: allFactions }); }
+        if (allCommanders) { contentDispatch({ type: 'SET_ALL_COMMANDERS', payload: allCommanders }); }
+        if (allAttachments) { contentDispatch({ type: 'SET_ALL_ATTACHMENTS', payload: allAttachments }); }
+        if (allNCUs) { contentDispatch({ type: 'SET_ALL_NCUs', payload: allNCUs }); }
+        if (allUnits) { contentDispatch({ type: 'SET_ALL_UNITS', payload: allUnits }); }
+        if (allFactions && allCommanders && allAttachments && allNCUs && allUnits) { setAwaitingResponse(false) };
+    }, [allFactions, allCommanders, allAttachments, allNCUs, allUnits]);
+
+    useEffect(() => {
+        if (!contentState.selectedFaction) return;
+        if (contentState.allCommanders) {
             const filteredCommanders = contentState.allCommanders?.filter((commander) => commander.faction.id === contentState.selectedFaction?.id);
             if (!filteredCommanders?.find((commander) => commander.id === contentState.selectedCommander?.id)) {
                 contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
@@ -174,6 +272,12 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
             contentDispatch({ type: 'SET_FACTION_CARDS', payload: null });
             contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
             contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: null });
+            contentDispatch({ type: 'SET_FACTION_ATTACHMENTS', payload: null });
+            contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: null });
+            contentDispatch({ type: 'SET_FACTION_NCUs', payload: null });
+            contentDispatch({ type: 'SET_SELECTED_NCU', payload: null });
+            contentDispatch({ type: 'SET_FACTION_UNITS', payload: null });
+            contentDispatch({ type: 'SET_SELECTED_UNIT', payload: null });
         } else {
             contentDispatch({ type: 'SET_SELECTED_FACTION', payload: faction });
         }    
@@ -187,6 +291,52 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
             contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: commander });
         }
     }
+
+    function handleAttachmentClick(attachment: Attachment) {
+        if (contentState.selectedAttachment && (contentState.selectedAttachment?.id === attachment.id)) {
+            contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: null });
+        } else {
+            contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: attachment });
+        }
+    }
+
+    function handleNcuClick(ncu: NCU) {
+        if (contentState.selectedNCU && (contentState.selectedNCU?.id === ncu.id)) {
+            contentDispatch({ type: 'SET_SELECTED_NCU', payload: null });
+        } else {
+            contentDispatch({ type: 'SET_SELECTED_NCU', payload: ncu });
+        }
+    }
+
+    function handleUnitClick(unit: any) {
+        if (contentState.selectedUnit && (contentState.selectedUnit?.id === unit.id)) {
+            contentDispatch({ type: 'SET_SELECTED_UNIT', payload: null });
+        } else {
+            contentDispatch({ type: 'SET_SELECTED_UNIT', payload: unit });
+        }
+    }
+
+    useEffect(() => {
+        if (!contentState.selectedFaction) {
+            contentDispatch({ type: 'SET_MODE', payload: 'faction_select' });
+        } else if (contentState.selectedFaction && !contentState.selectedCommander && !contentState.selectedAttachment && !contentState.selectedNCU && !contentState.selectedUnit) {
+            contentDispatch({ type: 'SET_MODE', payload: 'type_select' });
+        } else if (contentState.selectedFaction && contentState.selectedCommander) {
+            contentDispatch({ type: 'SET_MODE', payload: 'commander' });
+        } else if (contentState.selectedFaction && contentState.selectedAttachment) {
+            contentDispatch({ type: 'SET_MODE', payload: 'attachments' });
+        } else if (contentState.selectedFaction && contentState.selectedNCU) {
+            contentDispatch({ type: 'SET_MODE', payload: 'ncus' });
+        } else if (contentState.selectedFaction && contentState.selectedUnit) {
+            contentDispatch({ type: 'SET_MODE', payload: 'units' });
+        }
+    }, [
+        contentState.selectedFaction,
+        contentState.selectedCommander,
+        contentState.selectedAttachment,
+        contentState.selectedNCU,
+        contentState.selectedUnit
+    ]);
 
     const gridContainerStyles: SxProps<Theme> = {
         justifyContent: 'space-around',
@@ -204,17 +354,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
         height: '100%',
     };
 
-    function getFadeIn () {
-        return keyframes({
-            '0%': {
-                opacity: 0,
-            },
-            '100%': {
-                opacity: 1,
-            },
-        });
-    };
-
     return (
         <>
             { !awaitingResponse &&
@@ -223,7 +362,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
                     justifyContent={'center'}
                     alignItems={'center'}
                     width={'100%'}
-                    sx={{ animation: `${getFadeIn()} 2s` }}
                 >
                     <ContentTop
                         contentState={contentState}
@@ -231,15 +369,12 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
                         isMobile={isMobile}
                         handleFactionClick={handleFactionClick}
                         handleCommanderClick={handleCommanderClick}
+                        handleAttachmentClick={handleAttachmentClick}
+                        handleNcuClick={handleNcuClick}
+                        handleUnitClick={handleUnitClick}
                         gridContainerStyles={gridContainerStyles}
                         gridItemStyles={gridItemStyles}
                     />
-
-                    <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Box width={'75%'} sx={{ py: 4 }}>
-                            <Divider flexItem />
-                        </Box>
-                    </Stack>
 
                     <ContentBottom
                         contentState={contentState}
@@ -249,227 +384,5 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
                 </Stack>
             }
         </>
-    );
-};
-
-// ----------------------------------------------------------------------
-
-type ContentTopProps = {
-    contentState: State;
-    contentDispatch: React.Dispatch<Action>;
-    isMobile: boolean;
-    handleFactionClick: (faction: Faction) => void;
-    handleCommanderClick: (commander: Commander) => void;
-    gridContainerStyles: SxProps<Theme>;
-    gridItemStyles: SxProps<Theme>;
-};
-
-function ContentTop({ contentState, contentDispatch, isMobile, handleFactionClick, handleCommanderClick, gridContainerStyles, gridItemStyles }: ContentTopProps) {
-
-    const theme = useTheme();
-
-    return (
-        <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-            <Typography variant={'h3'}>Manage Content</Typography>
-            <Stack direction={'row'} spacing={2} justifyContent={'center'} alignItems={'flex-start'}>
-                {contentState.selectedFaction ?
-                    <Stack>
-                        <SelectableAvatar
-                            item={contentState.selectedFaction}
-                            altText={`SELECTED ${contentState.selectedFaction.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleFactionClick} />
-                        <Button
-                            size={'small'}
-                            onClick={() => {
-                                contentDispatch({ type: 'TOGGLE_ADD_NEW_FACTION' });
-                            } }
-                        >
-                            Edit
-                        </Button>
-                    </Stack> :
-                    <SelectableAvatar
-                        item={contentState.selectedFaction}
-                        altText={'DEFAULT FACTION'}
-                        defaultIcon={'/icons/throne.png'}
-                        isMobile={isMobile}
-                        handleClick={handleFactionClick}
-                        sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas }}
-                    />
-                    }
-                {contentState.selectedCommander ?
-                    <Stack>
-                        <SelectableAvatar
-                            item={contentState.selectedCommander}
-                            altText={`SELECTED ${contentState.selectedCommander.name}`}
-                            isMobile={isMobile}
-                            handleClick={handleCommanderClick} />
-                        <Button
-                            size={'small'}
-                            onClick={() => {
-                                contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' });
-                            } }
-                        >
-                            Edit
-                        </Button>
-                    </Stack> :
-                    <SelectableAvatar
-                        item={contentState.selectedCommander}
-                        altText={'DEFAULT COMMANDER'}
-                        defaultIcon={'/icons/crown.svg'}
-                        isMobile={isMobile}
-                        handleClick={handleCommanderClick}
-                        sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
-                    />
-                }
-            </Stack>
-
-            { contentState.factions && !contentState.selectedFaction &&
-                <Box sx={{ width: '100%' }}>
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {contentState.factions.map((faction) => (
-                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={faction}
-                                    altText={faction.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleFactionClick} />
-                            </Grid>
-                        ))}
-                        <Grid item sx={gridItemStyles}>
-                            <AddNew
-                                type={'faction'}
-                                isMobile={isMobile}
-                                handleClick={() => {
-                                    contentDispatch({ type: 'TOGGLE_ADD_NEW_FACTION' });
-                                } }
-                            />
-                        </Grid>
-                    </Grid>
-                </Box>
-            }
-            { contentState.factions &&
-                <EditAddFaction
-                    faction={contentState.selectedFaction ? contentState.selectedFaction : null}
-                    factions={contentState.factions}
-                    editOpen={contentState.addNewFaction}
-                    setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_FACTION' }); } }
-                    setFactions={(factions: Faction[]) => { contentDispatch({ type: 'SET_FACTIONS', payload: factions }); } }
-                />
-            }
-
-            { contentState.selectedFaction && contentState.allCommanders && contentState.viewedCommanders && !contentState.selectedCommander &&
-                <Box sx={{ width: '100%' }}>
-                    <Grid
-                        container
-                        rowSpacing={2}
-                        columnSpacing={2}
-                        sx={gridContainerStyles}
-                    >
-                        {contentState.viewedCommanders.map((commander) => (
-                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
-                                <SelectableAvatar
-                                    item={commander}
-                                    altText={commander.name}
-                                    isMobile={isMobile}
-                                    handleClick={handleCommanderClick} />
-                            </Grid>
-                        ))}
-                        <Grid item sx={gridItemStyles}>
-                            <AddNew
-                                type={'commander'}
-                                isMobile={isMobile}
-                                handleClick={() => {
-                                    contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' });
-                                } } />
-                        </Grid>
-                    </Grid>
-                </Box>
-            }
-            { contentState.factions && contentState.selectedFaction && contentState.allCommanders &&
-                <EditAddCommander
-                    commander={contentState.selectedCommander !== null ? contentState.selectedCommander :
-                        {
-                            id: -1,
-                            name: '',
-                            img_url: '',
-                            faction: contentState.selectedFaction,
-                        }}
-                    editOpen={contentState.addNewCommander}
-                    setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_COMMANDER' }); } }
-                    commanders={contentState.allCommanders}
-                    setCommanders={(commanders: Commander[]) => { contentDispatch({ type: 'SET_ALL_COMMANDERS', payload: commanders }); } }
-                    factions={contentState.factions}
-                />
-            }
-        </Stack>
-    );
-}
-
-// ----------------------------------------------------------------------
-
-type ContentBottomProps = {
-    contentState: State;
-    contentDispatch: React.Dispatch<Action>;
-    isMobile: boolean;
-};
-
-function ContentBottom({ contentState, contentDispatch, isMobile }: ContentBottomProps) {
-
-    return (
-        <Stack width={'100%'} justifyContent={'center'} alignItems={'center'}>
-            { !contentState.commanderCards && contentState.factionCards && contentState.factions && (
-                <CardOptions
-                    isMobile={isMobile}
-                    cards={contentState.factionCards}
-                    defaultCards={null}
-                    factions={contentState.factions}
-                    commanders={contentState.allCommanders ?? []}
-                    handleClick={() => {
-                        contentDispatch({ type: 'TOGGLE_ADD_NEW_CARD' });
-                    } }
-                    setCards={(cards: CardTemplate[]) => { contentDispatch({ type: 'SET_FACTION_CARDS', payload: cards }); } }
-                />
-            )}
-            { contentState.commanderCards && contentState.factions && (
-                <CardOptions
-                    isMobile={isMobile}
-                    cards={contentState.commanderCards}
-                    defaultCards={contentState.factionCards ? contentState.factionCards : null}
-                    factions={contentState.factions}
-                    commanders={contentState.allCommanders ?? []}
-                    handleClick={() => {
-                        contentDispatch({ type: 'TOGGLE_ADD_NEW_CARD' });
-                    } }
-                    setCards={(cards: CardTemplate[]) => { contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: cards }); } }
-                />
-            )}
-            { contentState.factions && contentState.allCommanders &&
-                <EditAddCard
-                    card={{
-                        id: -1,
-                        card_name: '',
-                        img_url: '',
-                        faction: contentState.selectedFaction ? contentState.selectedFaction : null,
-                        commander: contentState.selectedCommander ? contentState.selectedCommander : null,
-                        replaces: null,
-                    }}
-                    cards={contentState.commanderCards ? contentState.commanderCards : contentState.factionCards ? contentState.factionCards : []}
-                    defaultCards={contentState.commanderCards ? contentState.commanderCards : contentState.factionCards ? contentState.factionCards : []}
-                    factions={contentState.factions}
-                    commanders={contentState.allCommanders}
-                    editOpen={contentState.addNewCard}
-                    setEditOpen={() => { contentDispatch({ type: 'TOGGLE_ADD_NEW_CARD' }); } }
-                    setCards={contentState.commanderCards ?
-                        (cards: CardTemplate[]) => { contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: cards }); } :
-                        (cards: CardTemplate[]) => { contentDispatch({ type: 'SET_FACTION_CARDS', payload: cards }); } }
-                />
-            }
-        </Stack>
     );
 };

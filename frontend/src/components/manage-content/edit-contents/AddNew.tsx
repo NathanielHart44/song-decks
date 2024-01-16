@@ -6,7 +6,7 @@ import Iconify from "src/components/base/Iconify";
 type AddNewProps = {
     isMobile: boolean;
     handleClick: (arg0: any) => void;
-    type: 'faction' | 'commander' | 'card';
+    type: 'faction' | 'commander' | 'card' | 'attachment' | 'ncu' | 'unit';
 };
 export function AddNew({ isMobile, handleClick, type }: AddNewProps) {
 
@@ -26,7 +26,7 @@ export function AddNew({ isMobile, handleClick, type }: AddNewProps) {
                     '&:hover': { transform: 'scale(1.1)' },
                 } : {},
             }}
-            onClick={() => { handleClick(`Clicked add new ${type}`); }}
+            onClick={() => { handleClick(`Clicked add new ${type}`) }}
         >
             <Iconify
                 icon={'eva:plus-outline'}

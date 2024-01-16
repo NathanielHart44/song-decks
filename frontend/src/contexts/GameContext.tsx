@@ -4,6 +4,9 @@ import { PlayerCard } from "src/@types/types";
 type Props = { children: ReactNode };
 
 export const GameContext = createContext<{
+    gameRound: number;
+    setGameRound: (round: number) => void;
+
     allCards: PlayerCard[];
     setAllCards: (cards: PlayerCard[]) => void;
     selectedCard: PlayerCard | null;
@@ -28,6 +31,9 @@ export const GameContext = createContext<{
     setSelectedSection: (section_id: string | null) => void;
 }>
 ({
+    gameRound: 1,
+    setGameRound: () => {},
+
     allCards: [],
     setAllCards: () => {},
     selectedCard: null,
@@ -53,6 +59,8 @@ export const GameContext = createContext<{
 });
 
 export default function GameProvider({ children }: Props) {
+
+    const [gameRound, setGameRound] = useState<number>(1);
 
     const [allCards, setAllCards] = useState<PlayerCard[]>([]);
 
@@ -150,6 +158,8 @@ export default function GameProvider({ children }: Props) {
     return (
         <GameContext.Provider
             value={{
+                gameRound,
+                setGameRound,
                 allCards,
                 setAllCards,
                 selectedCard,

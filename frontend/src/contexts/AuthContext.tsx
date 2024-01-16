@@ -169,15 +169,12 @@ function AuthProvider({ children }: AuthProviderProps) {
   });
 
   async function handle_google_login(codeResponse: any) {
-    console.log('RESPONSE', codeResponse);
     const code = codeResponse.code;
-    console.log('handle_google_login - ', code);
     const res =  await new Promise(async (resolve, reject) => {
       try {
         const formData = new FormData();
         formData.append('code', code);
         await axios.post(MAIN_API.base_url + 'google_auth/', formData).then(async (response) => {
-          console.log('response status', response.status);
           if (response.status === 200) {
             const { access, refresh } = response.data;
             setSession(access, refresh);
@@ -190,7 +187,6 @@ function AuthProvider({ children }: AuthProviderProps) {
             });
             resolve(response.data);
           } else {
-            console.log('response.data', response.data);
             reject({ description: JSON.stringify(response.data) });
           }
         })

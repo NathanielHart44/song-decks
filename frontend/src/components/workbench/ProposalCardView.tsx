@@ -76,6 +76,7 @@ export default function ProposalCardView({
             text: '',
             tags: [],
             status: 'pending',
+            is_private: false,
             favorited_by: [],
             created_at: ''
         };
@@ -136,7 +137,7 @@ export default function ProposalCardView({
             <Stack width={'100%'} spacing={1} justifyContent={'center'} alignItems={'center'}>
                 <Typography variant={'h4'}>Proposals</Typography>
                 <Typography paragraph color={title_grey} sx={{ textAlign: 'center', mb: 0 }}>
-                    Ideas on how to improve the platform. Submit and favorite proposals to help us prioritize.
+                    Ideas on how to improve the platform? Submit and favorite proposals to help us prioritize.
                 </Typography>
             </Stack>
             <Grid container spacing={2} width={'95%'} justifyContent={'center'} alignItems={'center'}>

@@ -77,7 +77,6 @@ export default function ChangeProfileForm() {
         processTokens(getCurrentUser);
         setAllInfo({ ...allInfo, oldPassword: '', newPassword: '', confirmPassword: '' });
         }, (error) => {
-        console.log(error.response.data);
         setRegisterError({ error: error.response.data.detail });
       });
       setAwaitingResponse(false);

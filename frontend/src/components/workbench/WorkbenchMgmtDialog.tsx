@@ -18,6 +18,8 @@ import { StatusIconify } from "../base/Iconify";
 import { processTokens } from "src/utils/jwt";
 import { WORKBENCH_SETTINGS } from "src/utils/workbenchSettings";
 import TagDisplay from "./TagDisplay";
+import { useContext } from "react";
+import { MetadataContext } from "src/contexts/MetadataContext";
 
 // ----------------------------------------------------------------------
 
@@ -253,7 +255,8 @@ function SubtaskContant({ newSubtask, setNewSubtask, setOpen, is_new, handleItem
                     <Typography>Public</Typography>
                     <Switch
                         checked={!newSubtask?.is_private}
-                        onChange={(event) => { newSubtask && setNewSubtask({ ...newSubtask, is_private: !event.target.checked }); } } />
+                        onChange={(event) => { newSubtask && setNewSubtask({ ...newSubtask, is_private: !event.target.checked }); } }
+                    />
                 </Stack>
                 <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
@@ -472,7 +475,8 @@ function TaskContent({ newTask, setNewTask, setOpen, is_new, handleItem, allMode
                     <Typography>Public</Typography>
                     <Switch
                         checked={!newTask?.is_private}
-                        onChange={(event) => { newTask && setNewTask({ ...newTask, is_private: !event.target.checked }); } } />
+                        onChange={(event) => { newTask && setNewTask({ ...newTask, is_private: !event.target.checked }); } }
+                    />
                 </Stack>
 
                 <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
@@ -516,6 +520,8 @@ type ProposalContentProps = {
 
 function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleItem }: ProposalContentProps) {
 
+    const { currentUser } = useContext(MetadataContext);
+
     function cancelProposal() {
         if (is_new) {
             setNewProposal(undefined);
@@ -527,7 +533,7 @@ function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleI
 
     return (
         <DialogContent sx={{ p: 2 }}>
-            <Stack spacing={2} width={'100%'}>
+            <Stack spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                 <TextField
                     label={"Proposal"}
                     variant={"outlined"}
@@ -537,7 +543,15 @@ function ProposalContent({ newProposal, setNewProposal, setOpen, is_new, handleI
                     multiline
                     minRows={5}
                 />
-
+                {currentUser?.moderator &&
+                    <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                        <Typography>Public</Typography>
+                        <Switch
+                            checked={!newProposal?.is_private}
+                            onChange={(event) => { newProposal && setNewProposal({ ...newProposal, is_private: !event.target.checked }); } }
+                        />
+                    </Stack>
+                }
                 <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
                         <Button

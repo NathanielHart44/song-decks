@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from songdecks.serializers import (UserSerializer)
+from songdecks.serializers import (ProfileSerializer, UserSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Game)
 from songdecks.views.helpers import get_last_acceptable_date
@@ -99,13 +99,15 @@ def games_played_info(request):
             last_30_days_game_count=Coalesce(Count('game', filter=Q(game__created_at__gte=thirty_days_ago), distinct=True), 0)
         )
 
-        moderators = profiles.filter(moderator=True)
+        moderators = profiles.filter(moderator=True, admin=False)
+        admins = profiles.filter(admin=True)
         players = profiles.filter(moderator=False)
 
         data = {}
         profile_querysets: Tuple[Tuple[str, QuerySet[Profile]], ...] = [
             ('active_players', players),
-            ('moderators', moderators)
+            ('moderators', moderators),
+            ('admins', admins)
         ]
 
         for key, profile_queryset in profile_querysets:
@@ -200,3 +202,15 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
             {"detail": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+@api_view(['GET'])
+def get_all_admins(request):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        profiles = Profile.objects.filter(admin=True)
+        serializer = ProfileSerializer(profiles, many=True)
+        return JsonResponse({"success": True, "response": serializer.data})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})

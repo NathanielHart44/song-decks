@@ -1,29 +1,53 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Page from "src/components/base/Page";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import GameContent from "src/components/game-page/GameContent";
-import { Stack, SpeedDial, SpeedDialIcon, Backdrop, SpeedDialAction } from "@mui/material";
-import SectionStepper from "src/components/SectionStepper";
+import { Stack } from "@mui/material";
+import SectionStepper from "src/components/game-page/SectionStepper";
 import { GameContext } from "src/contexts/GameContext";
 import { ActionButtons } from "src/components/game-page/ActionButtons";
 import { useParams } from "react-router-dom";
 import CardProbability from "src/components/game-page/CardProbability";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
-import Iconify from "src/components/base/Iconify";
 import KeywordSearch from "src/components/KeywordSearch";
+import SpeedDialDiv, { SpeedDialOptions } from "src/components/SpeedDialDiv";
+import { decodeList } from "src/utils/convertList";
+import { List } from "src/@types/types";
+import { ListOverviewDiv } from "src/components/list-manage/ListOverview";
 
 // ----------------------------------------------------------------------
 
-export type GameModalOptions = 'probability' | 'word_search' | 'game';
+export type GameModalOptions = 'probability' | 'word_search' | 'game' | 'list';
+
+// ----------------------------------------------------------------------
 
 export default function Game() {
 
-    const { gameID = '' } = useParams();
+    const { gameID = '', lc } = useParams();
     const { allCards } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [openModal, setOpenModal] = useState<GameModalOptions>('game');
+    const [gameList, setGameList] = useState<List>();
+    const [speedDialOptions, setSpeedDialOptions] = useState<SpeedDialOptions[]>(defaultSpeedDialOptions);
 
     // TODO: Preload images here, but running into issues with allCards containing cards not partaining to the current game.
+
+    const using_list = (lc !== undefined && lc !== null);
+    useEffect(() => {
+        if (using_list && !gameList) {
+            const loaded_list = decodeList(lc);
+            setGameList(loaded_list);
+            const new_speed_dial_options = [...speedDialOptions];
+            new_speed_dial_options.push({
+                name: 'List',
+                source: 'list',
+                icon: 'game-icons:swords-emblem'
+            });
+            setSpeedDialOptions(new_speed_dial_options);
+
+        };
+    }, [gameList, lc]);
 
     return (
         <Page title="Play">
@@ -46,9 +70,16 @@ export default function Game() {
                     setAwaitingResponse={setAwaitingResponse}
                 />
             }
+            { openModal === 'list' &&
+                <ListOverviewDiv
+                    isMobile={false}
+                    currentList={gameList as List}
+                />
+            }
                 <SpeedDialDiv
-                    openModal={openModal}
                     setOpenModal={setOpenModal}
+                    options={speedDialOptions}
+                    openModal={openModal}
                 />
         </Page>
     );
@@ -89,67 +120,24 @@ function GameContentDiv({ setAwaitingResponse }: GameContentDivProps) {
             <GameContent />
         </Stack>
     );
-}
+};
 
 // ----------------------------------------------------------------------
 
-type SpeedDialDivProps = {
-    openModal: GameModalOptions;
-    setOpenModal: (arg0: GameModalOptions) => void;
-};
-
-function SpeedDialDiv({ openModal, setOpenModal }: SpeedDialDivProps) {
-
-    const [open, setOpen] = useState<boolean>(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-    function handleSelect(selected_page: GameModalOptions) {
-        setOpen(false);
-        setOpenModal(selected_page);
-    };
-    
-    const icon_sizing = '55%';
-
-    const options: { name: string; source: GameModalOptions; icon: JSX.Element; }[] = [
-        {
-            name: 'Game',
-            source: 'game' as GameModalOptions,
-            icon: <Iconify icon={'ri:sword-line'} width={icon_sizing} height={icon_sizing} />
-        },
-        {
-            name: 'Deck Cards',
-            source: 'probability' as GameModalOptions,
-            icon: <Iconify icon={'eva:percent-outline'} width={icon_sizing} height={icon_sizing} />
-        },
-        {
-            name: 'Keyword Search',
-            source: 'word_search' as GameModalOptions,
-            icon: <Iconify icon={'eva:search-outline'} width={icon_sizing} height={icon_sizing} />
-        },
-    ];
-
-    return (
-        <div>
-            <Backdrop open={open} />
-            <SpeedDial
-                ariaLabel="Main Speed Dial"
-                // sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: (theme) => theme.zIndex.drawer + z_index }}
-                sx={{ position: 'fixed', bottom: 16, right: 16 }}
-                // icon={open ? <SpeedDialIcon /> : <Iconify icon={'eva:percent-outline'} width={'45%'} height={'45%'} />}
-                icon={<SpeedDialIcon />}
-                onClose={handleClose}
-                onOpen={handleOpen}
-                open={open}
-            >
-                {options.map((option) => (
-                    <SpeedDialAction
-                        key={option.name}
-                        icon={option.icon}
-                        tooltipTitle={option.name}
-                        onClick={() => { handleSelect(option.source) }}
-                    />
-                ))}
-            </SpeedDial>
-        </div>
-    );
-}
+const defaultSpeedDialOptions: SpeedDialOptions[] = [
+    {
+        name: 'Tactics Deck',
+        source: 'game',
+        icon: 'mdi:cards'
+    },
+    {
+        name: 'Cards In Deck',
+        source: 'probability',
+        icon: 'icon-park-solid:layers'
+    },
+    {
+        name: 'Keyword Search',
+        source: 'word_search',
+        icon: 'eva:search-outline'
+    },
+];

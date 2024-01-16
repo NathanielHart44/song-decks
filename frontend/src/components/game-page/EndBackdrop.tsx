@@ -15,6 +15,7 @@ import { PATH_PAGE } from "src/routes/paths";
 import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../base/LoadingBackdrop";
+import { GameContext } from "src/contexts/GameContext";
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ export default function EndBackdrop({ gameID, open, setOpen }: EndBackDropProps)
     const navigate = useNavigate();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    const { gameRound, setGameRound } = useContext(GameContext);
 
     const endSegment = async (type: 'end_round' | 'end_game') => {
         setAwaitingResponse(true);
@@ -44,6 +46,7 @@ export default function EndBackdrop({ gameID, open, setOpen }: EndBackDropProps)
                     localStorage.removeItem('deckDisplay');
                     delay(750).then(() => { navigate(PATH_PAGE.home) });
                 } else {
+                    setGameRound(gameRound + 1);
                     enqueueSnackbar('Round ended!');
                     setAwaitingResponse(false);
                 }

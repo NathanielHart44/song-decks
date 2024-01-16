@@ -41,7 +41,8 @@ export default function AdminPage() {
     <Page title="Admin">
         <Container maxWidth={false}>
             <Stack spacing={2} alignItems={'center'} sx={{ width: '100%' }}>
-                <AccordianDiv title={"Core"} tasks={coreAdminTasks}/>
+                <AccordianDiv title={"Core Actions"} tasks={coreAdminTasks}/>
+                <AccordianDiv title={"Main Info"} tasks={adminInfo}/>
                 <AccordianDiv
                     title={"Graphs"}
                     chartDataGroups={chartDataGroups}
@@ -117,9 +118,14 @@ function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: Acc
 
 const main_url = `${MAIN_API.base_url}`;
 const coreAdminTasks = [
-    { title: 'See All Users', url: `${main_url}get_all_users/`, placeholder: '' },
     { title: 'Toggle Moderator Status', url: `${main_url}toggle_moderator/`, placeholder: 'Username' },
     { title: 'Toggle Admin Status', url: `${main_url}toggle_admin/`, placeholder: 'Username' },
-    { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
     { title: 'Reset Password', url: `${main_url}reset_password/`, placeholder: 'Username' },
 ];
+
+const adminInfo = [
+    { title: 'See All Users', url: `${main_url}get_all_users/`, placeholder: '' },
+    { title: 'See All Admins', url: `${main_url}get_all_admins/`, placeholder: '' },
+    { title: 'See All Moderators', url: `${main_url}get_all_moderators/`, placeholder: '' },
+    { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
+]

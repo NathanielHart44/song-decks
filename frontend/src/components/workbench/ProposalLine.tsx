@@ -44,6 +44,12 @@ export default function ProposalLine({ line_text_color, proposal, handleProposal
         })
     };
 
+    function toggleProposal() {
+        processTokens(() => {
+            handleProposal(false, { ...proposal, is_private: !proposal.is_private });
+        })
+    }
+
     if (proposal.status === 'closed') {
         return null;
     };
@@ -84,6 +90,14 @@ export default function ProposalLine({ line_text_color, proposal, handleProposal
                         />
                     </Stack>
                 </TableCell>
+                <TableCell align={'center'}>
+                    <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                        <StatusIconify
+                            status={proposal.is_private ? 'private' : 'public'}
+                            size={24}
+                        />
+                    </Stack>
+                </TableCell>
                 <TableCell align={'right'}>
                     <Typography variant={'body2'} color={line_text_color}>
                         {formatTimestamp(proposal.created_at)}
@@ -109,6 +123,7 @@ export default function ProposalLine({ line_text_color, proposal, handleProposal
                             >
                                 {proposal.text}
                             </Typography>
+
                             <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                                 <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
                                     <Button
@@ -127,6 +142,17 @@ export default function ProposalLine({ line_text_color, proposal, handleProposal
                                         fullWidth
                                     >
                                         Reject
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                            <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'} sx={{ pt: 2 }}>
+                                <Grid item {...WORKBENCH_SETTINGS.grid_sizing}>
+                                    <Button
+                                        variant={"contained"}
+                                        onClick={toggleProposal}
+                                        fullWidth
+                                    >
+                                        Toggle Private
                                     </Button>
                                 </Grid>
                             </Grid>
