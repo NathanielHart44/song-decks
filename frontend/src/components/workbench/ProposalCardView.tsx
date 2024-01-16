@@ -1,5 +1,5 @@
 import { Accordion, AccordionDetails, Card, Grid, IconButton, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography, useTheme } from "@mui/material";
-import { Proposal, Tag, User } from "src/@types/types";
+import { Profile, Proposal, Tag } from "src/@types/types";
 import Iconify, { StatusIconify } from "../base/Iconify";
 import { useContext, useEffect, useState } from "react";
 import AccordionSummaryDiv from "./AccordionSummaryDiv";
@@ -72,7 +72,7 @@ export default function ProposalCardView({
 
         const new_proposal: Proposal = {
             id: -1,
-            creator: currentUser.profile,
+            creator: currentUser,
             text: '',
             tags: [],
             status: 'pending',
@@ -88,7 +88,7 @@ export default function ProposalCardView({
         let proposals_copy: Proposal[] = JSON.parse(JSON.stringify(proposals));
         if (filter === 'personal') {
             const filtered_proposals = proposals_copy.filter((proposal) => {
-                return proposal.creator.id === currentUser?.profile as any;
+                return proposal.creator === currentUser;
             });
             proposals_copy = filtered_proposals;
         }
@@ -202,7 +202,7 @@ export default function ProposalCardView({
 // ----------------------------------------------------------------------
 
 type CardProps = {
-    currentUser: User | undefined;
+    currentUser: Profile | undefined;
     awaitingResponse: boolean;
     proposal: Proposal;
     handleFavorite: (id: number) => void;
@@ -215,7 +215,7 @@ function ProposalCard({ currentUser, awaitingResponse, proposal, handleFavorite 
     const [selected, setSelected] = useState<boolean>(false);
 
     useEffect(() => {
-        if (currentUser && proposal.favorited_by.includes(currentUser?.profile as any)) {
+        if (currentUser && proposal.favorited_by.includes(currentUser.id)) {
             setSelected(true);
         } else {
             setSelected(false);

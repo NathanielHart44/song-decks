@@ -108,7 +108,7 @@ export default function TaskLine({ line_text_color, is_small_screen, task, handl
                             <>
                                 {task.assigned_admins.map((admin, index) => (
                                     <Tooltip key={'task_tooltip_' + index} title={admin.user.username} placement={"bottom"} arrow>
-                                        <Box><AvatarDisplay is_main={false} currentUser={admin.user} /></Box>
+                                        <Box><AvatarDisplay is_main={false} currentUser={admin} /></Box>
                                     </Tooltip>
                                 ))}
                             </>
@@ -328,7 +328,7 @@ function SubtaskLine({ line_text_color, is_small_screen, task, subtask, beginSub
                             <>
                                 {subtask.assigned_admins.map((admin, index) => (
                                     <Tooltip key={'subtask_tooltip_' + index} title={admin.user.username} placement={"bottom"} arrow>
-                                        <Box><AvatarDisplay is_main={false} currentUser={admin.user} /></Box>
+                                        <Box><AvatarDisplay is_main={false} currentUser={admin} /></Box>
                                     </Tooltip>
                                 ))}
                             </>

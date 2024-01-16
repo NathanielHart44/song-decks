@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from songdecks.serializers import (ProfileSerializer, UserSerializer)
+from songdecks.serializers import (ProfileSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Game)
 from songdecks.views.helpers import get_last_acceptable_date
@@ -20,11 +20,11 @@ def get_all_users(request):
         profile = request.user.profile
         if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
-        users = User.objects.all()
-        users = users.exclude(username='admin')
+        profiles = Profile.objects.all()
+        profiles = profiles.exclude(user__username='admin')
         info = {
-            "users": UserSerializer(users, many=True).data,
-            "total": users.count(),
+            "profiles": ProfileSerializer(profiles, many=True).data,
+            "total": profiles.count(),
         }
         return JsonResponse({"success": True, "response": info})
     except Exception as e:

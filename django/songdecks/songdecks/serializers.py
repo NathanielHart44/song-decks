@@ -18,24 +18,10 @@ logging.basicConfig(level=logging.INFO)
 # ----------------------------------------------------------------------
 
 class UserSerializer(serializers.ModelSerializer):
-    moderator = serializers.SerializerMethodField(read_only=True)
-    admin = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile', 'moderator', 'admin')
-
-    def get_moderator(self, obj):
-        try:
-            return obj.profile.moderator
-        except Profile.DoesNotExist or AttributeError:
-            return False
-        
-    def get_admin(self, obj):
-        try:
-            return obj.profile.admin
-        except Profile.DoesNotExist or AttributeError:
-            return False
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

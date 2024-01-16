@@ -1,5 +1,5 @@
 import { Accordion, AccordionDetails, Card, Grid, IconButton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
-import { Task, User } from "src/@types/types";
+import { Profile, Task } from "src/@types/types";
 import Iconify, { StatusIconify } from "../base/Iconify";
 import { useContext, useEffect, useState } from "react";
 import AccordionSummaryDiv from "./AccordionSummaryDiv";
@@ -151,7 +151,7 @@ export default function TaskCardView({ grid_sizing, tasks, setAllTasks }: TaskCa
 // ----------------------------------------------------------------------
 
 type CardProps = {
-    currentUser: User | undefined;
+    currentUser: Profile | undefined;
     awaitingResponse: boolean;
     task: Task;
     handleFavorite: (id: number) => void;
@@ -164,7 +164,7 @@ function TaskCard({ currentUser, awaitingResponse, task, handleFavorite }: CardP
     const [selected, setSelected] = useState<boolean>(false);
 
     useEffect(() => {
-        if (currentUser && task.favorited_by.includes(currentUser?.profile as any)) {
+        if (currentUser && task.favorited_by.includes(currentUser.id)) {
             setSelected(true);
         } else {
             setSelected(false);

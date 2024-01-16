@@ -25,10 +25,10 @@ export default function ChangeProfileForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const defaultValues = {
-    email: currentUser?.email || '',
-    username: currentUser?.username || '',
-    firstName: currentUser?.first_name || '',
-    lastName: currentUser?.last_name || '',
+    email: currentUser?.user.email || '',
+    username: currentUser?.user.username || '',
+    firstName: currentUser?.user.first_name || '',
+    lastName: currentUser?.user.last_name || '',
     oldPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -72,7 +72,7 @@ export default function ChangeProfileForm() {
       }
 
       setAwaitingResponse(true);
-      apiCall(`update_user/${currentUser?.id}`, 'POST', formData, (data) => {
+      apiCall(`update_user/${currentUser?.user.id}`, 'POST', formData, (data) => {
         enqueueSnackbar('Profile successfully updated');
         processTokens(getCurrentUser);
         setAllInfo({ ...allInfo, oldPassword: '', newPassword: '', confirmPassword: '' });

@@ -1,10 +1,11 @@
+from django.contrib.auth.models import User
 from songdecks.models import (
     Profile, Tag, Proposal, ProposalImage, Task, SubTask
 )
 from songdecks.serializers import (
     TagSerializer, ProposalSerializer,
     ProposalImageSerializer, TaskSerializer,
-    ProfileSerializer, SubTaskSerializer
+    SubTaskSerializer, ProfileSerializer
 )
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

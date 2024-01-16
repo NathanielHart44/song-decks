@@ -1,6 +1,6 @@
 import axios from "axios";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { User } from "src/@types/types";
+import { Profile } from "src/@types/types";
 import { MAIN_API } from "src/config";
 import useAuth from "src/hooks/useAuth";
 import { isValidToken, processTokens } from "src/utils/jwt";
@@ -9,7 +9,7 @@ type Props = { children: ReactNode };
 
 export const MetadataContext = createContext<{
     isMobile: boolean;
-    currentUser: User | undefined;
+    currentUser: Profile | undefined;
     getCurrentUser: () => void;
 }>
 ({
@@ -28,7 +28,7 @@ export default function MetadataProvider({ children }: Props) {
     let user = undefined;
     const local_user = localStorage.getItem('currentUser') ?? '';
     if (local_user !== 'undefined' && local_user !== '') { user = JSON.parse(local_user) };
-    const [currentUser, setCurrentUser] = useState<User | undefined>(user);
+    const [currentUser, setCurrentUser] = useState<Profile | undefined>(user);
 
     const getCurrentUser = async () => {
         let token = localStorage.getItem('accessToken') ?? '';

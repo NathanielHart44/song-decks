@@ -1,7 +1,7 @@
 import Page from "src/components/base/Page";
 import { processTokens } from "src/utils/jwt";
 import { useContext, useEffect, useState } from "react";
-import { Tag, Proposal, Task, Subtask, User } from "src/@types/types";
+import { Tag, Proposal, Task, Subtask, Profile } from "src/@types/types";
 import { Container, Stack, Theme, useMediaQuery, useTheme } from "@mui/material";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
@@ -212,7 +212,7 @@ export default function Workbench() {
 
         const new_proposal: Proposal = {
             id: -1,
-            creator: currentUser.profile,
+            creator: currentUser,
             text: '',
             tags: [],
             status: 'pending',
@@ -417,10 +417,15 @@ function filterByTaskState(type: FilterState['taskState'], task: Task) {
     return true;
 };
 
-function filterByTaskAssignee(type: FilterState['taskAssignee'], task: Task, currentUser: User) {
+function filterByTaskAssignee(type: FilterState['taskAssignee'], task: Task, currentUser: Profile) {
     if (type === 'all') return true;
     if (type === 'assigned_to_me') {
-        return task.assigned_admins.some((admin) => admin.id === currentUser.profile.id);
+        console.log(currentUser);
+        if (task.assigned_admins.some((admin) => admin.id === currentUser.id)) {
+            return true;
+        } else {
+            return false;
+        }
     }
     return true;
 };
@@ -432,7 +437,7 @@ function handleProposalFilters(filterState: FilterState, proposal: Proposal) {
     );
 };
 
-function handleTaskFilters(filterState: FilterState, task: Task, currentUser: User) {
+function handleTaskFilters(filterState: FilterState, task: Task, currentUser: Profile) {
     return (
         filterByPublicPrivate(filterState.publicPrivate, task) &&
         filterByTaskState(filterState.taskState, task) &&

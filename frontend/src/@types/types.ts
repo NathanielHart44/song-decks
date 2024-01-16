@@ -6,13 +6,13 @@ export type User = {
     last_name: string;
     email: string;
     user_type: string;
-    moderator: boolean;
-    admin: boolean;
 }
 
 export type Profile = {
     id: number;
     user: User;
+    moderator: boolean;
+    admin: boolean;
 };
 
 export type Faction = {

@@ -20,17 +20,17 @@ export default function Pendo() {
         // Please use Strings, Numbers, or Bools for value types.
         pendo.initialize({
             visitor: {
-                id: '` + currentUser?.email + `',   // Required if user is logged in, default creates anonymous ID
-                email: '` + currentUser?.email + `',         // Recommended if using Pendo Feedback, or NPS Email
-                full_name: '` + currentUser?.first_name + ' ' + currentUser?.last_name + `',   // Recommended if using Pendo Feedback
-                username: '` + currentUser?.username + `',
-                profile_id: '` + currentUser?.profile?.id + `'
+                id: '` + currentUser?.user.email + `',   // Required if user is logged in, default creates anonymous ID
+                email: '` + currentUser?.user.email + `',         // Recommended if using Pendo Feedback, or NPS Email
+                full_name: '` + currentUser?.user.first_name + ' ' + currentUser?.user.last_name + `',   // Recommended if using Pendo Feedback
+                username: '` + currentUser?.user.username + `',
+                profile_id: '` + currentUser?.user.profile?.id + `'
                 // role:         // Optional
                 // You can add any additional visitor level key-values here,
                 // as long as it's not one of the above reserved names.
             },
             account: {
-                id:           '` + currentUser?.user_type + `' // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
+                id:           '` + currentUser?.user.user_type + `' // Required if using Pendo Feedback, default uses the value 'ACCOUNT-UNIQUE-ID'
                 // name:         // Optional
                 // is_paying:    // Recommended if using Pendo Feedback
                 // monthly_value:// Recommended if using Pendo Feedback

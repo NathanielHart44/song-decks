@@ -4,7 +4,7 @@ import { Box, Avatar, Menu, MenuItem, Divider, IconButton, Typography, ListItemI
 import { MetadataContext } from 'src/contexts/MetadataContext';
 import { logout } from 'src/utils/jwt';
 import { PATH_AUTH, PATH_PAGE } from 'src/routes/paths';
-import { User } from 'src/@types/types';
+import { Profile, User } from 'src/@types/types';
 import Iconify from '../base/Iconify';
 
 // icons
@@ -143,7 +143,7 @@ export default function AccountMenu() {
                             <ListItemIcon>
                                 <AvatarDisplay is_main={false} currentUser={currentUser} />
                             </ListItemIcon>
-                            {currentUser ? currentUser.username : '--'}
+                            {currentUser ? currentUser.user.username : '--'}
                         </MenuItem>
                         <Divider />
                         { is_admin &&
@@ -284,12 +284,14 @@ export default function AccountMenu() {
 
 type AvatarDisplayProps = {
     is_main: boolean;
-    currentUser: User | undefined;
+    currentUser: Profile | undefined;
 }
 
 export function AvatarDisplay({ is_main, currentUser }: AvatarDisplayProps) {
     const theme = useTheme();
     const size = is_main ? 40 : 32;
+
+    console.log(currentUser);
 
     return (
         <Avatar
@@ -301,7 +303,7 @@ export function AvatarDisplay({ is_main, currentUser }: AvatarDisplayProps) {
         >
             <Typography variant={is_main ? "h6" : "body1"} fontFamily={'Metamorphous'} sx={{ color: theme.palette.text.primary }}>
             {/* <Typography sx={{ fontSize: '1.2rem', fontWeight: 'bold', color: theme.palette.text.primary }}> */}
-                {currentUser ? currentUser.first_name[0].toUpperCase() + currentUser.last_name[0].toUpperCase() : '--'}
+                {currentUser ? currentUser.user.first_name[0].toUpperCase() + currentUser.user.last_name[0].toUpperCase() : '--'}
             </Typography>
         </Avatar>
     )

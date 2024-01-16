@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
-from songdecks.serializers import (PlayerCardSerializer,
+from songdecks.serializers import (PlayerCardSerializer, ProfileSerializer,
     UserSerializer, UserCardStatsSerializer, GameSerializer,
     ChangePasswordSerializer, KeywordPairSerializer, KeywordTypeSerializer)
 from django.contrib.auth.models import User
@@ -153,7 +153,7 @@ def current_user(request):
     try:
         user = request.user
         update_last_login(user)
-        serializer = UserSerializer(user)
+        serializer = ProfileSerializer(user.profile)
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
