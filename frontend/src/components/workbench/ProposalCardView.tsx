@@ -56,8 +56,8 @@ export default function ProposalCardView({
     const [viewedProposals, setViewedProposals] = useState<Proposal[]>([]);
     const [filter, setFilter] = useState<'pending' | 'all' | 'personal'>('pending');
     const filter_options = ['pending', 'personal', 'all'];
-    const [sort, setSort] = useState<'date' | 'popular'>('date');
-    const sort_options = ['date', 'popular'];
+    const [sort, setSort] = useState<'date' | 'popular'>('popular');
+    const sort_options = ['popular', 'date'];
 
     const handleSelection = (type: 'filter' | 'sort', value: string) => {
         if (type === 'filter' && filter_options.includes(value as any)) {

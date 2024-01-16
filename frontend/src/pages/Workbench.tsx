@@ -286,7 +286,7 @@ export default function Workbench() {
                     {renderAccordionContainer({
                         title: 'Proposals',
                         addNew: beginProposal,
-                        children: allProposals && allProposals.map((proposal: Proposal) => (
+                        children: allProposals && (allProposals.sort(sortByNewest)).map((proposal: Proposal) => (
                             <ProposalLine
                                 key={'proposal_' + proposal.id}
                                 line_text_color={line_text_color}
@@ -297,7 +297,7 @@ export default function Workbench() {
                     })}
                     {renderAccordionContainer({
                         title: 'Tasks',
-                        children: allTasks && allTasks.map((task: Task) => (
+                        children: allTasks && (allTasks.sort(sortByNewest)).map((task: Task) => (
                             <TaskLine
                                 key={'task_' + task.id}
                                 line_text_color={line_text_color}
@@ -311,7 +311,7 @@ export default function Workbench() {
                     {renderAccordionContainer({
                         title: 'Tags',
                         addNew: beginTag,
-                        children: allTags && allTags.map((tag: Tag) => (
+                        children: allTags && (allTags.sort(sortByNewest)).map((tag: Tag) => (
                             <TagLine
                                 key={'tag_' + tag.id}
                                 line_text_color={line_text_color}
@@ -341,3 +341,11 @@ const renderAccordionContainer = ({ title, addNew, children }: AccordionContaine
         table_body={children}
     />
 );
+
+// ----------------------------------------------------------------------
+
+function sortByNewest(a: Tag | Task | Proposal | Subtask, b: Tag | Task | Proposal | Subtask) {
+    const dateA = new Date(a.created_at);
+    const dateB = new Date(b.created_at);
+    return +dateB - +dateA;
+};
