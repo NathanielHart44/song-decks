@@ -291,8 +291,6 @@ export function AvatarDisplay({ is_main, currentUser }: AvatarDisplayProps) {
     const theme = useTheme();
     const size = is_main ? 40 : 32;
 
-    console.log(currentUser);
-
     return (
         <Avatar
             sx={{

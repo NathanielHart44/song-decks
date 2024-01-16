@@ -420,7 +420,6 @@ function filterByTaskState(type: FilterState['taskState'], task: Task) {
 function filterByTaskAssignee(type: FilterState['taskAssignee'], task: Task, currentUser: Profile) {
     if (type === 'all') return true;
     if (type === 'assigned_to_me') {
-        console.log(currentUser);
         if (task.assigned_admins.some((admin) => admin.id === currentUser.id)) {
             return true;
         } else {
