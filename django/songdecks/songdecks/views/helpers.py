@@ -1,5 +1,5 @@
 from songdecks.settings import (
-    EMAIL_HOST_USER, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_REGION
+    EMAIL_HOST_PASSWORD, EMAIL_HOST_USER, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_REGION
 )
 import boto3
 import mimetypes
@@ -64,18 +64,15 @@ def send_email_notification(recipient, subject, message, filename=None):
         """)
         from_email = EMAIL_HOST_USER
         recipient_list = recipient if isinstance(recipient, list) else [recipient]
-        demo_email = "demo@test.com"
-        if demo_email in recipient_list:
-            recipient_list.remove(demo_email)
         email = send_mail(
             subject,
             message,
             from_email,
-            recipient_list
+            recipient_list,
+            auth_password=EMAIL_HOST_PASSWORD,
         )
         if filename != None:
             email.attach_file(filename)
-        email.send(fail_silently=False)
     except Exception as e:
         print(e)
 
