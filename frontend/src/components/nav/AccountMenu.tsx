@@ -4,7 +4,7 @@ import { Box, Avatar, Menu, MenuItem, Divider, IconButton, Typography, ListItemI
 import { MetadataContext } from 'src/contexts/MetadataContext';
 import { logout } from 'src/utils/jwt';
 import { PATH_AUTH, PATH_PAGE } from 'src/routes/paths';
-import { Profile, User } from 'src/@types/types';
+import { Profile } from 'src/@types/types';
 import Iconify from '../base/Iconify';
 
 // icons
