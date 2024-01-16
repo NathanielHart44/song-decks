@@ -270,7 +270,7 @@ export default function EditAddNCU({
                             label={"Main URL"}
                         />
                         <UploadAvatarComp
-                            type="ncu"
+                            type="ncu_card"
                             size={'card'}
                             name={mainNCU.name}
                             faction={mainNCU.faction}

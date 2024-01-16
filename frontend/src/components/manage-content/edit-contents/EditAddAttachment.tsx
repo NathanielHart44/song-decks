@@ -373,7 +373,7 @@ export default function EditAddAttachment({
                             label={"Main URL"}
                         />
                         <UploadAvatarComp
-                            type="attachment"
+                            type="attachment_card"
                             size={'card'}
                             name={mainAttachment.name}
                             faction={mainAttachment.faction}

@@ -17,13 +17,17 @@ import { MetadataContext } from 'src/contexts/MetadataContext';
 
 // ----------------------------------------------------------------------
 
+export type AvatarUploadType = 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit' | 'attachment_card' | 'ncu_card' | 'unit_card';
+
+// ----------------------------------------------------------------------
+
 export interface FileWithPreview extends File {
     preview: string;
 }
 
 type UploadProps = {
     size: 'card' | 'unit' | 'avatar';
-    type: 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit';
+    type: AvatarUploadType;
     name: string;
     faction: Faction | null;
     item: Commander | Attachment | NCU | Unit | null;

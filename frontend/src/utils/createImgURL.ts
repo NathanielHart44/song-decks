@@ -1,14 +1,14 @@
-import { Attachment, Commander, Faction, NCU } from "src/@types/types";
-import { FileWithPreview } from "src/components/upload/UploadAvatarComp";
+import { Attachment, Commander, Faction, NCU, Unit } from "src/@types/types";
+import { AvatarUploadType, FileWithPreview } from "src/components/upload/UploadAvatarComp";
 import { MAIN_API } from "src/config";
 
 // ----------------------------------------------------------------------
 
 type Props = {
-    type: 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit';
+    type: AvatarUploadType;
     name: string;
     faction: Faction | null;
-    item: Commander | Attachment | NCU | null;
+    item: Commander | Attachment | NCU |  Unit | null;
     uploadFile: FileWithPreview | null;
 };
 
@@ -25,19 +25,25 @@ export default function createImageURL({ type, name, faction, item, uploadFile }
         url += 'factions/';
     } else if (type === 'commander') {
         url += 'commanders/';
-    } else if (type === 'attachment') {
+    } else if (type === 'attachment' || type === 'attachment_card') {
         url += 'attachments/';
-    } else if (type === 'ncu') {
+        if (type === 'attachment_card') { url += 'cards/' }
+        else { url += 'previews/' };
+    } else if (type === 'ncu' || type === 'ncu_card') {
         url += 'ncus/';
-    } else if (type === 'unit') {
+        if (type === 'ncu_card') { url += 'cards/' }
+        else { url += 'previews/' };
+    } else if (type === 'unit' || type === 'unit_card') {
         url += 'units/';
+        if (type === 'unit_card') { url += 'cards/' }
+        else { url += 'previews/' };
     };
 
     if (faction) {
         const formatted_faction = formatFunct(faction.name);
         url += `${formatted_faction}/`;
     }
-    if (item) {
+    if (type === 'commander' && item) {
         const formatted_commander = formatFunct(item.name);
         url += `${formatted_commander}/`;
     }

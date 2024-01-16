@@ -392,7 +392,7 @@ export default function EditAddUnit({
                             label={"Main URL"}
                         />
                         <UploadAvatarComp
-                            type="unit"
+                            type="unit_card"
                             size={'unit'}
                             name={mainUnit.name}
                             faction={mainUnit.faction}
