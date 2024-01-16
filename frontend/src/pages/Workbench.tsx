@@ -1,7 +1,7 @@
 import Page from "src/components/base/Page";
 import { processTokens } from "src/utils/jwt";
 import { useContext, useEffect, useState } from "react";
-import { Tag, Proposal, Task, Subtask } from "src/@types/types";
+import { Tag, Proposal, Task, Subtask, User } from "src/@types/types";
 import { Container, Stack, Theme, useMediaQuery, useTheme } from "@mui/material";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 
@@ -16,6 +16,7 @@ import TagLine from "src/components/workbench/TagLine";
 import useWorkbenchState from 'src/hooks/useWorkbenchState';
 import { useApiCall, objectToFormData } from "src/hooks/useApiCall";
 import WBMgmtDialogGroup from "../components/workbench/WBMgmtDialogGroup";
+import WBFiltersDrawer from "src/components/workbench/WBFilterDrawer";
 
 // ----------------------------------------------------------------------
 
@@ -33,6 +34,22 @@ export const initialModalState: ModalState = {
     tagCreationOpen: false
 };
 
+export type FilterState = {
+    sortDate: 'asc' | 'desc';
+    publicPrivate: 'all' | 'public' | 'private';
+    proposalStatus: 'all' | 'pending' | 'confirmed' | 'rejected';
+    taskState: 'all_not_finished' | 'all' | 'not_started' | 'assigned' | 'in_progress' | 'finished';
+    taskAssignee: 'all' | 'assigned_to_me';
+};
+
+export const initialFilterState = {
+    sortDate: 'desc' as FilterState['sortDate'],
+    publicPrivate: 'all' as FilterState['publicPrivate'],
+    proposalStatus: 'pending' as FilterState['proposalStatus'],
+    taskState: 'all_not_finished' as FilterState['taskState'],
+    taskAssignee: 'all' as FilterState['taskAssignee']
+};
+
 // ----------------------------------------------------------------------
 
 export default function Workbench() {
@@ -40,12 +57,14 @@ export default function Workbench() {
     const theme = useTheme();
     const line_text_color = theme.palette.grey[500];
 
-    const { currentUser } = useContext(MetadataContext);
+    const { isMobile, currentUser } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
     const is_large_screen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'));
     const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
+    const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
+    const [filterState, setFilterState] = useState<FilterState>(initialFilterState);
 
     const {
         allTasks, setAllTasks, newTask, setNewTask,
@@ -286,32 +305,36 @@ export default function Workbench() {
                     {renderAccordionContainer({
                         title: 'Proposals',
                         addNew: beginProposal,
-                        children: allProposals && (allProposals.sort(sortByNewest)).map((proposal: Proposal) => (
-                            <ProposalLine
-                                key={'proposal_' + proposal.id}
-                                line_text_color={line_text_color}
-                                proposal={proposal}
-                                handleProposal={handleProposal}
-                            />
-                        ))
+                        children: allProposals &&
+                            (allProposals.sort((a, b) => sortByDate(filterState.sortDate, a, b))).map((proposal: Proposal) => (
+                                handleProposalFilters(filterState, proposal) &&
+                                <ProposalLine
+                                    key={'proposal_' + proposal.id}
+                                    line_text_color={line_text_color}
+                                    proposal={proposal}
+                                    handleProposal={handleProposal}
+                                />
+                            ))
                     })}
                     {renderAccordionContainer({
                         title: 'Tasks',
-                        children: allTasks && (allTasks.sort(sortByNewest)).map((task: Task) => (
-                            <TaskLine
-                                key={'task_' + task.id}
-                                line_text_color={line_text_color}
-                                is_small_screen={!is_large_screen}
-                                task={task}
-                                handleTaskEdit={handleTaskEdit}
-                                beginSubtask={beginSubtask}
-                            />
-                        ))
+                        children: allTasks && currentUser &&
+                            (allTasks.sort((a, b) => sortByDate(filterState.sortDate, a, b))).map((task: Task) => (
+                                handleTaskFilters(filterState, task, currentUser) &&
+                                <TaskLine
+                                    key={'task_' + task.id}
+                                    line_text_color={line_text_color}
+                                    is_small_screen={!is_large_screen}
+                                    task={task}
+                                    handleTaskEdit={handleTaskEdit}
+                                    beginSubtask={beginSubtask}
+                                />
+                            ))
                     })}
                     {renderAccordionContainer({
                         title: 'Tags',
                         addNew: beginTag,
-                        children: allTags && (allTags.sort(sortByNewest)).map((tag: Tag) => (
+                        children: allTags && (allTags.sort((a, b) => sortByDate(filterState.sortDate, a, b))).map((tag: Tag) => (
                             <TagLine
                                 key={'tag_' + tag.id}
                                 line_text_color={line_text_color}
@@ -322,6 +345,14 @@ export default function Workbench() {
                     })}
                 </Stack>
             </Container>
+
+            <WBFiltersDrawer
+                isMobile={isMobile}
+                filtersOpen={filtersOpen}
+                setFiltersOpen={setFiltersOpen}
+                filterState={filterState}
+                setFilterState={setFilterState}
+            />
         </Page>
     );
 };
@@ -348,4 +379,63 @@ function sortByNewest(a: Tag | Task | Proposal | Subtask, b: Tag | Task | Propos
     const dateA = new Date(a.created_at);
     const dateB = new Date(b.created_at);
     return +dateB - +dateA;
+};
+
+function sortByOldest(a: Tag | Task | Proposal | Subtask, b: Tag | Task | Proposal | Subtask) {
+    const dateA = new Date(a.created_at);
+    const dateB = new Date(b.created_at);
+    return +dateA - +dateB;
+};
+
+function sortByDate(type: FilterState['sortDate'], a: Tag | Task | Proposal | Subtask, b: Tag | Task | Proposal | Subtask) {
+    if (type === 'asc') return sortByOldest(a, b);
+    return sortByNewest(a, b);
+};
+
+function filterByPublicPrivate(type: FilterState['publicPrivate'], proposal: Proposal | Task) {
+    if (type === 'all') return true;
+    if (type === 'public') return !proposal.is_private;
+    if (type === 'private') return proposal.is_private;
+    return true;
+};
+
+function filterByProposalStatus(type: FilterState['proposalStatus'], proposal: Proposal) {
+    if (type === 'all') return true;
+    if (type === 'pending') return proposal.status === 'pending';
+    if (type === 'confirmed') return proposal.status === 'confirmed';
+    if (type === 'rejected') return proposal.status === 'rejected';
+    return true;
+};
+
+function filterByTaskState(type: FilterState['taskState'], task: Task) {
+    if (type === 'all') return true;
+    if (type === 'not_started') return task.state === 'not_started';
+    if (type === 'assigned') return task.state === 'assigned';
+    if (type === 'in_progress') return task.state === 'in_progress';
+    if (type === 'finished') return task.state === 'finished';
+    if (type === 'all_not_finished') return task.state !== 'finished';
+    return true;
+};
+
+function filterByTaskAssignee(type: FilterState['taskAssignee'], task: Task, currentUser: User) {
+    if (type === 'all') return true;
+    if (type === 'assigned_to_me') {
+        return task.assigned_admins.some((admin) => admin.id === currentUser.profile.id);
+    }
+    return true;
+};
+
+function handleProposalFilters(filterState: FilterState, proposal: Proposal) {
+    return (
+        filterByPublicPrivate(filterState.publicPrivate, proposal) &&
+        filterByProposalStatus(filterState.proposalStatus, proposal)
+    );
+};
+
+function handleTaskFilters(filterState: FilterState, task: Task, currentUser: User) {
+    return (
+        filterByPublicPrivate(filterState.publicPrivate, task) &&
+        filterByTaskState(filterState.taskState, task) &&
+        filterByTaskAssignee(filterState.taskAssignee, task, currentUser)
+    );
 };
