@@ -5,6 +5,7 @@ import { PATH_PAGE } from './routes/paths';
 // ----------------------------------------------------------------------
 
 export const HOST_API = '';
+export const VERSION = '1.0.0';
 
 export const MAIN_API = {
   // base_url: "http://localhost:8080/",
