@@ -143,7 +143,7 @@ export default function AccountMenu() {
                             <ListItemIcon>
                                 <AvatarDisplay is_main={false} currentUser={currentUser} />
                             </ListItemIcon>
-                            {currentUser ? currentUser.user.username : '--'}
+                            {currentUser ? currentUser?.user?.username : '--'}
                         </MenuItem>
                         <Divider />
                         { is_admin &&

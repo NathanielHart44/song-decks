@@ -5,6 +5,7 @@ import { MetadataContext } from 'src/contexts/MetadataContext';
 
 export default function Pendo() {
   const { currentUser } = useContext(MetadataContext);
+  if (currentUser?.user === undefined) return null;
   return (
     <>
       <Script>
@@ -24,7 +25,7 @@ export default function Pendo() {
                 email: '` + currentUser?.user.email + `',         // Recommended if using Pendo Feedback, or NPS Email
                 full_name: '` + currentUser?.user.first_name + ' ' + currentUser?.user.last_name + `',   // Recommended if using Pendo Feedback
                 username: '` + currentUser?.user.username + `',
-                profile_id: '` + currentUser?.user.profile?.id + `'
+                profile_id: '` + currentUser?.id + `'
                 // role:         // Optional
                 // You can add any additional visitor level key-values here,
                 // as long as it's not one of the above reserved names.
