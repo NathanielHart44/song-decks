@@ -11,14 +11,12 @@ import Router from './routes';
 import ThemeProvider from './theme';
 
 import { initializeBrotli } from './utils/convertList';
-import useVersionCheck from './hooks/useVersionCheck';
 
 // ----------------------------------------------------------------------
 
 function App() {
 
   initializeBrotli();
-  useVersionCheck();
 
   return (
     <ThemeProvider>
