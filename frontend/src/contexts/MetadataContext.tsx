@@ -1,6 +1,6 @@
 import axios from "axios";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { Profile } from "src/@types/types";
+import { Profile, User } from "src/@types/types";
 import { MAIN_API } from "src/config";
 import useAuth from "src/hooks/useAuth";
 import { isValidToken, processTokens } from "src/utils/jwt";
@@ -27,7 +27,12 @@ export default function MetadataProvider({ children }: Props) {
 
     let user = undefined;
     const local_user = localStorage.getItem('currentUser') ?? '';
-    if (local_user !== 'undefined' && local_user !== '') { user = JSON.parse(local_user) };
+    if (local_user !== 'undefined' && local_user !== '') { 
+        const parsedUser = JSON.parse(local_user);
+        if (isValidProfile(parsedUser)) {
+            user = parsedUser;
+        };
+    };
     const [currentUser, setCurrentUser] = useState<Profile | undefined>(user);
 
     const getCurrentUser = async () => {
@@ -67,4 +72,21 @@ const checkTokenStatus = () => {
     } else if (refreshToken && isValidToken(refreshToken)) {
         return true;
     } else { return false };
+}
+
+function isValidUser(user: any): user is User {
+    return typeof user === 'object' &&
+           typeof user.id === 'number' &&
+           typeof user.username === 'string' &&
+           typeof user.first_name === 'string' &&
+           typeof user.last_name === 'string' &&
+           typeof user.email === 'string';
+}
+
+function isValidProfile(profile: any): profile is Profile {
+    return typeof profile === 'object' &&
+           typeof profile.id === 'number' &&
+           isValidUser(profile.user) &&
+           typeof profile.moderator === 'boolean' &&
+           typeof profile.admin === 'boolean';
 }

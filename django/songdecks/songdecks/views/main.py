@@ -94,6 +94,11 @@ def get_jwt_token(request):
             {"detail": "No active account found with the given credentials."},
             status=status.HTTP_401_UNAUTHORIZED
         )
+    except:
+        return Response(
+            {"detail": "An error occured. Please try again later."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

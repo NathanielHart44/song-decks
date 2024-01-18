@@ -227,7 +227,7 @@ function AuthProvider({ children }: AuthProviderProps) {
         if (JSON.stringify(err).includes('Unable to log in with provided credentials')) {
           reject('Invalid username or password');
         } else {
-          reject(JSON.stringify(err));
+          reject('An error occurred. Please try again later.');
         }
       }
     });
