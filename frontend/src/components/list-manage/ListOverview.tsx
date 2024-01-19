@@ -64,7 +64,7 @@ export function ListOverviewDiv({ isMobile, currentList }: ListOverviewDivProps)
     return (
         <Container maxWidth={false} sx={{ width: '100%' }}>
             <Stack width={'100%'} justifyContent={'center'} alignItems={'center'} spacing={2}>
-                <Box sx={{ pt: 2, width: '100%' }} />
+                <Box sx={{ height: 1, width: '100%' }} />
                 <Typography variant={'h5'} textAlign={'center'}>{currentList.name}</Typography>
                 <FactionAndCommanderSelect
                     isMobile={isMobile}

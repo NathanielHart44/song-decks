@@ -95,7 +95,19 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                 >
                     {getCaptiontext()}
                 </Typography>
-                {attachments && attachments.length > 0 &&
+                {/* {attachments && attachments.length === 1 &&
+                    <>
+                        <Divider sx={{ width: '100%' }} />
+                        <Typography
+                            variant={'caption'}
+                            align={'center'}
+                            color={disabled ? 'text.disabled' : 'text.primary'}
+                        >
+                            {`${attachments[0].name} (${attachments[0].attachment_type === 'commander' ? 'C' : attachments[0].points_cost})`}
+                        </Typography>
+                    </>
+                }
+                {attachments && attachments.length > 1 &&
                     <>
                         <Divider sx={{ width: '100%' }} />
                         <Typography
@@ -106,7 +118,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                             {`${attachments.length} Attachments`}
                         </Typography>
                     </>
-                }
+                } */}
             </Stack>
         </Box>
     );
