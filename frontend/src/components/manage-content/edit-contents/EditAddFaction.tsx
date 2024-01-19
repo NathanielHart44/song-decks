@@ -43,6 +43,12 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
         setUploadFile(null);
     }, [faction, editOpen]);
 
+    useEffect(() => {
+        if (!currentFaction) {
+            setCurrentFaction({ neutral: false, can_use_neutral: true } as Faction);
+        }
+    }, [currentFaction]);
+
     const formValid = (): boolean => {
         return !!(currentFaction?.name && currentFaction?.img_url);
     }
@@ -65,6 +71,8 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
         const formData = new FormData();
         formData.append('name', currentFaction!.name);
         formData.append('img_url', currentFaction!.img_url);
+        formData.append('neutral', currentFaction!.neutral.toString() ?? 'false');
+        formData.append('can_use_neutral', currentFaction!.can_use_neutral.toString() ?? 'true');
         if (uploadFile) {
             formData.append('img_file', uploadFile);
         }
@@ -196,11 +204,20 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
 
                         <Stack direction={'row'} alignItems={'center'}>
                             <Checkbox
-                                checked={currentFaction?.neutral ?? false}
+                                // checked={currentFaction?.neutral ?? false}
+                                checked={(currentFaction && currentFaction.neutral !== undefined) ? currentFaction.neutral : false}
                                 onChange={(event) => { handleFactionChange('neutral', event.target.checked) }}
                                 inputProps={{ 'aria-label': 'controlled' }}
                             />
                             <Typography variant={'body1'} sx={{ color: theme.palette.text.disabled }}>Neutral</Typography>
+                        </Stack>
+                        <Stack direction={'row'} alignItems={'center'}>
+                            <Checkbox
+                                checked={(currentFaction && currentFaction.can_use_neutral !== undefined) ? currentFaction.can_use_neutral : true}
+                                onChange={(event) => { handleFactionChange('can_use_neutral', event.target.checked) }}
+                                inputProps={{ 'aria-label': 'controlled' }}
+                            />
+                            <Typography variant={'body1'} sx={{ color: theme.palette.text.disabled }}>Can Use Neutrals</Typography>
                         </Stack>
 
                         <Stack
@@ -216,7 +233,6 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 variant="contained"
                                 size="large"
                                 onClick={() => { processTokens(() => handleFactionAction(faction ? 'edit' : 'create')) }}
-                                sx={{ width: isMobile ? '35%' : '25%' }}
                                 disabled={!formValid() || awaitingResponse}
                                 fullWidth
                             >
@@ -226,7 +242,6 @@ export default function EditAddFaction({ faction, factions, editOpen, setEditOpe
                                 variant="contained"
                                 size="large"
                                 onClick={() => { processTokens(() => handleFactionAction('delete')) }}
-                                sx={{ width: isMobile ? '35%' : '25%' }}
                                 color={'secondary'}
                                 disabled={!faction || awaitingResponse}
                                 fullWidth

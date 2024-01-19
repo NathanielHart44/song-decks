@@ -31,10 +31,13 @@ def add_edit_faction(request, faction_id=None):
             )
         neutral_str = request.data.get('neutral', 'false')
         converted_neutral = True if neutral_str.lower() == 'true' else False
+        can_use_neutral_str = request.data.get('can_use_neutral', 'true')
+        converted_can_use_neutral = True if can_use_neutral_str.lower() == 'true' else False
         info = {
             'name': request.data.get('name', None),
             'img_url': request.data.get('img_url', None),
-            'neutral': converted_neutral
+            'neutral': converted_neutral,
+            'can_use_neutral': converted_can_use_neutral
         }
         for key in info:
             if info[key] is None:
@@ -56,7 +59,8 @@ def add_edit_faction(request, faction_id=None):
             faction = Faction.objects.create(
                 name=info['name'],
                 img_url=info['img_url'],
-                neutral=info['neutral']
+                neutral=info['neutral'],
+                can_use_neutral=info['can_use_neutral']
             )
         else:
             faction = Faction.objects.filter(id=faction_id)
@@ -69,6 +73,7 @@ def add_edit_faction(request, faction_id=None):
             faction.name = info['name']
             faction.img_url = info['img_url']
             faction.neutral = info['neutral']
+            faction.can_use_neutral = info['can_use_neutral']
             faction.save()
 
         new_faction = Faction.objects.filter(id=faction.id).first()

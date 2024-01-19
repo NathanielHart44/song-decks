@@ -5,6 +5,7 @@ from songdecks.serializers import (CommanderSerializer)
 from songdecks.models import (Faction, Commander)
 from songdecks.views.helpers import upload_file_to_s3
 from songdecks.settings import AWS_S3_BUCKET_NAME
+from django.db.models import Q
 
 # ----------------------------------------------------------------------
 # Commander Content
@@ -13,7 +14,12 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 def get_commanders(request, faction_id=None):
     try:
         if faction_id:
-            commanders = Commander.objects.filter(faction_id=faction_id)
+            faction = Faction.objects.filter(id=faction_id).first()
+            if faction.can_use_neutral == False:
+                commanders = Commander.objects.filter(faction=faction_id)
+            else:
+                neutral_faction = Faction.objects.filter(neutral=True).first()
+                commanders = Commander.objects.filter(Q(faction=faction_id) | Q(faction=neutral_faction.id))
         else:
             commanders = Commander.objects.all()
         serializer = CommanderSerializer(commanders, many=True)

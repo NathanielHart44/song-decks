@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Avatar, Badge, Box, Divider, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { capWordsLower } from "src/utils/capWords";
 import { Attachment } from "src/@types/types";
 
@@ -95,6 +95,18 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                 >
                     {getCaptiontext()}
                 </Typography>
+                {attachments && attachments.length > 0 &&
+                    <>
+                        <Divider sx={{ width: '100%' }} />
+                        <Typography
+                            variant={'caption'}
+                            align={'center'}
+                            color={disabled ? 'text.disabled' : 'text.primary'}
+                        >
+                            {`${attachments.length} Attachments`}
+                        </Typography>
+                    </>
+                }
             </Stack>
         </Box>
     );

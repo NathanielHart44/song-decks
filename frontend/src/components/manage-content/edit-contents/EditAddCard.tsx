@@ -285,7 +285,6 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 variant="contained"
                                 size="large"
                                 onClick={() => { processTokens(() => { handleCardAction(card.id === -1 ? 'create' : 'edit') }) }}
-                                sx={{ width: isMobile ? '35%' : '25%' }}
                                 disabled={!formValid() || awaitingResponse}
                                 fullWidth
                             >
@@ -295,7 +294,6 @@ export default function EditAddCard({ card, cards, defaultCards, factions, comma
                                 variant="contained"
                                 size="large"
                                 onClick={() => { processTokens(() => { handleCardAction('delete') }) }}
-                                sx={{ width: isMobile ? '35%' : '25%' }}
                                 color={'secondary'}
                                 disabled={card.id === -1 || awaitingResponse}
                                 fullWidth

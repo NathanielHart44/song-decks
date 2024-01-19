@@ -19,6 +19,7 @@ export type Faction = {
     name: string;
     img_url: string;
     neutral: boolean;
+    can_use_neutral: boolean;
 };
 
 export type Commander = {

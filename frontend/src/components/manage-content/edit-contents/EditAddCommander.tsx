@@ -250,7 +250,6 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 variant="contained"
                                 size="large"
                                 onClick={() => { processTokens(() => handleCommanderAction(commander.id === -1 ? 'create' : 'edit')) }}
-                                sx={{ width: isMobile ? '35%' : '25%' }}
                                 disabled={!formValid() || awaitingResponse}
                                 fullWidth
                             >
@@ -260,7 +259,6 @@ export default function EditAddCommander({ commander, commanders, factions, edit
                                 variant="contained"
                                 size="large"
                                 onClick={() => { processTokens(() => handleCommanderAction('delete')) }}
-                                sx={{ width: isMobile ? '35%' : '25%' }}
                                 color={'secondary'}
                                 disabled={commander.id === -1 || awaitingResponse}
                                 fullWidth

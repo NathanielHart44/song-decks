@@ -71,7 +71,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class FactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Faction
-        fields = ('id', 'name', 'img_url', 'neutral')
+        fields = ('id', 'name', 'img_url', 'neutral', 'can_use_neutral')
         depth = 1
 
 class CommanderSerializer(serializers.ModelSerializer):
