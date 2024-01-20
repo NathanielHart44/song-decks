@@ -1,6 +1,7 @@
-import { Avatar, Badge, Box, Divider, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
+import { Avatar, Badge, Box, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { capWordsLower } from "src/utils/capWords";
 import { Attachment } from "src/@types/types";
+import Iconify from "./Iconify";
 
 // ----------------------------------------------------------------------
 type SelectableAvatarProps = {
@@ -17,11 +18,12 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
 
     const theme = useTheme();
     const avatar_size = isMobile ? 100 : 80;
+    const is_iconify = defaultIcon && defaultIcon.includes(':');
 
     const avatarStyles = {
         width: avatar_size,
         height: avatar_size,
-        ...(!isMobile) ? {
+        ...(!isMobile && !disabled) ? {
             transition: 'transform 0.3s',
             cursor: 'pointer',
             '&:hover': { transform: 'scale(1.1)' },
@@ -40,7 +42,7 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
         } else {
             return altText;
         }
-    }
+    };
 
     return (
         <Box onClick={event => event.stopPropagation()}>
@@ -84,7 +86,14 @@ export function SelectableAvatar({ altText, handleClick, item, isMobile, attachm
                             sx={avatarStyles}
                             onClick={() => { handleClick(item); }}
                         >
-                            <img src={defaultIcon} alt={altText} loading="eager" />
+                            {is_iconify ?
+                                <Iconify
+                                    icon={defaultIcon}
+                                    fontSize={avatar_size * 0.5}
+                                    color={disabled ? 'default' : theme.palette.primary.darker}
+                                /> :
+                                <img src={defaultIcon} alt={altText} loading="eager" />
+                            }
                         </Avatar>
                     )}
                 </Badge>
