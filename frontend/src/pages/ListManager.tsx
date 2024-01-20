@@ -19,7 +19,7 @@ export default function ListManager() {
 
     const navigate = useNavigate();
     const { apiCall } = useApiCall();
-    const { isMobile } = useContext(MetadataContext);
+    const { isMobile, currentUser } = useContext(MetadataContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [currentLists, setCurrentLists] = useState<List[]>();
@@ -29,6 +29,9 @@ export default function ListManager() {
     const getLists = async (type: 'all' | 'player') => {
         setAwaitingResponse(true);
         let url = 'lists';
+        if (type === 'player') {
+            url += `/${currentUser?.id}`;
+        }
         apiCall(url, 'GET', null, (data: FakeList[]) => {
 
             let new_data: List[] = parseLists(data);
@@ -39,7 +42,7 @@ export default function ListManager() {
 
     useEffect(() => {
         processTokens(() => {
-            getLists('all');
+            getLists('player');
         })
     }, []);
 
