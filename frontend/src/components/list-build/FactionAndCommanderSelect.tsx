@@ -235,7 +235,7 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                 }}
                 onClick={() => setDialogOpen(false)}
             >
-                <Box sx={{ height: 2, width: '100%' }} />
+                <Box sx={{ pt: 2, width: '100%' }} />
                 <Grid
                     container
                     rowSpacing={2}
@@ -247,12 +247,12 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                             item
                             key={card.id + 'commander_card'}
                             sx={gridItemStyles}
-                            onClick={(event) => event.stopPropagation()}
                         >
                             <TacticCardImg
                                 isMobile={isMobile}
                                 img_url={card.img_url}
                                 card_name={card.card_name}
+                                onClick={(event) => event.stopPropagation()}
                             />
                         </Grid>
                     ))}
@@ -261,17 +261,17 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                             item
                             key={card.id + 'faction_card'}
                             sx={gridItemStyles}
-                            onClick={(event) => event.stopPropagation()}
                         >
                             <TacticCardImg
                                 isMobile={isMobile}
                                 img_url={card.img_url}
                                 card_name={card.card_name}
+                                onClick={(event) => event.stopPropagation()}
                             />
                         </Grid>
                     ))}
                 </Grid>
-                <Box sx={{ height: 2, width: '100%' }} />
+                <Box sx={{ pb: 2, width: '100%' }} />
             </Dialog>
         </>
     );

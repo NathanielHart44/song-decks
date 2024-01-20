@@ -207,25 +207,29 @@ type TacticCardImgProps = {
     isMobile: boolean;
     img_url: string;
     card_name: string;
+    onClick?: (arg0: any) => void;
 };
 
-export function TacticCardImg({ isMobile, img_url, card_name}: TacticCardImgProps) {
-    return <Box
-        sx={{
-            height: '100%',
-            width: '200px',
-            ...!isMobile ? {
-                transition: 'transform 0.3s',
-                cursor: 'pointer',
-                '&:hover': { transform: 'scale(1.075)' },
-            } : {},
-        }}
-    >
-        <img
-            src={img_url}
-            alt={card_name}
-            loading="eager"
-            style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
-        />
-    </Box>;
+export function TacticCardImg({ isMobile, img_url, card_name, onClick }: TacticCardImgProps) {
+    return (
+        <Box
+            sx={{
+                height: '100%',
+                width: '200px',
+                ...!isMobile ? {
+                    transition: 'transform 0.3s',
+                    cursor: 'pointer',
+                    '&:hover': { transform: 'scale(1.075)' },
+                } : {},
+            }}
+            onClick={onClick}
+        >
+            <img
+                src={img_url}
+                alt={card_name}
+                loading="eager"
+                style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+        </Box>
+    );
 }
