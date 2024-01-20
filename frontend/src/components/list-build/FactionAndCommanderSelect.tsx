@@ -80,7 +80,7 @@ export function FactionAndCommanderSelect(
                         altText={'Tactics Cards'}
                         defaultIcon={'mdi:cards'}
                         isMobile={isMobile}
-                        handleClick={() => { setDialogOpen(true) }}
+                        handleClick={() => { if (selectedFaction) setDialogOpen(true) }}
                         disabled={!selectedFaction && !selectedCommander}
                         sxOverrides={{ backgroundColor: theme.palette.grey.default_canvas, '& img': { width: '65%', height: '65%' } }}
                     />
