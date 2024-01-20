@@ -235,6 +235,7 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                 }}
                 onClick={() => setDialogOpen(false)}
             >
+                <Box sx={{ height: 2, width: '100%' }} />
                 <Grid
                     container
                     rowSpacing={2}
@@ -246,6 +247,7 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                             item
                             key={card.id + 'commander_card'}
                             sx={gridItemStyles}
+                            onClick={(event) => event.stopPropagation()}
                         >
                             <TacticCardImg
                                 isMobile={isMobile}
@@ -268,6 +270,7 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                         </Grid>
                     ))}
                 </Grid>
+                <Box sx={{ height: 2, width: '100%' }} />
             </Dialog>
         </>
     );
