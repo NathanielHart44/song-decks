@@ -261,6 +261,7 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                             item
                             key={card.id + 'faction_card'}
                             sx={gridItemStyles}
+                            onClick={(event) => event.stopPropagation()}
                         >
                             <TacticCardImg
                                 isMobile={isMobile}
