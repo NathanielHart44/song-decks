@@ -107,29 +107,26 @@ def add_edit_list(request, list_id=None):
                             raise ValidationError(f"Multiple commanders assigned to the list: {attached_commander.name} and {unit_instance.name}")
                         attached_commander = unit_instance
                     if unit_info['attachments']:
-                        logging.info(f"Unit {unit_instance.name} has attachments.")
-                        attachments = Attachment.objects.filter(id__in=unit_info['attachments'])
-                        logging.info(f"Attachments: {attachments}")
+                        attachments = Attachment.objects.filter(id__in=unit_info['attachments'], faction=faction.id)
                         if 'commander' in [attachment.attachment_type for attachment in attachments]:
                             if attached_commander:
                                 raise ValidationError("Multiple commanders assigned to the list.")
                             attached_commander = attachments.filter(attachment_type='commander').first()
                         list_unit.attachments.set(attachments)
                     list_unit.save()
-                    logging.info(f'Attachments set for {list_unit.unit.name}: {[attachment.name for attachment in list_unit.attachments.all()]}')
 
                 if attached_commander is None:
                     raise ValidationError(f"Commander is not attached. {attached_commander}")
                 
                 if commander.commander_type == 'attachment':
-                    commander_attachment = Attachment.objects.filter(attachment_type='commander', name=attached_commander.name).first()
+                    commander_attachment = Attachment.objects.filter(attachment_type='commander', name=attached_commander.name, faction=faction.id).first()
                     if commander_attachment is None:
-                        all_attachments = Attachment.objects.filter(attachment_type='commander')
+                        all_attachments = Attachment.objects.filter(attachment_type='commander', faction=faction.id)
                         all_attachments_names = [attachment.name for attachment in all_attachments]
 
                         raise ValidationError(f"Commander's Attachment not found. ({attached_commander.name}) - ({all_attachments_names})")
                     if attached_commander.id != commander_attachment.id:
-                        raise ValidationError(f"Commander does not match the selected Commander. {attached_commander.id} != {commander_attachment.id}")
+                        raise ValidationError(f"Commander does not match the selected Commander. {attached_commander.name} != {commander_attachment.name}")
 
             # Handle NCUs
             if info['ncu_ids']:
