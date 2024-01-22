@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Container, Divider, Stack, Typography } from "@mui/material";
+import { Button, Container, Divider, Grid, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
@@ -177,7 +177,6 @@ export default function SelectDeck() {
                                 <Divider sx={{ width: '65%' }} />
                             }
                             <ConfirmButton
-                                isMobile={isMobile}
                                 handleClick={beginGame}
                                 isDisabled={!selectedFaction || !selectedCommander}
                             />
@@ -190,7 +189,6 @@ export default function SelectDeck() {
                                 <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} width={'80%'} />
                             }
                             <ConfirmButton
-                                isMobile={isMobile}
                                 handleClick={beginGame}
                                 isDisabled={!selectedFaction || !selectedCommander || !selectedList}
                             />
@@ -211,23 +209,25 @@ export default function SelectDeck() {
 // ----------------------------------------------------------------------
 
 type ConfirmButtonProps = {
-    isMobile: boolean;
     handleClick: () => void;
     isDisabled: boolean;
 };
 
-function ConfirmButton({ isMobile, handleClick, isDisabled }: ConfirmButtonProps) {
+function ConfirmButton({ handleClick, isDisabled }: ConfirmButtonProps) {
     return (
-        <Button
-            variant={'contained'}
-            color={'primary'}
-            size={'large'}
-            onClick={handleClick}
-            fullWidth={isMobile}
-            sx={{ width: isMobile ? '100%' : '65%' }}
-            disabled={isDisabled}
-        >
-            Confirm
-        </Button>
+        <Grid container gap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+            <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
+                <Button
+                    variant={'contained'}
+                    color={'primary'}
+                    size={'large'}
+                    onClick={handleClick}
+                    fullWidth
+                    disabled={isDisabled}
+                >
+                    Confirm
+                </Button>
+            </Grid>
+        </Grid>
     );
 };

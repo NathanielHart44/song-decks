@@ -21,11 +21,17 @@ export default function Home() {
                 <HomeNotices />
                 <Divider sx={{ width: '65%' }} />
 
-                <Grid container spacing={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                <Grid container gap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <Button
                             variant={'contained'}
-                            onClick={() => { navigate(PATH_PAGE.game_start_router) }}
+                            onClick={() => {
+                                if (currentUser?.moderator) {
+                                    navigate(PATH_PAGE.game_start_router);
+                                } else {
+                                    navigate(PATH_PAGE.select_deck + '/classic');
+                                }
+                            }}
                             size={'large'}
                             fullWidth
                         >
