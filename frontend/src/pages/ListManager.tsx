@@ -22,7 +22,7 @@ export default function ListManager() {
     const { isMobile, currentUser } = useContext(MetadataContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
-    const [currentLists, setCurrentLists] = useState<List[]>();
+    const [allLists, setAllLists] = useState<List[]>();
     const [viewedLists, setViewedLists] = useState<List[]>([]); // used for filters
     const [searchTerm, setSearchTerm] = useState<string>('');
 
@@ -36,7 +36,7 @@ export default function ListManager() {
 
             let new_data: List[] = parseLists(data);
 
-            setCurrentLists(new_data);
+            setAllLists(new_data);
         });
     };
 
@@ -48,23 +48,23 @@ export default function ListManager() {
 
     useEffect(() => {
         if (searchTerm) {
-            const filteredLists = currentLists?.filter((list) => {
+            const filteredLists = allLists?.filter((list) => {
                 return list.faction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     list.commander.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     list.name.toLowerCase().includes(searchTerm.toLowerCase());
             }) ?? [];
             setViewedLists(filteredLists);
         } else {
-            setViewedLists(currentLists ?? []);
+            setViewedLists(allLists ?? []);
         };
     }, [searchTerm]);
 
     useEffect(() => {
-        if (currentLists) {
+        if (allLists) {
             setAwaitingResponse(false);
-            setViewedLists(currentLists);
+            setViewedLists(allLists);
         };
-    }, [currentLists]);
+    }, [allLists]);
 
     return (
         <Page title="List Manager">

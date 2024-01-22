@@ -1,22 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Divider, Stack, Switch, Typography } from "@mui/material";
+import { Button, Container, Divider, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Commander, Faction, FakeList, List } from "src/@types/types";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import Page from "src/components/base/Page";
 import { MAIN_API } from "src/config";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import { PATH_PAGE } from "src/routes/paths";
-import delay from "src/utils/delay";
 import { processTokens } from "src/utils/jwt";
 import { useApiCall } from "src/hooks/useApiCall";
 import { FactionAndCommanderSelect } from "src/components/list-build/FactionAndCommanderSelect";
 import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
 import { parseLists } from "./ListManager";
 import { encodeList } from "src/utils/convertList";
+import { Searchbar } from "src/components/Searchbar";
 
 // ----------------------------------------------------------------------
 
@@ -25,6 +25,8 @@ export default function SelectDeck() {
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile, currentUser } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
+    const { type } = useParams();
+    const is_classic = type === 'classic';
     const navigate = useNavigate();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
@@ -36,16 +38,16 @@ export default function SelectDeck() {
     const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
 
-    const [currentLists, setCurrentLists] = useState<List[]>();
-    const [playWithLists, setPlayWithLists] = useState<boolean>(false);
+    const [allLists, setAllLists] = useState<List[]>();
     const [selectedList, setSelectedList] = useState<List | null>(null);
-    const [availableLists, setAvailableLists] = useState<List[] | null>(null);
+    const [viewedLists, setViewedLists] = useState<List[]>([]); // used for filters
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     const getUserLists = async () => {
         const url = `lists/${currentUser?.id}`;
         apiCall(url, 'GET', null, (data: FakeList[]) => {
             const lists = parseLists(data);
-            setCurrentLists(lists);
+            setAllLists(lists);
         });
     };
 
@@ -70,15 +72,13 @@ export default function SelectDeck() {
         await axios.get(`${MAIN_API.base_url}start_game/${factionId}/${commanderId}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
-                delay(750).then(() => {
-                    setAwaitingResponse(false);
-                    let redirect_url = `${PATH_PAGE.game}/${res[0].game.id}`;
-                    if (selectedList) {
-                        const encoded_list = encodeList(selectedList);
-                        redirect_url += `/${encoded_list}`;
-                    }
-                    navigate(redirect_url);
-                });
+                setAwaitingResponse(false);
+                let redirect_url = `${PATH_PAGE.game}/${res[0].game.id}`;
+                if (selectedList) {
+                    const encoded_list = encodeList(selectedList);
+                    redirect_url += `/${encoded_list}`;
+                }
+                navigate(redirect_url);
             } else {
                 enqueueSnackbar(response.data.response);
                 setAwaitingResponse(false);
@@ -97,23 +97,40 @@ export default function SelectDeck() {
     }, []);
 
     useEffect(() => {
-        if (currentLists && selectedFaction && selectedCommander) {
-            let availableLists = currentLists.filter((list) => list.faction.id === selectedFaction?.id && list.commander.id === selectedCommander?.id);
-            setAvailableLists(availableLists);
+        if (searchTerm) {
+            const filteredLists = allLists?.filter((list) => {
+                return list.faction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    list.commander.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    list.name.toLowerCase().includes(searchTerm.toLowerCase());
+            }) ?? [];
+            setViewedLists(filteredLists);
         } else {
-            setAvailableLists(null);
-        }
-    }, [currentLists, selectedFaction, selectedCommander]);
+            setViewedLists(allLists ?? []);
+        };
+    }, [searchTerm]);
 
     useEffect(() => {
-        if (factions && allCommanders && currentLists) { setAwaitingResponse(false) };
-    }, [factions, allCommanders && currentLists]);
+        if (selectedList) {
+            setSelectedFaction(selectedList.faction);
+            setSelectedCommander(selectedList.commander);
+        } else {
+            setSelectedFaction(null);
+            setSelectedCommander(null);
+        }
+    }, [selectedList]);
+
+    useEffect(() => {
+        if (factions && allCommanders && allLists) {
+            setAwaitingResponse(false);
+            setViewedLists(allLists);
+        };
+    }, [factions, allCommanders && allLists]);
     
     useEffect(() => {
         if (selectedFaction && allCommanders) {
             const neutralCommanders = allCommanders?.filter((commander) => commander.faction.neutral);
             let filteredCommanders = allCommanders?.filter((commander) => commander.faction.id === selectedFaction.id);
-            if (neutralCommanders && selectedFaction && selectedFaction.can_use_neutral) {
+            if (neutralCommanders && selectedFaction && selectedFaction.can_use_neutral && !selectedFaction.neutral) {
                 filteredCommanders = filteredCommanders?.concat(neutralCommanders);
             }
             setViewedCommanders(filteredCommanders);
@@ -140,57 +157,77 @@ export default function SelectDeck() {
     return (
         <Page title="Select Deck">
             { awaitingResponse && <LoadingBackdrop /> }
-            <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                <Typography variant={'h3'}>Select Deck</Typography>
-                {factions &&
-                    <FactionAndCommanderSelect
-                        isMobile={isMobile}
-                        allFactions={factions}
-                        selectedFaction={selectedFaction}
-                        selectedCommander={selectedCommander}
-                        factionCommanders={viewedCommanders}
-                        handleFactionClick={handleFactionClick as any}
-                        handleCommanderClick={handleCommanderClick as any}
-                    />
-                }
-
-                {selectedFaction && selectedCommander &&
-                    <>
-                        <Button
-                            variant={'contained'}
-                            color={'primary'}
-                            size={'large'}
-                            onClick={() => { processTokens(beginGame) }}
-                            disabled={awaitingResponse}
-                        >
-                            Confirm
-                        </Button>
-                        {currentUser?.moderator &&
-                            <Stack direction={'row'} alignItems={'center'}>
-                                <Typography>Play With List</Typography>
-                                <Switch
-                                    checked={playWithLists}
-                                    onChange={() => { setPlayWithLists(!playWithLists) }}
+            <Container maxWidth={false}>
+                <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    {is_classic &&
+                        <>
+                            <Typography variant={'h3'}>Select Deck</Typography>
+                            {factions &&
+                                <FactionAndCommanderSelect
+                                    isMobile={isMobile}
+                                    allFactions={factions}
+                                    selectedFaction={selectedFaction}
+                                    selectedCommander={selectedCommander}
+                                    factionCommanders={viewedCommanders}
+                                    handleFactionClick={handleFactionClick as any}
+                                    handleCommanderClick={handleCommanderClick as any}
                                 />
-                            </Stack>
-                        }
-                        {playWithLists &&
-                            <>
+                            }
+                            {(!selectedFaction || !selectedCommander) &&
                                 <Divider sx={{ width: '65%' }} />
-                                <Typography variant={'h4'}>
-                                    {selectedList ? 'Selected List' : 'Available Lists'}
-                                </Typography>
-                                <CurrentListsDisplay
-                                    type={'select'}
-                                    currentLists={selectedList ? [selectedList] : (availableLists ? availableLists : [])}
-                                    selectedList={selectedList}
-                                    selectList={setSelectedList}
-                                />
-                            </>
-                        }
-                    </>
-                }                
-            </Stack>
+                            }
+                            <ConfirmButton
+                                isMobile={isMobile}
+                                handleClick={beginGame}
+                                isDisabled={!selectedFaction || !selectedCommander}
+                            />
+                        </>
+                    }
+                    {!is_classic &&
+                        <>
+                            <Typography variant={'h3'}>Select List</Typography>
+                            {(!selectedFaction || !selectedCommander || !selectedList) &&
+                                <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} width={'80%'} />
+                            }
+                            <ConfirmButton
+                                isMobile={isMobile}
+                                handleClick={beginGame}
+                                isDisabled={!selectedFaction || !selectedCommander || !selectedList}
+                            />
+                            <CurrentListsDisplay
+                                type={'select'}
+                                currentLists={selectedList ? [selectedList] : (viewedLists ? viewedLists : [])}
+                                selectedList={selectedList}
+                                selectList={setSelectedList}
+                            />
+                        </>
+                    }
+                </Stack>
+            </Container>
         </Page>
+    );
+};
+
+// ----------------------------------------------------------------------
+
+type ConfirmButtonProps = {
+    isMobile: boolean;
+    handleClick: () => void;
+    isDisabled: boolean;
+};
+
+function ConfirmButton({ isMobile, handleClick, isDisabled }: ConfirmButtonProps) {
+    return (
+        <Button
+            variant={'contained'}
+            color={'primary'}
+            size={'large'}
+            onClick={handleClick}
+            fullWidth={isMobile}
+            sx={{ width: isMobile ? '100%' : '65%' }}
+            disabled={isDisabled}
+        >
+            Confirm
+        </Button>
     );
 };

@@ -20,6 +20,7 @@ export const PATH_PAGE = {
   workbench: '/workbench',
   landing: '/landing',
   home: '/home',
+  game_start_router: '/game-start',
   game: '/game',
   manage: '/manage',
   admin: '/admin',

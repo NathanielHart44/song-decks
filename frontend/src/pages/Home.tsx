@@ -25,7 +25,7 @@ export default function Home() {
                     <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <Button
                             variant={'contained'}
-                            onClick={() => { navigate(PATH_PAGE.select_deck) }}
+                            onClick={() => { navigate(PATH_PAGE.game_start_router) }}
                             size={'large'}
                             fullWidth
                         >
