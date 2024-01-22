@@ -41,19 +41,7 @@ export default function LoginForm() {
     try {
       await login(data.username, data.password);
     } catch (error) {
-      var message = null;
-      if(JSON.parse(error).password) {
-        message = JSON.parse(error).password;
-      } else if(JSON.parse(error).username) {
-        message = JSON.parse(error).username;
-      } else {
-        if (JSON.parse(error).detail) {
-          message = JSON.parse(error).detail;
-        } else {
-          message = JSON.parse(error);
-        }
-      }
-      setLoginError({ error: message });
+      setLoginError({ error: error });
     }
   };
 

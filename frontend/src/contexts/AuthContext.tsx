@@ -224,11 +224,11 @@ function AuthProvider({ children }: AuthProviderProps) {
           }
         })
       } catch (err) {
-        if (JSON.stringify(err).includes('Unable to log in with provided credentials')) {
-          reject('Invalid username or password');
+        if (err.detail) {
+          reject(err.detail)
         } else {
-          reject('An error occurred. Please try again later.');
-        }
+          reject('An error occurred. Please try again later.')
+        };
       }
     });
     return res;
