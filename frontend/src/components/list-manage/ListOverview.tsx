@@ -125,7 +125,12 @@ export function ListOverviewDiv({ isMobile, currentList }: ListOverviewDivProps)
                         <Typography variant={'h4'} textAlign={'center'}>
                             Neutral Points
                         </Typography>
-                        <Typography>{calcNeutralPoints(currentList)}/{currentList.points_allowed * 0.3}</Typography>
+                        {(currentList.faction.neutral || !currentList.faction.can_use_neutral) ?
+                            <Typography>-/-</Typography> :
+                            <Typography>
+                                {calcNeutralPoints(currentList)}/{currentList.points_allowed * 0.3}
+                            </Typography>
+                        }
                     </Stack>
                 </Stack>
                 <Box sx={{ pt: 2, width: '100%' }} />

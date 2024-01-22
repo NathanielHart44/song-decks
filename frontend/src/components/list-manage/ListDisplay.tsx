@@ -199,15 +199,25 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
                     <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} width={'100%'}>
                         <Typography
                             variant={'body2'}
-                            color={calcNeutralPoints(list) > list.points_allowed * 0.3 ? theme.palette.secondary.main : 'text.secondary'}
+                            color={
+                                (list.faction.neutral || !list.faction.can_use_neutral) ? 'text.secondary' :
+                                    (calcNeutralPoints(list) > list.points_allowed * 0.3) ? theme.palette.secondary.main : 'text.secondary'
+                            }
                         >
                             Neutral:
                         </Typography>
                         <Typography
                             variant={'body2'}
-                            color={calcNeutralPoints(list) > list.points_allowed * 0.3 ? theme.palette.secondary.main : 'text.secondary'}
+                            color={
+                                (list.faction.neutral || !list.faction.can_use_neutral) ? 'text.secondary' :
+                                    (calcNeutralPoints(list) > list.points_allowed * 0.3) ? theme.palette.secondary.main : 'text.secondary'
+                            }
                         >
-                            {calcNeutralPoints(list)} / {list.points_allowed * 0.3}
+                            {
+                                (list.faction.neutral || !list.faction.can_use_neutral) ? '-/-' :
+                                    (calcNeutralPoints(list) > list.points_allowed * 0.3) ? `${calcNeutralPoints(list)}/${list.points_allowed * 0.3}` :
+                                        `${calcNeutralPoints(list)}/${list.points_allowed}`
+                            }
                         </Typography>
                     </Stack>
 
@@ -263,17 +273,17 @@ export function calcTotalPoints(list: List) {
 export function calcNeutralPoints(list: List) {
     let total = 0;
     list.units.forEach((unit) => {
-        if (unit.faction.name === 'Neutral') {
+        if (unit.faction.neutral) {
             total += unit.points_cost;
             unit.attachments.forEach((attachment) => {
-                if (attachment.faction.name === 'Neutral') {
+                if (attachment.faction.neutral) {
                     total += attachment.points_cost;
                 }
             });
         }
     });
     list.ncus.forEach((ncu) => {
-        if (ncu.faction.name === 'Neutral') {
+        if (ncu.faction.neutral) {
             total += ncu.points_cost;
         }
     });
