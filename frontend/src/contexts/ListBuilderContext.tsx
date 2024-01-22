@@ -82,21 +82,31 @@ export default function ListBuilderProvider({ children }: Props) {
             case 'LOAD_LIST':
                 if (state.listTitle !== '') { return state };
                 const loaded_list = decodeList(action.payload);
+                
                 return {
                     ...state,
                     selectedFaction: loaded_list.faction,
                     selectedCommander: loaded_list.commander,
                     selectedUnits: loaded_list.units.map((unit: Unit) => {
-                        return {
+                        const new_unit_attachments = unit.attachments.map((attachment: Attachment) => {
+                            return {
+                                ...attachment,
+                                temp_id: genUniqueID()
+                            };
+                        });
+                        const new_unit = {
                             ...unit,
+                            attachments: new_unit_attachments,
                             temp_id: genUniqueID()
                         };
+                        return new_unit;
                     }),
                     selectedNCUs: loaded_list.ncus.map((ncu: NCU) => {
-                        return {
+                        const new_ncu = {
                             ...ncu,
                             temp_id: genUniqueID()
                         };
+                        return new_ncu;
                     }),
                     listTitle: loaded_list.name,
                     usedPoints: loaded_list.points_used,
@@ -110,7 +120,7 @@ export default function ListBuilderProvider({ children }: Props) {
 
     useEffect(() => {
         if (!location.pathname.includes('list-builder')) {
-            if (!listState.selectedFaction && !listState.selectedCommander) { return };
+            // if (!listState.selectedFaction && !listState.selectedCommander) { return };
             resetListState(listDispatch);
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -142,6 +152,8 @@ export function resetListState(listDispatch: React.Dispatch<ListAction>) {
     listDispatch({ type: 'SET_SELECTED_NCUs', payload: [] });
     listDispatch({ type: 'SET_SELECTED_UNITS', payload: [] });
     listDispatch({ type: 'SET_SELECTED_UNIT_TEMP_ID', payload: null });
+    listDispatch({ type: 'SET_AVAILABLE_ATTACHMENTS', payload: null });
+    listDispatch({ type: 'SET_FACTION_ATTACHMENTS', payload: null });
 };
 
 export type VIEW_OPTIONS = 'my_list' | 'units' | 'attachments' | 'ncus' | 'save';

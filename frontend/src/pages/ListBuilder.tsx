@@ -131,7 +131,8 @@ export default function ListBuilder() {
                 listDispatch({ type: 'SET_AVAILABLE_ATTACHMENTS', payload: newAvailableAttachments });
             }
         }
-    }, [listState.selectedFaction, listState.selectedCommander]);
+        // We are tracking factionAttachments so that we can filter out commander attachments when editing a list.
+    }, [listState.selectedFaction, listState.selectedCommander, listState.factionAttachments]);
 
     const handleOpenAttachments = (unit: Unit) => {
         const temp_id = getUnitTempID(unit, listState.selectedUnits);
