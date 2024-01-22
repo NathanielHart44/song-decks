@@ -224,16 +224,16 @@ function CardView({ isMobile, type, mainItem, dialogOpen, setDialogOpen }: CardV
                 setDialogOpen(false);
             }}
         >
-            <Stack justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
+            <Stack justifyContent={'center'} alignItems={'center'} sx={{ height: '100%', width: '100%' }}>
                 <Stack
                     spacing={2}
                     justifyContent="center"
                     alignItems="center"
                     sx={{
-                        height: '100vh',
+                        height: '100%',
                         width: '95%',
                         padding: isMobile ? 2 : 4,
-                        zIndex: (theme) => theme.zIndex.drawer + 3,
+                        zIndex: (theme) => theme.zIndex.drawer + 3
                     }}
                 >
                     {mainItem && contains_attachments &&
