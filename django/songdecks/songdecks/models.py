@@ -176,9 +176,9 @@ class Game(ExportModelOperationsMixin('game'), models.Model):
     commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
     owner_list = models.ForeignKey(List, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=15, choices=[('in-progress', 'In Progress'), ('completed', 'Completed'), ('abandoned', 'Abandoned')])
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     round = models.PositiveIntegerField(null=False, blank=False, default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.owner.user.username} - {self.commander.name}'

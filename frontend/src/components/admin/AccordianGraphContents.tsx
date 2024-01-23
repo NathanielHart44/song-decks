@@ -22,13 +22,14 @@ import { useApiCall } from 'src/hooks/useApiCall';
 // ----------------------------------------------------------------------
 
 type AccordianGraphContentsProps = {
+    base_url: string;
     chartDataGroups: ChartDataCohortGroup[];
     setChartDataGroups: React.Dispatch<React.SetStateAction<ChartDataCohortGroup[]>>;
 };
 
 // ----------------------------------------------------------------------
 
-export function AccordianGraphContents({ chartDataGroups, setChartDataGroups }: AccordianGraphContentsProps) {
+export function AccordianGraphContents({ base_url, chartDataGroups, setChartDataGroups }: AccordianGraphContentsProps) {
 
     const grid_sizes = { xs: 12, sm: 12, md: 6, lg: 6, xl: 6 };
     const days_range = [7, 10, 14, 30, 90, 365];
@@ -38,9 +39,9 @@ export function AccordianGraphContents({ chartDataGroups, setChartDataGroups }: 
     const [daysCount, setDaysCount] = useState<number>(10);
     const [alignment, setAlignment] = useState<'vertical' | 'grid'>('vertical');
 
-    const getInfo = async (is_cumulative: boolean) => {
+    const getInfo = async (is_cumulative: boolean, url_base: string) => {
         setAwaitingResponse(true);
-        const url = `get_player_daily_stats/${daysCount}/${is_cumulative ? 'true' : 'false'}`;
+        const url = `${url_base}/${daysCount}/${is_cumulative ? 'true' : 'false'}`;
         apiCall(url, 'GET', null, (data) => {
             let chart_data_group: ChartDataCohort[] = [];
 
@@ -66,8 +67,8 @@ export function AccordianGraphContents({ chartDataGroups, setChartDataGroups }: 
     useEffect(() => {
         setChartDataGroups(default_chart_data_groups);
         processTokens(() => {
-            getInfo(true);
-            getInfo(false);
+            getInfo(true, base_url);
+            getInfo(false, base_url);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [daysCount]);

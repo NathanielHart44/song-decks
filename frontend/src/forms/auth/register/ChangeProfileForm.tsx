@@ -84,6 +84,16 @@ export default function ChangeProfileForm() {
     processTokens(handleMain);
   };
 
+  const toggleTester = async () => {
+    setAwaitingResponse(true);
+    const url = 'request_tester';
+    apiCall(url, 'GET', null, (data) => {
+        enqueueSnackbar(data.detail);
+        window.location.reload();
+    });
+    setAwaitingResponse(false);
+};
+
   return (
       <Stack spacing={3}>
         {registerError?.error && <Alert severity="error">{registerError.error}</Alert>}
@@ -195,6 +205,16 @@ export default function ChangeProfileForm() {
         >
           Save Changes
         </Button>
+        {currentUser?.tester &&
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => { processTokens(toggleTester) }}
+            disabled={awaitingResponse}
+          >
+            Leave Tester Program
+          </Button>
+        }
       </Stack>
   );
 }

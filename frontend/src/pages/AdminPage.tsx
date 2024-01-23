@@ -35,19 +35,20 @@ export const default_chart_data_groups: ChartDataCohortGroup[] = [
 
 export default function AdminPage() {
 
-    const [chartDataGroups, setChartDataGroups] = useState<ChartDataCohortGroup[]>(default_chart_data_groups);
-
     return (
     <Page title="Admin">
         <Container maxWidth={false}>
             <Stack spacing={2} alignItems={'center'} sx={{ width: '100%' }}>
-                <AccordianDiv title={"Core Actions"} tasks={coreAdminTasks}/>
-                <AccordianDiv title={"Main Info"} tasks={adminInfo}/>
-                <AccordianDiv
-                    title={"Graphs"}
-                    chartDataGroups={chartDataGroups}
-                    setChartDataGroups={setChartDataGroups}
-                />
+                <AccordianDiv title={"Core Actions"} tasks={coreAdminTasks} is_graph={false} />
+                <AccordianDiv title={"Main Info"} tasks={adminInfo} is_graph={false} />
+                {graphs.map((graph) => (
+                    <AccordianDiv
+                        key={graph.title}
+                        title={graph.title}
+                        tasks={[graph]}
+                        is_graph={true}
+                    />
+                ))}
             </Stack>
         </Container>
     </Page>
@@ -58,16 +59,16 @@ export default function AdminPage() {
 
 type AccordianType = {
     title: string;
-    tasks?: Array<{ title: string, url: string, placeholder: string }>;
-    chartDataGroups?: ChartDataCohortGroup[];
-    setChartDataGroups?: React.Dispatch<React.SetStateAction<ChartDataCohortGroup[]>>;
+    tasks: Array<{ title: string, url: string, placeholder: string }>;
+    is_graph: boolean;
 };
 
-function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: AccordianType) {
+function AccordianDiv({ title, tasks, is_graph }: AccordianType) {
 
     const theme = useTheme();
 
     const [open, setOpen] = useState<boolean>(false);
+    const [chartDataGroups, setChartDataGroups] = useState<ChartDataCohortGroup[]>(default_chart_data_groups);
 
     const accordian_transition: string = '0.5s background-color;';
     const text_transition: string = '0.5s color;';
@@ -94,7 +95,12 @@ function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: Acc
                 >
                     <Typography sx={{ transition: text_transition, ...(open && { color: theme.palette.primary.main }) }}>{title}</Typography>
                 </AccordionSummary>
-                { (tasks && tasks.length > 0) &&
+                { is_graph ?
+                    <AccordianGraphContents
+                        base_url={tasks[0].url}
+                        chartDataGroups={chartDataGroups}
+                        setChartDataGroups={setChartDataGroups}
+                    /> :
                     <AccordionDetails sx={{ pt: 3 }}>
                         <Stack spacing={3}>
                             { tasks.map((task) => (
@@ -102,12 +108,6 @@ function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: Acc
                             ))}
                         </Stack>
                     </AccordionDetails>
-                }
-                { (!tasks && chartDataGroups && setChartDataGroups) &&
-                    <AccordianGraphContents
-                        chartDataGroups={chartDataGroups}
-                        setChartDataGroups={setChartDataGroups}
-                    />
                 }
             </Accordion>
         </Stack>
@@ -130,4 +130,9 @@ const adminInfo = [
     { title: 'See All Moderators', url: `${main_url}get_all_moderators/`, placeholder: '' },
     { title: 'See All Admins', url: `${main_url}get_all_admins/`, placeholder: '' },
     { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
-]
+];
+
+const graphs = [
+    { title: 'User Graphs', url: 'get_player_daily_stats', placeholder: '' },
+    { title: 'List Graphs', url: 'get_list_daily_stats', placeholder: '' },
+];

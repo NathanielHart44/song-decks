@@ -133,6 +133,7 @@ urlpatterns = [
     path('reset_password/<str:username>/', admin_views.reset_password),
     path('games_played_info/', admin_views.games_played_info),
     path('get_player_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_player_daily_stats),
+    path('get_list_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_list_daily_stats),
 
     # ----------------------------------------------------------------------
 

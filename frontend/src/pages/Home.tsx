@@ -26,6 +26,8 @@ export default function Home() {
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [appInstalled, setAppInstalled] = useState<boolean>(false);
 
+    const is_tester = currentUser?.tester;
+
     const handleInstallClick = () => {
         if (installPrompt) {
             installPrompt.prompt(); // Show the install prompt
@@ -63,14 +65,15 @@ export default function Home() {
             <Stack spacing={6} width={'100%'} justifyContent={'center'} alignItems={'center'}>
 
                 {/* <HomeNotices /> */}
-                {/* <Divider sx={{ width: '65%' }} /> */}
+                <Typography variant={'h4'}>Welcome to ASOIAF Decks!</Typography>
+                <Divider sx={{ width: '65%' }} />
 
                 <Grid container gap={2} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <Button
                             variant={'contained'}
                             onClick={() => {
-                                if (currentUser?.tester) {
+                                if (is_tester) {
                                     navigate(PATH_PAGE.game_start_router);
                                 } else {
                                     navigate(PATH_PAGE.select_deck + '/classic');
@@ -82,7 +85,7 @@ export default function Home() {
                             New Game
                         </Button>
                     </Grid>
-                    {currentUser?.tester &&
+                    {is_tester &&
                         <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                             <Button
                                 variant={'contained'}
@@ -101,7 +104,7 @@ export default function Home() {
                     <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <Card sx={{ p: 2, width: '100%' }}>
                             <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>
-                                {!currentUser?.tester ?
+                                {!is_tester ?
                                     <Typography paragraph sx={{ textAlign: 'center', mb: 0 }}>
                                         Want to test out the newest features?
                                     </Typography> :
@@ -114,19 +117,21 @@ export default function Home() {
                                         </Typography>
                                     </Stack>
                                 }
-                                <Button
-                                    variant={'contained'}
-                                    onClick={() => { processTokens(toggleTester) }}
-                                    disabled={awaitingResponse}
-                                    fullWidth
-                                >
-                                    {!currentUser?.tester ? 'Become a Tester' : 'Stop Testing'}
-                                </Button>
+                                {!is_tester &&
+                                    <Button
+                                        variant={'contained'}
+                                        onClick={() => { processTokens(toggleTester) }}
+                                        disabled={awaitingResponse}
+                                        fullWidth
+                                    >
+                                        Become a Tester
+                                    </Button>
+                                }
                             </Stack>
                         </Card>
                     </Grid>
 
-                    {currentUser?.tester && (!isIOS && !isPWA && installPrompt && !appInstalled) &&
+                    {is_tester && (!isIOS && !isPWA && installPrompt && !appInstalled) &&
                         <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                             <Button
                                 variant={'contained'}
@@ -138,7 +143,7 @@ export default function Home() {
                             </Button>
                         </Grid>
                     }
-                    {currentUser?.tester && (!isPWA && !appInstalled && isIOS) &&
+                    {is_tester && (!isPWA && !appInstalled && isIOS) &&
                         <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                             <Card sx={{ p: 2, width: '100%' }}>
                                 <Stack spacing={2} justifyContent={'center'} alignItems={'center'}>

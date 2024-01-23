@@ -1,4 +1,4 @@
-from django.db.models import Count, Q, Sum, QuerySet
+from django.db.models import Count, Q, Sum, QuerySet, Min
 from typing import Tuple
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -9,27 +9,18 @@ from rest_framework.response import Response
 from rest_framework import status
 from songdecks.serializers import (ProfileSerializer)
 from django.contrib.auth.models import User
-from songdecks.models import (Profile, Game)
+from songdecks.models import (Profile, Game, List)
 from songdecks.views.helpers import get_last_acceptable_date
+import logging
 
 # ----------------------------------------------------------------------
 
-@api_view(['GET'])
-def get_all_users(request):
-    try:
-        profile = request.user.profile
-        if profile.admin == False:
-            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
-        profiles = Profile.objects.all()
-        profiles = profiles.exclude(user__username='admin')
-        info = {
-            "profiles": ProfileSerializer(profiles, many=True).data,
-            "total": profiles.count(),
-        }
-        return JsonResponse({"success": True, "response": info})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-    
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# ----------------------------------------------------------------------
+# Actions
+
 @api_view(['GET'])
 def toggle_moderator(request, username):
     try:
@@ -65,6 +56,23 @@ def toggle_admin(request, username):
         return JsonResponse({"success": False, "response": str(e)})
 
 @api_view(['GET'])
+def toggle_tester(request, username):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permisdsion to perform this action."})
+        user_search = User.objects.filter(username=username)
+        if user_search.count() == 0:
+            return JsonResponse({"success": False, "response": "User not found."})
+        user = user_search.first()
+        user.profile.tester = not user.profile.tester
+        user.profile.save()
+        updated_profile_status = Profile.objects.filter(user=user).first().tester
+        return JsonResponse({"success": True, "response": f"Successfully toggled tester status to {updated_profile_status} for {user.username}."})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+
+@api_view(['GET'])
 def reset_password(request, username):
     try:
         profile = request.user.profile
@@ -80,7 +88,59 @@ def reset_password(request, username):
         return JsonResponse({"success": True, "response": f"Successfully reset password for {user.username} to: {new_password}"})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})
+
+# ----------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_all_users(request):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        profiles = Profile.objects.all()
+        profiles = profiles.exclude(user__username='admin')
+        info = {
+            "profiles": ProfileSerializer(profiles, many=True).data,
+            "total": profiles.count(),
+        }
+        return JsonResponse({"success": True, "response": info})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+
+@api_view(['GET'])
+def get_all_admins(request):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        profiles = Profile.objects.filter(admin=True)
+        serializer = ProfileSerializer(profiles, many=True)
+        res = {
+            "profiles": serializer.data,
+            "total": profiles.count(),
+        }
+        return JsonResponse({"success": True, "response": res})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
     
+@api_view(['GET'])
+def get_all_testers(request):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        profiles = Profile.objects.filter(tester=True)
+        serializer = ProfileSerializer(profiles, many=True)
+        res = {
+            "profiles": serializer.data,
+            "total": profiles.count(),
+        }
+        return JsonResponse({"success": True, "response": res})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+
+# ----------------------------------------------------------------------
+
 @api_view(['GET'])
 def games_played_info(request):
     try:
@@ -162,7 +222,7 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        profiles = Profile.objects.exclude(user__username='admin', moderator=False)
+        profiles = Profile.objects.exclude(user__username='admin', admin=False)
 
         all_results = {}
         types = ['played_games', 'active_users', 'new_users']
@@ -204,52 +264,59 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
             {"detail": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    
+
 @api_view(['GET'])
-def get_all_admins(request):
+def get_list_daily_stats(request, accepted_days, is_cumulative):
+    date_format = '%m-%d-%Y'
     try:
         profile = request.user.profile
         if profile.admin == False:
-            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
-        profiles = Profile.objects.filter(admin=True)
-        serializer = ProfileSerializer(profiles, many=True)
-        res = {
-            "profiles": serializer.data,
-            "total": profiles.count(),
-        }
-        return JsonResponse({"success": True, "response": res})
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        lists = List.objects.all()
+        profiles = Profile.objects.exclude(user__username='admin', admin=False)
+
+        all_results = {}
+        types = ['users_with_lists', 'new_lists', 'first_list']
+        if is_cumulative == 'true':
+            types.append('total_lists')
+            types.remove('first_list')
+        for i in range(accepted_days):
+            current_date = get_last_acceptable_date(i)
+
+            new_lists_count = lists.filter(created_at__date=current_date).count()
+
+            if is_cumulative == 'true':
+                total_lists_count = lists.filter(created_at__date__lte=current_date).count()
+                users_with_lists_count = lists.filter(created_at__date__lte=current_date).values('owner').distinct().count()
+            else:
+                users_with_lists_count = lists.filter(created_at__date=current_date).values('owner').distinct().count()
+                first_list_count = profiles.annotate(first_list_date=Min('owned_lists__created_at__date')).filter(first_list_date=current_date).count()
+
+            for type in types:
+                if type not in all_results:
+                    all_results[type] = []
+                if type == 'users_with_lists':
+                    count = users_with_lists_count
+                elif type == 'new_lists':
+                    count = new_lists_count
+                elif type == 'created_first_list':
+                    count = first_list_count
+                elif type == 'total_lists':
+                    count = total_lists_count
+
+                result = {
+                    "date": current_date.strftime(date_format),
+                    "value": count,
+                }
+                all_results[type].append(result)
+
+        return Response(all_results, status=status.HTTP_200_OK)
     except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-    
-@api_view(['GET'])
-def get_all_testers(request):
-    try:
-        profile = request.user.profile
-        if profile.admin == False:
-            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
-        profiles = Profile.objects.filter(tester=True)
-        serializer = ProfileSerializer(profiles, many=True)
-        res = {
-            "profiles": serializer.data,
-            "total": profiles.count(),
-        }
-        return JsonResponse({"success": True, "response": res})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
-    
-@api_view(['GET'])
-def toggle_tester(request, username):
-    try:
-        profile = request.user.profile
-        if profile.admin == False:
-            return JsonResponse({"success": False, "response": "You do not have permisdsion to perform this action."})
-        user_search = User.objects.filter(username=username)
-        if user_search.count() == 0:
-            return JsonResponse({"success": False, "response": "User not found."})
-        user = user_search.first()
-        user.profile.tester = not user.profile.tester
-        user.profile.save()
-        updated_profile_status = Profile.objects.filter(user=user).first().tester
-        return JsonResponse({"success": True, "response": f"Successfully toggled tester status to {updated_profile_status} for {user.username}."})
-    except Exception as e:
-        return JsonResponse({"success": False, "response": str(e)})
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
