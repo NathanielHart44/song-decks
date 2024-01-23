@@ -179,7 +179,12 @@ export default function ListBuilder() {
 
     return (
         <Page title="List Builder">
-            <Container maxWidth={false}>
+            <Container
+                maxWidth={false}
+                sx={{
+                    ...(isMobile && { mb: 6 }),
+                }}
+            >
                 <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
                     <BuilderTopDisplay
                         testing={TESTING}

@@ -10,12 +10,14 @@ type Props = { children: ReactNode };
 export const MetadataContext = createContext<{
     isMobile: boolean;
     isIOS: boolean;
+    isPWA: boolean;
     currentUser: Profile | undefined;
     getCurrentUser: () => void;
 }>
 ({
     isMobile: true,
     isIOS: false,
+    isPWA: false,
     currentUser: undefined,
     getCurrentUser: () => {},
 });
@@ -25,6 +27,7 @@ export default function MetadataProvider({ children }: Props) {
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) && window.innerWidth < 600;
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+    const isPWA = Boolean(window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && window.navigator.standalone));
 
     const { isAuthenticated } = useAuth();
 
@@ -57,6 +60,7 @@ export default function MetadataProvider({ children }: Props) {
             value={{
                 isMobile,
                 isIOS,
+                isPWA,
                 currentUser,
                 getCurrentUser
             }}

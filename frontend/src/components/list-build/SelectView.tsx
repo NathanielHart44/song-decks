@@ -40,7 +40,21 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
     return (
         <>
             {selectedFaction && selectedCommander &&
-                <Paper square sx={{ position: 'fixed', bottom: -2, left: 0, right: 0, width: '100%', zIndex: 999 }} elevation={10}>
+                <Paper
+                    square
+                    sx={{
+                        position: 'fixed',
+                        bottom: -2,
+                        left: 0,
+                        right: 0,
+                        width: '100%',
+                        zIndex: 999,
+                        height: isMobile ? 72 : 60,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                    elevation={10}
+                >
                     <BottomNavigation
                         showLabels={!isMobile}
                         value={selectedView}
