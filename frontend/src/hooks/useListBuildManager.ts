@@ -230,11 +230,11 @@ const useListBuildManager = () => {
             if (listState.selectedCommander.commander_type === 'attachment') {
                 const commanderAttachment = listState.selectedUnits.find((unit) => unit.attachments.find((attachment) => attachment.name === listState.selectedCommander?.name));
                 if (!commanderAttachment) {
-                    failure_reasons.push('Commander not present in the List.');
+                    failure_reasons.push('Commander Attachment not assigned to a Unit.');
                 }
             } else if (listState.selectedCommander.commander_type === 'unit') {
                 if (!listState.selectedUnits.find((unit) => unit.name === listState.selectedCommander?.name)) {
-                    failure_reasons.push('Commander not present in the List.');
+                    failure_reasons.push('Commander Unit not added to the List.');
                 }
             }
         } else {
