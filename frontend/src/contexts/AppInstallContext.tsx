@@ -18,18 +18,14 @@ export default function AppInstallProvider({ children }: Props) {
     useEffect(() => {
         if (!currentUser?.moderator) { return };
         const handleBeforeInstallPrompt = (e: any) => {
-            console.log('beforeinstallprompt event fired');
-            console.log(e);
             e.preventDefault();
             setInstallPrompt(e);
         };
         
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        console.log('beforeinstallprompt event listener added');
         
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-            console.log('beforeinstallprompt event listener removed');
         };
     }, [currentUser]);
 

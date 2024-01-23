@@ -13,7 +13,7 @@ import { AppInstallContext } from "src/contexts/AppInstallContext";
 export default function Home() {
 
     const navigate = useNavigate();
-    const { currentUser } = useContext(MetadataContext);
+    const { currentUser, isIOS } = useContext(MetadataContext);
     const { installPrompt } = useContext(AppInstallContext);
 
     const handleInstallClick = () => {
@@ -67,7 +67,7 @@ export default function Home() {
                             </Button>
                         </Grid>
                     }
-                    {currentUser?.moderator &&
+                    {currentUser?.moderator && (!isIOS && installPrompt) &&
                         <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                             <Button
                                 variant={'contained'}
