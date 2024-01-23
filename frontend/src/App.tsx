@@ -4,6 +4,7 @@ import NotistackProvider from './components/NotistackProvider';
 import ThemeLocalization from './components/ThemeLocalization';
 import HotJar from './components/user-tracking/HotJar';
 import Pendo from './components/user-tracking/Pendo';
+import AppInstallProvider from './contexts/AppInstallContext';
 import GameProvider from './contexts/GameContext';
 import ListBuilderProvider from './contexts/ListBuilderContext';
 import MetadataProvider from './contexts/MetadataContext';
@@ -22,18 +23,20 @@ function App() {
     <ThemeProvider>
       <ThemeLocalization>
         <MetadataProvider>
-          <GameProvider>
-            <ListBuilderProvider>
-              <NotistackProvider>
-                <Pendo />
-                <HotJar />
-                <NavBar />
-                <MainStyle>
-                  <Router />
-                </MainStyle>
-              </NotistackProvider>
-            </ListBuilderProvider>
-          </GameProvider>
+          <AppInstallProvider>
+            <GameProvider>
+              <ListBuilderProvider>
+                <NotistackProvider>
+                  <Pendo />
+                  <HotJar />
+                  <NavBar />
+                  <MainStyle>
+                    <Router />
+                  </MainStyle>
+                </NotistackProvider>
+              </ListBuilderProvider>
+            </GameProvider>
+          </AppInstallProvider>
         </MetadataProvider>
       </ThemeLocalization>
     </ThemeProvider>

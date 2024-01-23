@@ -6,6 +6,7 @@ import HomeWBDisplay from "src/components/workbench/HomeWBDisplay";
 import { useContext } from "react";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import Iconify from "src/components/base/Iconify";
+import { AppInstallContext } from "src/contexts/AppInstallContext";
 
 // ----------------------------------------------------------------------
 
@@ -13,6 +14,22 @@ export default function Home() {
 
     const navigate = useNavigate();
     const { currentUser } = useContext(MetadataContext);
+    const { installPrompt } = useContext(AppInstallContext);
+
+    const handleInstallClick = () => {
+        if (installPrompt) {
+            installPrompt.prompt(); // Show the install prompt
+            installPrompt.userChoice.then((choiceResult: any) => {
+                if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+                } else {
+                console.log('User dismissed the install prompt');
+                }
+            });
+        } else {
+            console.log('No install prompt found');
+        }
+    };
 
     return (
         <Page title="Home">
@@ -47,6 +64,18 @@ export default function Home() {
                                 fullWidth
                             >
                                 Manage Lists
+                            </Button>
+                        </Grid>
+                    }
+                    {currentUser?.moderator &&
+                        <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
+                            <Button
+                                variant={'contained'}
+                                onClick={handleInstallClick}
+                                size={'large'}
+                                fullWidth
+                            >
+                                Install App
                             </Button>
                         </Grid>
                     }

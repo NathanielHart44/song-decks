@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 // ----------------------------------------------------------------------
 
@@ -32,3 +33,4 @@ if (rootElement) {
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+serviceWorkerRegistration.register();

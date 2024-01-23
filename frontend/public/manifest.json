@@ -1,5 +1,5 @@
 {
-  "short_name": "Song Decks",
+  "short_name": "ASOIAF Decks",
   "name": "ASOIAF Decks",
   "icons": [
     {
@@ -11,6 +11,17 @@
       "src": "./favicon/favicon-32x32.png",
       "type": "image/png",
       "sizes": "64x64 32x32 24x24 16x16"
+    },
+    {
+      "src": "./icons/throne144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    },
+    {
+      "src": "./icons/throne512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": ".",
