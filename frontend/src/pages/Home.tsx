@@ -87,13 +87,15 @@ export default function Home() {
                                     <Typography paragraph sx={{ textAlign: 'center', mb: 0 }}>
                                         Want to install the app?
                                     </Typography>
-                                    <Stack direction={'row'} spacing={0.5} justifyContent={'center'} alignItems={'center'}>
+                                    <Stack spacing={0.5} justifyContent={'center'} alignItems={'center'}>
+                                        <Stack direction={'row'} spacing={0.5} justifyContent={'center'} alignItems={'center'}>
+                                            <Typography color={theme.palette.grey[600]} sx={{ textAlign: 'center', mb: 0 }}>
+                                                Just tap
+                                            </Typography>
+                                            <Iconify icon={'ion:share-outline'} color={theme.palette.primary.main} width={24} height={24} />
+                                        </Stack>
                                         <Typography color={theme.palette.grey[600]} sx={{ textAlign: 'center', mb: 0 }}>
-                                            Just tap
-                                        </Typography>
-                                        <Iconify icon={'ion:share-outline'} color={theme.palette.primary.main} width={24} height={24} />
-                                        <Typography color={theme.palette.grey[600]} sx={{ textAlign: 'center', mb: 0 }}>
-                                            and then 'Add to Home Screen'
+                                            Then 'Add to Home Screen'
                                         </Typography>
                                     </Stack>
                                 </Stack>
