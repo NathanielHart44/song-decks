@@ -12,6 +12,7 @@ from django_prometheus.models import ExportModelOperationsMixin
 
 class Profile(ExportModelOperationsMixin('profile'), models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
+    tester = models.BooleanField(default=False)
     moderator = models.BooleanField(default=False)
     admin = models.BooleanField(default=False)
 

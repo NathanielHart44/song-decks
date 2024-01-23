@@ -32,6 +32,7 @@ urlpatterns = [
     path('update_user/<int:user_id>/', views.update_user),
     path('register/', permission_classes([AllowAny])(views.register)),
     path('submit_feedback/', views.submit_feedback),
+    path('request_tester/', views.request_tester),
     path('download_img/', views.download_img),
 
     path('get_keyword_pairs/', views.get_keyword_pairs),
@@ -121,16 +122,19 @@ urlpatterns = [
     # ----------------------------------------------------------------------
 
     path('get_all_users/', admin_views.get_all_users),
+    path('get_all_testers/', admin_views.get_all_testers),
+    path('get_all_moderators/', workbench_views.get_all_moderators),
     path('get_all_admins/', admin_views.get_all_admins),
+
+    path('toggle_tester/<str:username>/', admin_views.toggle_tester),
     path('toggle_moderator/<str:username>/', admin_views.toggle_moderator),
     path('toggle_admin/<str:username>/', admin_views.toggle_admin),
+
     path('reset_password/<str:username>/', admin_views.reset_password),
     path('games_played_info/', admin_views.games_played_info),
     path('get_player_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_player_daily_stats),
 
     # ----------------------------------------------------------------------
-
-    path('get_all_moderators/', workbench_views.get_all_moderators),
 
     path('get_all_tags/', workbench_views.get_all_tags),
     path('create_tag/', workbench_views.create_tag),

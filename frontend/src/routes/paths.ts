@@ -24,6 +24,7 @@ export const PATH_PAGE = {
   game: '/game',
   manage: '/manage',
   admin: '/admin',
+  tester: '/tester',
   profile: '/profile',
   select_deck: '/select-deck',
   list_builder: '/list-builder',

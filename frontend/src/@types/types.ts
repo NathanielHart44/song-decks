@@ -10,6 +10,7 @@ export type User = {
 export type Profile = {
     id: number;
     user: User;
+    tester: boolean;
     moderator: boolean;
     admin: boolean;
 };

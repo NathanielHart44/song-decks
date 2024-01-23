@@ -99,6 +99,7 @@ def games_played_info(request):
             last_30_days_game_count=Coalesce(Count('game', filter=Q(game__created_at__gte=thirty_days_ago), distinct=True), 0)
         )
 
+        testers = profiles.filter(tester=True, moderator=False, admin=False)
         moderators = profiles.filter(moderator=True, admin=False)
         admins = profiles.filter(admin=True)
         players = profiles.filter(moderator=False)
@@ -106,6 +107,7 @@ def games_played_info(request):
         data = {}
         profile_querysets: Tuple[Tuple[str, QuerySet[Profile]], ...] = [
             ('active_players', players),
+            ('testers', testers),
             ('moderators', moderators),
             ('admins', admins)
         ]
@@ -211,6 +213,43 @@ def get_all_admins(request):
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         profiles = Profile.objects.filter(admin=True)
         serializer = ProfileSerializer(profiles, many=True)
-        return JsonResponse({"success": True, "response": serializer.data})
+        res = {
+            "profiles": serializer.data,
+            "total": profiles.count(),
+        }
+        return JsonResponse({"success": True, "response": res})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def get_all_testers(request):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
+        profiles = Profile.objects.filter(tester=True)
+        serializer = ProfileSerializer(profiles, many=True)
+        res = {
+            "profiles": serializer.data,
+            "total": profiles.count(),
+        }
+        return JsonResponse({"success": True, "response": res})
+    except Exception as e:
+        return JsonResponse({"success": False, "response": str(e)})
+    
+@api_view(['GET'])
+def toggle_tester(request, username):
+    try:
+        profile = request.user.profile
+        if profile.admin == False:
+            return JsonResponse({"success": False, "response": "You do not have permisdsion to perform this action."})
+        user_search = User.objects.filter(username=username)
+        if user_search.count() == 0:
+            return JsonResponse({"success": False, "response": "User not found."})
+        user = user_search.first()
+        user.profile.tester = not user.profile.tester
+        user.profile.save()
+        updated_profile_status = Profile.objects.filter(user=user).first().tester
+        return JsonResponse({"success": True, "response": f"Successfully toggled tester status to {updated_profile_status} for {user.username}."})
     except Exception as e:
         return JsonResponse({"success": False, "response": str(e)})

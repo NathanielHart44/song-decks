@@ -95,6 +95,7 @@ function isValidProfile(profile: any): profile is Profile {
     return typeof profile === 'object' &&
            typeof profile.id === 'number' &&
            isValidUser(profile.user) &&
+           typeof profile.tester === 'boolean' &&
            typeof profile.moderator === 'boolean' &&
            typeof profile.admin === 'boolean';
 }

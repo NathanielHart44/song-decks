@@ -16,7 +16,7 @@ export default function AppInstallProvider({ children }: Props) {
     const [installPrompt, setInstallPrompt] = useState(null);
 
     useEffect(() => {
-        if (!currentUser?.moderator) { return };
+        if (!currentUser?.tester) { return };
         const handleBeforeInstallPrompt = (e: any) => {
             e.preventDefault();
             setInstallPrompt(e);

@@ -5,7 +5,7 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import NotFound from 'src/pages/NotFound';
 import GuestGuard from 'src/guards/GuestGuard';
 import AuthGuard from 'src/guards/AuthGuard';
-import { ModeratorGuard, AdminGuard } from 'src/guards/ModeratorGuard';
+import { TesterGuard, ModeratorGuard, AdminGuard } from 'src/guards/ModeratorGuard';
 
 import LoadingScreen from 'src/components/base/LoadingScreen';
 
@@ -23,6 +23,7 @@ function withAuthGuard(element: JSX.Element) { return <AuthGuard>{element}</Auth
 function withModeratorGuard(element: JSX.Element) { return <ModeratorGuard>{element}</ModeratorGuard> };
 function withAdminGuard(element: JSX.Element) { return <AdminGuard>{element}</AdminGuard> };
 function withGuestGuard(element: JSX.Element) { return <GuestGuard>{element}</GuestGuard> }
+function withTesterGuard(element: JSX.Element) { return <TesterGuard>{element}</TesterGuard> }
 
 export default function Router() {
   return useRoutes([
@@ -52,6 +53,8 @@ export default function Router() {
         { path: 'select-deck/:type', element: withAuthGuard(<SelectDeck />) },
         { path: 'manage', element: withModeratorGuard(<ManageContent />) },
         { path: 'admin', element: withAdminGuard(<AdminPage />) },
+        { path: 'tester', element: withTesterGuard(<TesterPage />) },
+
         { path: 'profile', element: withAuthGuard(<ProfilePage />) },
         {
           path: 'list-builder',
@@ -88,3 +91,4 @@ const ProfilePage = Loadable(lazy(() => import('src/pages/ProfilePage')));
 const ListBuilder = Loadable(lazy(() => import('src/pages/ListBuilder')));
 const ListManager = Loadable(lazy(() => import('src/pages/ListManager')));
 const GameStartRouter = Loadable(lazy(() => import('src/pages/GameStartRouter')));
+const TesterPage = Loadable(lazy(() => import('src/pages/TesterPage')));

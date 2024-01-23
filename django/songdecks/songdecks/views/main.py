@@ -512,3 +512,21 @@ def delete_keyword_type(request, keyword_type_id):
             {"detail": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+# ----------------------------------------------------------------------
+    
+@api_view(['GET'])
+def request_tester(request):
+    try:
+        user_profile = Profile.objects.get(user=request.user)
+        user_profile.tester = not user_profile.tester
+        user_profile.save()
+        return Response(
+            {"detail": "Successfully updated tester status."},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

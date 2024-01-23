@@ -28,7 +28,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'moderator', 'admin')
+        fields = ('id', 'user', 'tester', 'moderator', 'admin')
         depth = 2
 
     def validate_admin(self, value):

@@ -118,6 +118,7 @@ function AccordianDiv({ title, tasks, chartDataGroups, setChartDataGroups }: Acc
 
 const main_url = `${MAIN_API.base_url}`;
 const coreAdminTasks = [
+    { title: 'Toggle Tester Status', url: `${main_url}toggle_tester/`, placeholder: 'Username' },
     { title: 'Toggle Moderator Status', url: `${main_url}toggle_moderator/`, placeholder: 'Username' },
     { title: 'Toggle Admin Status', url: `${main_url}toggle_admin/`, placeholder: 'Username' },
     { title: 'Reset Password', url: `${main_url}reset_password/`, placeholder: 'Username' },
@@ -125,7 +126,8 @@ const coreAdminTasks = [
 
 const adminInfo = [
     { title: 'See All Users', url: `${main_url}get_all_users/`, placeholder: '' },
-    { title: 'See All Admins', url: `${main_url}get_all_admins/`, placeholder: '' },
+    { title: 'See All Testers', url: `${main_url}get_all_testers/`, placeholder: '' },
     { title: 'See All Moderators', url: `${main_url}get_all_moderators/`, placeholder: '' },
+    { title: 'See All Admins', url: `${main_url}get_all_admins/`, placeholder: '' },
     { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
 ]

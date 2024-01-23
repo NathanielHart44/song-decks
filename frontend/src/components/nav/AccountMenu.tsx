@@ -23,6 +23,7 @@ export default function AccountMenu() {
     const { isMobile, currentUser } = useContext(MetadataContext);
     const is_moderator = currentUser?.moderator;
     const is_admin = currentUser?.admin;
+    const is_tester = currentUser?.tester;
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -56,6 +57,9 @@ export default function AccountMenu() {
                 break;
             case 'profile':
                 navigate(PATH_PAGE.profile);
+                break;
+            case 'tester':
+                navigate(PATH_PAGE.tester);
                 break;
             case 'logout':
                 logout();
@@ -178,6 +182,21 @@ export default function AccountMenu() {
                                 <Divider key={"divider_2"} />
                             ]
                         }
+                        { is_tester &&
+                            [
+                                <MenuItem key={"tester"} onClick={ ()=> handleClose('tester') }>
+                                    <ListItemIcon>
+                                        <Iconify
+                                            icon={'heroicons:beaker-20-solid'}
+                                            width={24}
+                                            height={24}
+                                        />
+                                    </ListItemIcon>
+                                    Testers
+                                </MenuItem>,
+                                <Divider key={"divider_3"} />
+                            ]
+                        }
                         <MenuItem onClick={ ()=> handleClose('feedback')}>
                             <ListItemIcon>
                                 <FeedbackIcon fontSize="small" />
@@ -236,6 +255,24 @@ export default function AccountMenu() {
                             </Tooltip>
                             <Divider orientation="vertical" flexItem />
                         </>
+                    }
+                    { is_tester &&
+                        <>
+                            <Tooltip title={"Testers"} placement={"bottom"} arrow>
+                                <IconButton
+                                    onClick={ () => handleClose('tester') }
+                                    size="small"
+                                >
+                                    <Iconify
+                                        icon={'heroicons:beaker-20-solid'}
+                                        width={24}
+                                        height={24}
+                                    />
+                                </IconButton>
+                            </Tooltip>
+                            <Divider orientation="vertical" flexItem />
+                        </>
+
                     }
                     <Tooltip title={"Feedback & Bugs"} placement={"bottom"} arrow>
                         <IconButton

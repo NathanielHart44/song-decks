@@ -13,6 +13,33 @@ type ModeratorGuardProps = {
   children: ReactNode;
 };
 
+export function TesterGuard({ children }: ModeratorGuardProps) {
+  const { currentUser } = useContext(MetadataContext);
+  const { isAuthenticated, isInitialized } = useAuth();
+  const { pathname } = useLocation();
+  const [requestedLocation, setRequestedLocation] = useState<string | null>(null);
+
+  if (!isInitialized || !currentUser) { return <LoadingBackdrop /> }
+
+  if (!isAuthenticated) {
+    if (pathname !== requestedLocation) {
+      setRequestedLocation(pathname);
+    }
+    return <Navigate to={PATH_AUTH.root} />;
+  }
+
+  if (currentUser.tester === false) {
+    return <Navigate to={PATH_PAGE.home} />;
+  }
+
+  if (requestedLocation && pathname !== requestedLocation) {
+    setRequestedLocation(null);
+    return <Navigate to={requestedLocation} />;
+  }
+
+  return <>{children}</>;
+}
+
 export function ModeratorGuard({ children }: ModeratorGuardProps) {
   const { currentUser } = useContext(MetadataContext);
   const { isAuthenticated, isInitialized } = useAuth();
