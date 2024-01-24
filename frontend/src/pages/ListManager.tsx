@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Box, Container, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Container, Stack, Typography } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import Page from "src/components/base/Page";
 import { useApiCall } from "src/hooks/useApiCall";
