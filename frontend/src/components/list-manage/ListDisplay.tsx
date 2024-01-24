@@ -232,7 +232,7 @@ export function ListDisplay({ type, list, allShortProfiles, selectedList, select
                             variant={'body2'}
                             color={
                                 (list.faction.neutral || !list.faction.can_use_neutral) ? 'text.secondary' :
-                                    (calcNeutralPoints(list) > list.points_allowed * 0.3) ? theme.palette.secondary.main : 'text.secondary'
+                                    (calcNeutralPoints(list) > Math.round(list.points_allowed * 0.3)) ? theme.palette.secondary.main : 'text.secondary'
                             }
                         >
                             Neutral:
@@ -241,13 +241,12 @@ export function ListDisplay({ type, list, allShortProfiles, selectedList, select
                             variant={'body2'}
                             color={
                                 (list.faction.neutral || !list.faction.can_use_neutral) ? 'text.secondary' :
-                                    (calcNeutralPoints(list) > list.points_allowed * 0.3) ? theme.palette.secondary.main : 'text.secondary'
+                                    (calcNeutralPoints(list) > Math.round(list.points_allowed * 0.3)) ? theme.palette.secondary.main : 'text.secondary'
                             }
                         >
                             {
                                 (list.faction.neutral || !list.faction.can_use_neutral) ? '-/-' :
-                                    (calcNeutralPoints(list) > list.points_allowed * 0.3) ? `${calcNeutralPoints(list)}/${list.points_allowed * 0.3}` :
-                                        `${calcNeutralPoints(list)}/${list.points_allowed}`
+                                    `${calcNeutralPoints(list)}/${Math.round(list.points_allowed * 0.3)}`
                             }
                         </Typography>
                     </Stack>
