@@ -120,11 +120,12 @@ urlpatterns = [
     path('delete_list/<int:list_id>/', lists_views.delete_list),
 
     # ----------------------------------------------------------------------
-
+    
     path('get_all_users/', admin_views.get_all_users),
     path('get_all_testers/', admin_views.get_all_testers),
     path('get_all_moderators/', workbench_views.get_all_moderators),
     path('get_all_admins/', admin_views.get_all_admins),
+    path('get_top_users/<int:count>/', admin_views.get_top_users),
 
     path('toggle_tester/<str:username>/', admin_views.toggle_tester),
     path('toggle_moderator/<str:username>/', admin_views.toggle_moderator),

@@ -130,6 +130,7 @@ const adminInfo = [
     { title: 'See All Moderators', url: `${main_url}get_all_moderators/`, placeholder: '' },
     { title: 'See All Admins', url: `${main_url}get_all_admins/`, placeholder: '' },
     { title: 'Games Played Info', url: `${main_url}games_played_info/`, placeholder: '' },
+    { title: 'See Top Users', url: `${main_url}get_top_users/`, placeholder: 'Count' },
 ];
 
 const graphs = [

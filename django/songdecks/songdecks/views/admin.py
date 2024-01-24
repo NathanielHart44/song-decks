@@ -7,10 +7,10 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from songdecks.serializers import (ProfileSerializer)
+from songdecks.serializers import (ProfileSerializer, TopProfileSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Game, List)
-from songdecks.views.helpers import get_last_acceptable_date
+from songdecks.views.helpers import get_last_acceptable_date, calculate_avg_last_login
 import logging
 
 # ----------------------------------------------------------------------
@@ -99,9 +99,11 @@ def get_all_users(request):
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         profiles = Profile.objects.all()
         profiles = profiles.exclude(user__username='admin')
+
         info = {
-            "profiles": ProfileSerializer(profiles, many=True).data,
+            "average_last_login": calculate_avg_last_login(profiles),
             "total": profiles.count(),
+            "profiles": ProfileSerializer(profiles, many=True).data
         }
         return JsonResponse({"success": True, "response": info})
     except Exception as e:
@@ -115,9 +117,11 @@ def get_all_admins(request):
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         profiles = Profile.objects.filter(admin=True)
         serializer = ProfileSerializer(profiles, many=True)
+
         res = {
-            "profiles": serializer.data,
+            "average_last_login": calculate_avg_last_login(profiles),
             "total": profiles.count(),
+            "profiles": serializer.data
         }
         return JsonResponse({"success": True, "response": res})
     except Exception as e:
@@ -131,9 +135,11 @@ def get_all_testers(request):
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         profiles = Profile.objects.filter(tester=True)
         serializer = ProfileSerializer(profiles, many=True)
+
         res = {
-            "profiles": serializer.data,
+            "average_last_login": calculate_avg_last_login(profiles),
             "total": profiles.count(),
+            "profiles": serializer.data
         }
         return JsonResponse({"success": True, "response": res})
     except Exception as e:
@@ -315,6 +321,51 @@ def get_list_daily_stats(request, accepted_days, is_cumulative):
                 all_results[type].append(result)
 
         return Response(all_results, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['GET'])
+def get_top_users(request, count):
+    try:
+        profile = request.user.profile
+        if not profile.admin:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Convert count to integer, handle possible conversion error
+        try:
+            count = int(count)
+        except ValueError:
+            return Response(
+                {"detail": "Invalid count parameter."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        profiles = Profile.objects.exclude(user__username='admin', admin=False)
+
+        most_games = profiles.annotate(total_game_count=Count('game', distinct=True)).order_by('-total_game_count')[:count]
+        most_lists = profiles.annotate(total_list_count=Count('owned_lists', distinct=True)).order_by('-total_list_count')[:count]
+        most_sessions = profiles.annotate(total_session_count=Count('session_count', distinct=True)).order_by('-total_session_count')[:count]
+
+        # Serializing data with the new serializer
+        most_games_serializer = TopProfileSerializer(most_games, many=True)
+        most_lists_serializer = TopProfileSerializer(most_lists, many=True)
+        most_sessions_serializer = TopProfileSerializer(most_sessions, many=True)
+
+        # Constructing response
+        response_data = {
+            'most_games': most_games_serializer.data,
+            'most_lists': most_lists_serializer.data,
+            'most_sessions': most_sessions_serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
     except Exception as e:
         return Response(
             {"detail": str(e)},

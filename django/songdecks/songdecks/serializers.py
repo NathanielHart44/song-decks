@@ -43,6 +43,17 @@ class ProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Only admins can change the moderator status.")
         return value
 
+class TopProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    total_game_count = serializers.IntegerField(read_only=True)
+    total_list_count = serializers.IntegerField(read_only=True)
+    total_session_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ('id', 'user', 'tester', 'moderator', 'admin', 'total_list_count', 'total_game_count', 'total_session_count')
+        depth = 2
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)

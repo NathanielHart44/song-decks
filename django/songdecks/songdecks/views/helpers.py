@@ -8,10 +8,11 @@ import random
 from django.core.mail import send_mail
 from textwrap import dedent
 from songdecks.models import PlayerCard, UserCardStats, Profile, User
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from songdecks.models import Faction
+from django.db.models import Avg, F, ExpressionWrapper, fields
 
 # ----------------------------------------------------------------------
 
@@ -169,8 +170,20 @@ def gen_jwt_tokens_for_user(user):
     }
 
 def update_last_login(user):
-    user.last_login = timezone.now()
+    current_time = timezone.now()
+    last_login = user.last_login
+
+    user.last_login = current_time
     user.save(update_fields=['last_login'])
+
+    try:
+        profile = user.profile
+        # Check if it's been at least 10 minutes since the last login
+        if last_login and (current_time - last_login) >= timedelta(minutes=10):
+            profile.session_count += 1
+            profile.save(update_fields=['session_count'])
+    except Profile.DoesNotExist:
+        pass
 
 def check_inappropriate_language(text):
     response = requests.get("https://www.purgomalum.com/service/containsprofanity?text=" + text)
@@ -191,3 +204,46 @@ def valid_for_neutrals(faction: Faction) -> bool:
         # Neutral units are not native to this faction, and this faction cannot use them
         return False
     return False
+
+def calc_avg_last_login_seconds(profiles):
+    """
+    Calculate the average time since last login in seconds for given profiles.
+    
+    :param profiles: A queryset of Profile objects.
+    :return: Average time since last login in seconds or None.
+    """
+    current_time = timezone.now()
+
+    profiles = profiles.annotate(
+        time_since_last_login=ExpressionWrapper(
+            current_time - F('user__last_login'),
+            output_field=fields.DurationField()
+        )
+    )
+
+    average_duration = profiles.aggregate(
+        avg_duration=Avg('time_since_last_login')
+    )['avg_duration']
+
+    return average_duration.total_seconds() if average_duration else None
+
+def seconds_to_readable_time(seconds):
+    """
+    Convert a time duration in seconds to a readable string format (days, hours, minutes, seconds).
+    
+    :param seconds: Time duration in seconds.
+    :return: String representing the time duration.
+    """
+    if seconds is not None:
+        days, remainder = divmod(seconds, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        return f"{int(days)} days, {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds"
+    else:
+        return None
+
+def calculate_avg_last_login(profiles):
+    avg_login_seconds = calc_avg_last_login_seconds(profiles)
+    avg_login_time_readable = seconds_to_readable_time(avg_login_seconds)
+    return avg_login_time_readable

@@ -15,6 +15,7 @@ class Profile(ExportModelOperationsMixin('profile'), models.Model):
     tester = models.BooleanField(default=False)
     moderator = models.BooleanField(default=False)
     admin = models.BooleanField(default=False)
+    session_count = models.PositiveIntegerField(default=0)
 
     def __str__(self) -> str:
         return self.user.first_name + ' ' + self.user.last_name
