@@ -43,7 +43,7 @@ export function ListDisplay({ type, list, allShortProfiles, selectedList, select
     const [shareOpen, setShareOpen] = useState<boolean>(false);
     const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
     const navigate = useNavigate();
-    const { handleDeleteList } = useListBuildManager();
+    const { listDispatch, handleDeleteList } = useListBuildManager();
 
     const unit_count = list.units.length;
     const ncu_count = list.ncus.length;
@@ -63,7 +63,10 @@ export function ListDisplay({ type, list, allShortProfiles, selectedList, select
             },
             {
                 title: 'Delete',
-                onClick: () => { setDeleteOpen(true) },
+                onClick: () => {
+                    listDispatch({ type: 'SET_AWAITING_RESPONSE', payload: false });
+                    setDeleteOpen(true);
+                },
                 icon: 'eva:trash-2-outline',
                 disabled: false
             },
