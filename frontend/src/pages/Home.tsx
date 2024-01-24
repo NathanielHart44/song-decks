@@ -115,6 +115,14 @@ export default function Home() {
                                         <Typography variant={'subtitle2'} color={title_grey} paragraph sx={{ textAlign: 'center', mb: 0 }}>
                                             Make sure to report any bugs you find, and let us know what you think!
                                         </Typography>
+                                        <Button
+                                            variant={'contained'}
+                                            onClick={() => { navigate(PATH_PAGE.tester) }}
+                                            disabled={awaitingResponse}
+                                            fullWidth
+                                        >
+                                            Tester Page
+                                        </Button>
                                     </Stack>
                                 }
                                 {!is_tester &&
