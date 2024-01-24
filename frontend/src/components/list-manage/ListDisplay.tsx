@@ -385,7 +385,7 @@ function ListSender({ selectedList, allShortProfiles, dialogOpen, setDialogOpen 
                         clearOnBlur
                         handleHomeEndKeys
                         id="list-sender-autocomplete"
-                        options={allShortProfiles.sort((a, b) => -b.username[0].localeCompare(a.username[0]))}
+                        options={allShortProfiles.sort((a, b) => -(b.username[0] ?? 'z').localeCompare((a.username[0] ?? 'z')))}
                         // groupBy={(option) => option.username[0].toUpperCase()}
                         getOptionLabel={(option) => {
                             if (typeof option === 'string') {
