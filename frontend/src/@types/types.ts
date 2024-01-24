@@ -15,6 +15,12 @@ export type Profile = {
     admin: boolean;
 };
 
+export type ShortProfile = {
+    id: number;
+    username: string;
+    full_name: string;
+};
+
 export type Faction = {
     id: number;
     name: string;

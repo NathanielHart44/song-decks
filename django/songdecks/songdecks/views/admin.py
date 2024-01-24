@@ -282,7 +282,7 @@ def get_list_daily_stats(request, accepted_days, is_cumulative):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        lists = List.objects.all()
+        lists = List.objects.all().filter(is_draft=False)
         profiles = Profile.objects.exclude(user__username='admin', admin=False)
 
         all_results = {}

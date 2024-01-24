@@ -1,6 +1,6 @@
-import { Box, Divider, Grid, IconButton, Paper, Skeleton, Stack, SxProps, Theme, Tooltip, Typography, useTheme } from "@mui/material";
+import { Autocomplete, Box, Button, Container, Dialog, Divider, Grid, IconButton, Paper, Skeleton, Stack, SxProps, TextField, Theme, Tooltip, Typography, createFilterOptions, useTheme } from "@mui/material";
 import { useContext, useState } from "react";
-import { List } from "src/@types/types";
+import { List, ShortProfile } from "src/@types/types";
 import Iconify from "src/components/base/Iconify";
 import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
@@ -11,6 +11,8 @@ import useListBuildManager from "src/hooks/useListBuildManager";
 import { ListOverview } from "./ListOverview";
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { MetadataContext } from "src/contexts/MetadataContext";
+import { useApiCall } from "src/hooks/useApiCall";
+import { useSnackbar } from "notistack";
 
 // ----------------------------------------------------------------------
 
@@ -27,15 +29,18 @@ type ButtonActionType = {
 type ListDisplayProps = {
     type: 'manage' | 'select';
     list: List;
+    allShortProfiles?: ShortProfile[];
     selectedList?: List | null;
     selectList?: (list: List | null) => void;
+    handleSharedList?: (list: List, action: 'confirm' | 'decline') => void;
 };
 
-export function ListDisplay({ type, list, selectedList, selectList }: ListDisplayProps) {
+export function ListDisplay({ type, list, allShortProfiles, selectedList, selectList, handleSharedList }: ListDisplayProps) {
 
     const theme = useTheme();
     const { isMobile } = useContext(MetadataContext);
-    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [previewOpen, setPreviewOpen] = useState<boolean>(false);
+    const [shareOpen, setShareOpen] = useState<boolean>(false);
     const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
     const navigate = useNavigate();
     const { handleDeleteList } = useListBuildManager();
@@ -44,7 +49,7 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
     const ncu_count = list.ncus.length;
 
     let buttonActions: ButtonActionType[] = [];
-    if (type === 'manage') {
+    if (type === 'manage' && !(list.is_draft && list.shared_from)) {
         buttonActions = [
             {
                 title: 'Edit',
@@ -68,15 +73,38 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
             //     icon: 'eva:copy-outline',
             //     disabled: true
             // },
-            // {
-            //     title: 'Share',
-            //     onClick: () => { },
-            //     icon: 'eva:share-outline',
-            //     disabled: true
-            // },
+            {
+                title: 'Share',
+                onClick: () => { setShareOpen(true) },
+                icon: 'eva:share-outline',
+                disabled: false
+            },
             {
                 title: 'View',
-                onClick: () => { setDialogOpen(true) },
+                onClick: () => { setPreviewOpen(true) },
+                icon: 'eva:eye-outline',
+                disabled: false
+            }
+        ];
+    } else if (type === 'manage' && (list.is_draft && list.shared_from)) {
+        buttonActions = [
+            {
+                title: 'Confirm',
+                onClick: () => { handleSharedList && handleSharedList(list, 'confirm') },
+                icon: 'eva:checkmark-outline',
+                icon_color: 'success',
+                disabled: false
+            },
+            {
+                title: 'Decline',
+                onClick: () => { handleSharedList && handleSharedList(list, 'decline') },
+                icon: 'eva:close-outline',
+                icon_color: 'error',
+                disabled: false
+            },
+            {
+                title: 'View',
+                onClick: () => { setPreviewOpen(true) },
                 icon: 'eva:eye-outline',
                 disabled: false
             }
@@ -96,7 +124,7 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
             },
             {
                 title: 'View',
-                onClick: () => { setDialogOpen(true) },
+                onClick: () => { setPreviewOpen(true) },
                 icon: 'eva:eye-outline',
                 disabled: false
             }
@@ -117,7 +145,7 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
                 {list.is_draft &&
                     <Box sx={{ position: 'absolute', width: '300px', pointerEvents: 'none' }}>
                         <Tooltip
-                            title={'Draft'}
+                            title={list.shared_from ? 'Shared With You' : 'Draft'}
                             arrow
                             placement={"top"}
                             sx={{
@@ -165,7 +193,10 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
                         whiteSpace={'nowrap'}
                         sx={{ width: '100%', textAlign: 'center' }}
                     >
-                        {list.name}
+                        {(list.is_draft && list.shared_from) ?
+                            `(${list.shared_from.user.username}) ${list.name}` :
+                            list.name
+                        }
                     </Typography>
                     <Divider sx={{ width: '100%' }} />
 
@@ -240,8 +271,8 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
             <ListOverview
                 isMobile={isMobile}
                 currentList={list}
-                dialogOpen={dialogOpen}
-                setDialogOpen={setDialogOpen}
+                dialogOpen={previewOpen}
+                setDialogOpen={setPreviewOpen}
             />
             <DeleteDialog
                 open={deleteOpen}
@@ -250,8 +281,154 @@ export function ListDisplay({ type, list, selectedList, selectList }: ListDispla
                     processTokens(() => { handleDeleteList(list.id) });
                 }}
             />
+            <ListSender
+                selectedList={list}
+                allShortProfiles={allShortProfiles ?? []}
+                dialogOpen={shareOpen}
+                setDialogOpen={setShareOpen}
+            />
         </Grid>
     );
+};
+
+// ----------------------------------------------------------------------
+
+type ListSenderProps = {
+    selectedList: List;
+    allShortProfiles: ShortProfile[];
+    dialogOpen: boolean;
+    setDialogOpen: (dialogOpen: boolean) => void;
+};
+
+function ListSender({ selectedList, allShortProfiles, dialogOpen, setDialogOpen }: ListSenderProps) {
+
+    const { currentUser } = useContext(MetadataContext);
+    const { apiCall } = useApiCall();
+    const { enqueueSnackbar } = useSnackbar();
+    const theme = useTheme();
+
+    const [selectedProfile, setSelectedProfile] = useState<ShortProfile>();
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+
+    const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+    
+    const filter = createFilterOptions<ShortProfile>();
+
+    const handleSearchChange = (event: React.ChangeEvent<{}>, value: string) => {
+        setDropdownOpen(value.length >= 3);
+    };
+
+    const handleChange = (event: React.ChangeEvent<{}>, newValue: ShortProfile | string | null) => {
+        if (typeof newValue === 'string') {
+            setSelectedProfile(undefined);
+        } else if (newValue !== null) {
+            setSelectedProfile(newValue);
+            setDropdownOpen(false);
+        } else {
+            setSelectedProfile(undefined);
+            setDropdownOpen(false);
+        }
+    };
+
+    const shareList = async () => {
+        setAwaitingResponse(true);
+        const url = `share_list/${selectedList.id}/${selectedProfile?.username}`;
+        apiCall(url, 'GET', null, (data) => {
+            enqueueSnackbar(data.detail);
+            setSelectedProfile(undefined);
+            setDialogOpen(false);
+            if (currentUser?.id === selectedProfile?.id) {
+                window.location.reload();
+            };
+        });
+        setAwaitingResponse(false);
+    };
+
+    return (
+        <Dialog
+            open={dialogOpen}
+            scroll={"body"}
+            fullScreen
+            maxWidth={false}
+            sx={{
+                backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                color: theme.palette.primary.main,
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                '.MuiDialog-paperFullScreen': { backgroundColor: 'transparent' },
+                '.MuiDialog-container': { width: '100%' }
+            }}
+            onClick={() => {
+                setDialogOpen(false);
+                setSelectedProfile(undefined);
+            }}
+        >
+            <Container maxWidth={'sm'} sx={{ height: '100%' }}>
+                <Stack
+                    spacing={2}
+                    justifyContent={'center'}
+                    alignItems={'center'}
+                    sx={{ width: '100%', height: '100%' }}
+                    onClick={(event) => { event.stopPropagation() }}
+                >
+                    <Autocomplete
+                        open={dropdownOpen}
+                        value={selectedProfile}
+                        onChange={handleChange}
+                        filterOptions={(options, params) => {
+                            const filtered = filter(options, params);
+                            return filtered;
+                        }}
+                        selectOnFocus
+                        clearOnBlur
+                        handleHomeEndKeys
+                        id="list-sender-autocomplete"
+                        options={allShortProfiles.sort((a, b) => -b.username[0].localeCompare(a.username[0]))}
+                        // groupBy={(option) => option.username[0].toUpperCase()}
+                        getOptionLabel={(option) => {
+                            if (typeof option === 'string') {
+                                return option;
+                            }
+                            return `${option.username} (${option.full_name})`;
+                        }}
+                        renderOption={(props, option) => <li {...props}>{`${option.username} (${option.full_name})`}</li>}
+                        fullWidth
+                        freeSolo
+                        onInputChange={handleSearchChange}
+                        renderInput={(params) => (
+                            <TextField {...params} label={"Username"} />
+                        )}
+                    />
+
+                    <Button
+                        variant={'contained'}
+                        onClick={() => { processTokens(shareList) }}
+                        disabled={awaitingResponse || !selectedProfile}
+                        size={'large'}
+                        fullWidth
+                    >
+                        Share
+                    </Button>
+                    <Button
+                        variant={'contained'}
+                        color={'secondary'}
+                        onClick={() => {
+                            setDialogOpen(false);
+                            setSelectedProfile(undefined);
+                        }}
+                        size={'large'}
+                        fullWidth
+                        disabled={awaitingResponse}
+                    >
+                        Cancel
+                    </Button>
+
+                </Stack>
+            </Container>
+        </Dialog>
+    )
 };
 
 // ----------------------------------------------------------------------

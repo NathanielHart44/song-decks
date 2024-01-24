@@ -23,6 +23,20 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
+class ShortProfileSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField(read_only=True)
+    full_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ('id', 'username', 'full_name')
+
+    def get_username(self, obj):
+        return obj.user.username
+    
+    def get_full_name(self, obj):
+        return obj.user.first_name + " " + obj.user.last_name
+
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
@@ -134,6 +148,7 @@ class ListSerializer(serializers.ModelSerializer):
     commander = CommanderSerializer(read_only=True)
     units = ListUnitSerializer(many=True, read_only=True, source='unit_list')
     ncus = ListNcuSerializer(many=True, read_only=True, source='ncu_list')
+    shared_from = ProfileSerializer(read_only=True)
 
     class Meta:
         model = List

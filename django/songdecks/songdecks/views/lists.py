@@ -156,3 +156,64 @@ def delete_list(request, list_id):
         return Response({"detail": "Successfully deleted list."}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def share_list(request, list_id, username):
+    try:
+        sender_profile = get_object_or_404(Profile, user=request.user)
+        list_instance = get_object_or_404(List, id=list_id, owner=sender_profile)
+        receiver_profile = get_object_or_404(Profile, user__username=username)
+
+        already_shared_lists = List.objects.filter(owner=receiver_profile, shared_from=sender_profile, is_draft=True)
+        if already_shared_lists:
+            # return Response({"detail": "Unable to share new List - still waiting for user to confirm previous List."}, status=status.HTTP_400_BAD_REQUEST)
+            already_shared_lists.delete()
+
+        new_list, created = List.objects.get_or_create(
+            name=list_instance.name,
+            owner=receiver_profile,
+            shared_from=sender_profile,
+            points_allowed=list_instance.points_allowed,
+            faction=list_instance.faction,
+            commander=list_instance.commander,
+            is_draft=True,
+            is_public=False,
+            is_valid=False
+        )
+        if not created:
+            return Response({"detail": "Unable to share List - already shared with user."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            for list_unit in list_instance.unit_list.all():
+                new_unit = ListUnit.objects.create(
+                    list=new_list,
+                    unit=list_unit.unit,
+                    commander=list_unit.commander
+                )
+                new_unit.attachments.set(list_unit.attachments.all())
+            for list_ncu in list_instance.ncu_list.all():
+                ListNCU.objects.create(
+                    list=new_list,
+                    ncu=list_ncu.ncu
+                )
+            return Response({"detail": "Successfully shared list."}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+def handle_shared_list(request, list_id, action):
+    try:
+        profile = get_object_or_404(Profile, user=request.user)
+        list_instance = get_object_or_404(List, id=list_id, owner=profile, is_draft=True)
+
+        if action == 'confirm':
+            list_instance.is_draft = False
+            list_instance.save()
+            return Response({"detail": "Successfully confirmed list."}, status=status.HTTP_200_OK)
+        elif action == 'decline':
+            list_instance.delete()
+            return Response({"detail": "Successfully declined list."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

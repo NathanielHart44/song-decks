@@ -36,6 +36,10 @@ export const useApiCall = () => {
                 onSuccess(response.data);
             }
         } catch (error) {
+            if (error.response.status === 404) {
+                enqueueSnackbar('404: Not Found', { autoHideDuration: 5000, variant: 'error' });
+                return;
+            }
             console.error(error);
             if (onError) {
                 onError(error);

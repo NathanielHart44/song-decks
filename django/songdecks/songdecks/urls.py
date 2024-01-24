@@ -34,6 +34,7 @@ urlpatterns = [
     path('submit_feedback/', views.submit_feedback),
     path('request_tester/', views.request_tester),
     path('download_img/', views.download_img),
+    path('get_all_users_short/', views.get_all_users_short),
 
     path('get_keyword_pairs/', views.get_keyword_pairs),
     path('create_keyword_pair/', views.create_keyword_pair),
@@ -119,6 +120,9 @@ urlpatterns = [
     path('add_edit_list/<int:list_id>/', lists_views.add_edit_list),
     path('delete_list/<int:list_id>/', lists_views.delete_list),
 
+    path('share_list/<int:list_id>/<str:username>/', lists_views.share_list),
+    path('handle_shared_list/<int:list_id>/<str:action>/', lists_views.handle_shared_list),
+    
     # ----------------------------------------------------------------------
     
     path('get_all_users/', admin_views.get_all_users),

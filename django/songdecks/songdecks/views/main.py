@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from songdecks.serializers import (PlayerCardSerializer, ProfileSerializer,
-    UserSerializer, UserCardStatsSerializer, GameSerializer,
+    UserSerializer, UserCardStatsSerializer, GameSerializer, ShortProfileSerializer,
     ChangePasswordSerializer, KeywordPairSerializer, KeywordTypeSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
@@ -525,6 +525,18 @@ def request_tester(request):
             {"detail": "Successfully updated tester status."},
             status=status.HTTP_200_OK
         )
+    except Exception as e:
+        return Response(
+            {"detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+@api_view(['GET'])
+def get_all_users_short(request):
+    try:
+        all_profiles = Profile.objects.exclude(user__username='admin')
+        serializer = ShortProfileSerializer(all_profiles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response(
             {"detail": str(e)},

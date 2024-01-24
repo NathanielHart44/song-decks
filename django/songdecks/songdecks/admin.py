@@ -1,7 +1,7 @@
 from django.contrib import admin
 from songdecks.models import (Profile, Game, Faction, Commander,
     CardTemplate, PlayerCard, UserCardStats, Tag, Proposal, ProposalImage,
-    Task, SubTask, KeywordPair, KeywordType, List, Unit, NCU, Attachment)
+    Task, SubTask, KeywordPair, KeywordType, List, Unit, NCU, Attachment, ListNCU, ListUnit)
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = [f.name for f in Profile._meta.fields]
@@ -51,8 +51,14 @@ class ListAdmin(admin.ModelAdmin):
 class UnitAdmin(admin.ModelAdmin):
     list_display = [f.name for f in Unit._meta.fields]
 
+class ListUnitAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in ListUnit._meta.fields]
+
 class NCUAdmin(admin.ModelAdmin):
     list_display = [f.name for f in NCU._meta.fields]
+
+class ListNCUAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in ListNCU._meta.fields]
 
 class AttachmentAdmin(admin.ModelAdmin):
     list_display = [f.name for f in Attachment._meta.fields]
@@ -73,5 +79,7 @@ admin.site.register(KeywordPair, KeywordPairAdmin)
 admin.site.register(KeywordType, KeywordTypeAdmin)
 admin.site.register(List, ListAdmin)
 admin.site.register(Unit, UnitAdmin)
+admin.site.register(ListUnit, ListUnitAdmin)
 admin.site.register(NCU, NCUAdmin)
+admin.site.register(ListNCU, ListNCUAdmin)
 admin.site.register(Attachment, AttachmentAdmin)

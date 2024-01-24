@@ -47,7 +47,8 @@ export default function SelectDeck() {
         const url = `lists/${currentUser?.id}`;
         apiCall(url, 'GET', null, (data: FakeList[]) => {
             const lists = parseLists(data);
-            setAllLists(lists);
+            const valid_lists = lists.filter((list) => !list.is_draft);
+            setAllLists(valid_lists);
         });
     };
 

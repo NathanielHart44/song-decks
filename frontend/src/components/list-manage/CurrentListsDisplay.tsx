@@ -1,5 +1,5 @@
 import { Grid, SxProps, Theme, Typography, useTheme } from "@mui/material";
-import { List } from "src/@types/types";
+import { List, ShortProfile } from "src/@types/types";
 import { ListDisplay } from "./ListDisplay";
 
 // ----------------------------------------------------------------------
@@ -9,9 +9,11 @@ type CurrentListsDisplayType = {
     currentLists: List[] | undefined;
     selectedList?: List | null;
     selectList?: (list: List | null) => void;
+    allShortProfiles?: ShortProfile[];
+    handleSharedList?: (list: List, action: 'confirm' | 'decline') => void;
 };
 
-export function CurrentListsDisplay({ type, currentLists, selectedList, selectList }: CurrentListsDisplayType) {
+export function CurrentListsDisplay({ type, currentLists, selectedList, selectList, allShortProfiles, handleSharedList }: CurrentListsDisplayType) {
 
     const theme = useTheme();
 
@@ -49,6 +51,8 @@ export function CurrentListsDisplay({ type, currentLists, selectedList, selectLi
                         list={list}
                         selectedList={selectedList}
                         selectList={selectList}
+                        handleSharedList={handleSharedList}
+                        allShortProfiles={allShortProfiles}
                     />
                 ))}
             </Grid>

@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Container, Stack, Typography } from "@mui/material";
+import { Box, Container, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import Page from "src/components/base/Page";
 import { useApiCall } from "src/hooks/useApiCall";
-import { List, FakeList } from "src/@types/types";
+import { List, FakeList, ShortProfile } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import { MetadataContext } from "src/contexts/MetadataContext";
@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
 import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
 import { Searchbar } from "src/components/Searchbar";
+import { useSnackbar } from "notistack";
 
 // ----------------------------------------------------------------------
 
@@ -20,14 +21,16 @@ export default function ListManager() {
     const navigate = useNavigate();
     const { apiCall } = useApiCall();
     const { isMobile, currentUser } = useContext(MetadataContext);
+    const { enqueueSnackbar } = useSnackbar();
 
-    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
+    const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
     const [allLists, setAllLists] = useState<List[]>();
     const [viewedLists, setViewedLists] = useState<List[]>([]); // used for filters
     const [searchTerm, setSearchTerm] = useState<string>('');
 
+    const [allShortProfiles, setAllShortProfiles] = useState<ShortProfile[]>();
+
     const getLists = async (type: 'all' | 'player') => {
-        setAwaitingResponse(true);
         let url = 'lists';
         if (type === 'player') {
             url += `/${currentUser?.id}`;
@@ -40,9 +43,24 @@ export default function ListManager() {
         });
     };
 
+    const getProfiles = async () => {
+        apiCall('get_all_users_short', 'GET', null, (data: ShortProfile[]) => {
+            setAllShortProfiles(data);
+        });
+    }
+
+    const handleSharedList = async (list: List, action: 'confirm' | 'decline') => {
+        const url = `handle_shared_list/${list.id}/${action}`;
+        apiCall(url, 'GET', null, (data) => {
+            enqueueSnackbar(data.detail);
+            window.location.reload();
+        });
+    };
+
     useEffect(() => {
         processTokens(() => {
             getLists('player');
+            getProfiles();
         })
     }, []);
 
@@ -60,11 +78,11 @@ export default function ListManager() {
     }, [searchTerm]);
 
     useEffect(() => {
-        if (allLists) {
+        if (allLists && allShortProfiles) {
             setAwaitingResponse(false);
             setViewedLists(allLists);
         };
-    }, [allLists]);
+    }, [allLists, allShortProfiles]);
 
     return (
         <Page title="List Manager">
@@ -77,7 +95,12 @@ export default function ListManager() {
                         isMobile={isMobile}
                         handleClick={() => { navigate(PATH_PAGE.list_builder) }}
                     />
-                    <CurrentListsDisplay type={'manage'} currentLists={viewedLists} />
+                    <CurrentListsDisplay
+                        type={'manage'}
+                        currentLists={viewedLists}
+                        allShortProfiles={allShortProfiles}
+                        handleSharedList={handleSharedList}
+                    />
                 </Stack>
             </Container>
         </Page>
