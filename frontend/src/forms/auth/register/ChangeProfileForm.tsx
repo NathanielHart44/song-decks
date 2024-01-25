@@ -144,6 +144,7 @@ export default function ChangeProfileForm() {
           label="Old Password"
           variant="outlined"
           size="small"
+          autoComplete="off"
           fullWidth
           type={showOldPassword ? 'text' : 'password'}
           InputProps={{
@@ -163,6 +164,7 @@ export default function ChangeProfileForm() {
           label="New password"
           variant="outlined"
           size="small"
+          autoComplete="off"
           fullWidth
           type={showNewPassword ? 'text' : 'password'}
           InputProps={{
@@ -182,6 +184,7 @@ export default function ChangeProfileForm() {
           label="Confirm password"
           variant="outlined"
           size="small"
+          autoComplete="off"
           fullWidth
           type={showConfirmPassword ? 'text' : 'password'}
           InputProps={{
