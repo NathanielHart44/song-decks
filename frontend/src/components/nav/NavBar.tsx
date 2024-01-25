@@ -3,8 +3,6 @@ import {
     Toolbar,
     useTheme
 } from '@mui/material';
-import { useContext } from 'react';
-import { MetadataContext } from 'src/contexts/MetadataContext';
 // components
 import Logo from '../Logo';
 import { NAVBAR } from 'src/config';
@@ -14,7 +12,6 @@ import AccountMenu from './AccountMenu';
 
 export default function NavBar() {
 
-    const { isMobile } = useContext(MetadataContext);
     const theme = useTheme();
 
     return (
@@ -25,7 +22,7 @@ export default function NavBar() {
                     backgroundColor: theme.palette.grey.default_canvas,
                 }}
             >
-                <Toolbar disableGutters={isMobile ? true : false} sx={{ justifyContent: 'space-between' }}>
+                <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
                     <Logo />
                     <AccountMenu />
                 </Toolbar>

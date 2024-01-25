@@ -71,7 +71,7 @@ export default function AccountMenu() {
     };
 
     if (!currentUser) return (
-        <Stack direction={'row'} spacing={1}>
+        <Stack direction={'row'} spacing={1} sx={{ mr: 1 }}>
             <Button
                 color="inherit"
                 onClick={() => { navigate(PATH_AUTH.register) }}
@@ -88,7 +88,7 @@ export default function AccountMenu() {
     );
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center', mr: 1 }}>
             { isMobile ?
                 <>
                     <IconButton
