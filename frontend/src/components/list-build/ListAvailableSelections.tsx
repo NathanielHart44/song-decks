@@ -303,8 +303,8 @@ function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: 
 export function sortItems(type: 'unit' | 'ncu' | 'attachment', items: Unit[] | NCU[] | Attachment[], filterSort: FilterSortType): Unit[] | NCU[] | Attachment[] {
     items.sort((a, b) => {
         // Check if items are of type 'Unit'
-        const isUnitA = 'unit_type' in a;
-        const isUnitB = 'unit_type' in b;
+        const isUnitA = 'attachments' in a;
+        const isUnitB = 'attachments' in b;
         const isAttachmentA = 'attachment_type' in a;
         const isAttachmentB = 'attachment_type' in b;
 
