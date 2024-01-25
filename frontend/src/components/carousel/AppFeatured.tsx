@@ -1,5 +1,4 @@
 import Slider from 'react-slick';
-import { m } from 'framer-motion';
 import { useState, useRef } from 'react';
 // @mui
 import { alpha, useTheme, styled } from '@mui/material/styles';
@@ -10,7 +9,6 @@ import { LandingPageInfo } from 'src/pages/LandingPage';
 import CarouselArrows from './CarouselArrows';
 import CarouselDots from './CarouselDots';
 import MotionContainer from '../animate/MotionContainer';
-import { varFade } from '../animate/fade';
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
