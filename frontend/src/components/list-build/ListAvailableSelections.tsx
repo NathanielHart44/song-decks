@@ -310,8 +310,8 @@ export function sortItems(type: 'unit' | 'ncu' | 'attachment', items: Unit[] | N
 
         let a_cost, b_cost, a_priority, b_priority;
 
-        const a_is_commander = (isAttachmentA && (a as Attachment).attachment_type === 'commander') || (isUnitA && (a as Unit).status === 'commander');
-        const b_is_commander = (isAttachmentB && (b as Attachment).attachment_type === 'commander') || (isUnitB && (b as Unit).status === 'commander');
+        const a_is_commander = isAttachmentA && (a as Attachment).attachment_type === 'commander';
+        const b_is_commander = isAttachmentB && (b as Attachment).attachment_type === 'commander';
 
         if (a_is_commander && !b_is_commander) return -1;
         if (!a_is_commander && b_is_commander) return 1;
