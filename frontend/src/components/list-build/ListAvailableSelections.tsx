@@ -303,26 +303,37 @@ function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: 
 export function sortItems(type: 'unit' | 'ncu' | 'attachment', items: Unit[] | NCU[] | Attachment[], filterSort: FilterSortType): Unit[] | NCU[] | Attachment[] {
     items.sort((a, b) => {
         // Check if items are of type 'Unit'
-        const isUnitA = 'attachments' in a;
-        const isUnitB = 'attachments' in b;
+        const isUnitA = 'unit_type' in a;
+        const isUnitB = 'unit_type' in b;
+
+        const isListUnitA = 'attachments' in a;
+        const isListUnitB = 'attachments' in b;
+
         const isAttachmentA = 'attachment_type' in a;
         const isAttachmentB = 'attachment_type' in b;
 
         let a_cost, b_cost, a_priority, b_priority;
 
-        const a_is_commander = isAttachmentA && (a as Attachment).attachment_type === 'commander';
-        const b_is_commander = isAttachmentB && (b as Attachment).attachment_type === 'commander';
+        const a_contains_commander = isAttachmentA && (a as Attachment).attachment_type === 'commander';
+        const b_contains_commander = isAttachmentB && (b as Attachment).attachment_type === 'commander';
 
-        if (a_is_commander && !b_is_commander) return -1;
-        if (!a_is_commander && b_is_commander) return 1;
-        if (a_is_commander && b_is_commander) {
+        if (a_contains_commander && !b_contains_commander) return -1;
+        if (!a_contains_commander && b_contains_commander) return 1;
+        if (a_contains_commander && b_contains_commander) {
             // Prioritize Faction commanders over Neutral commanders
             if (a.faction.neutral !== b.faction.neutral) {
                 return a.faction.neutral ? 1 : -1;
             }
         }
 
-        if (isUnitA) {
+        if (isUnitA && isUnitB) {
+            const a_unit_is_commander = (a as Unit).status === 'commander';
+            const b_unit_is_commander = (b as Unit).status === 'commander';
+            if (a_unit_is_commander && !b_unit_is_commander) return -1;
+            if (!a_unit_is_commander && b_unit_is_commander) return 1;
+        }
+
+        if (isListUnitA) {
             a_cost = a.points_cost + (a as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
             // Adjust priority based on faction, attachments
             a_priority = (a.faction.neutral ? 10 : 0) + ((a as Unit).attachments.length === 0 ? 50 : 0);
@@ -331,7 +342,7 @@ export function sortItems(type: 'unit' | 'ncu' | 'attachment', items: Unit[] | N
             a_priority = 300; // Default higher priority for NCU or Attachment
         }
     
-        if (isUnitB) {
+        if (isListUnitB) {
             b_cost = b.points_cost + (b as Unit).attachments.reduce((acc, att) => acc + att.points_cost, 0);
             // Adjust priority based on faction, attachments
             b_priority = (b.faction.neutral ? 10 : 0) + ((b as Unit).attachments.length === 0 ? 50 : 0);
