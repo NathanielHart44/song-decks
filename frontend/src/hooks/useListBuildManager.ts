@@ -205,6 +205,7 @@ const useListBuildManager = () => {
         formData.append('is_valid', 'true');
 
         apiCall(url, 'POST', formData, () => {
+            localStorage.setItem('usedListBuilder', 'true');
             enqueueSnackbar('List Saved!');
             navigate(PATH_PAGE.list_manager);
         });
