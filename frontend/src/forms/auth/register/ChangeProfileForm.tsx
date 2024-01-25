@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 // @mui
-import { Stack, IconButton, InputAdornment, Alert, TextField, Button } from '@mui/material';
+import { Stack, IconButton, InputAdornment, Alert, TextField, Button, Switch, Typography } from '@mui/material';
 // components
 import Iconify from '../../../components/base/Iconify';
 import { useApiCall } from 'src/hooks/useApiCall';
@@ -19,7 +19,8 @@ export default function ChangeProfileForm() {
 
   const [registerError, setRegisterError] = useState({ error: '' });
   const [awaitingResponse, setAwaitingResponse] = useState(false);
-
+  
+  const [changePassword, setChangePassword] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -139,66 +140,78 @@ export default function ChangeProfileForm() {
           value={allInfo.email}
           onChange={(event) => { setAllInfo({ ...allInfo, email: event.target.value }) }}
         />
-        <TextField
-          name="oldPassword"
-          label="Old Password"
-          variant="outlined"
-          size="small"
-          autoComplete="off"
-          fullWidth
-          type={showOldPassword ? 'text' : 'password'}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton edge="end" onClick={() => setShowOldPassword(!showOldPassword)}>
-                  <Iconify icon={showOldPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-          value={allInfo.oldPassword}
-          onChange={(event) => { setAllInfo({ ...allInfo, oldPassword: event.target.value }) }}
-        />
-        <TextField
-          name="newPassword"
-          label="New password"
-          variant="outlined"
-          size="small"
-          autoComplete="off"
-          fullWidth
-          type={showNewPassword ? 'text' : 'password'}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton edge="end" onClick={() => setShowNewPassword(!showNewPassword)}>
-                  <Iconify icon={showNewPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-          value={allInfo.newPassword}
-          onChange={(event) => { setAllInfo({ ...allInfo, newPassword: event.target.value }) }}
-        />
-        <TextField
-          name="confirmPassword"
-          label="Confirm password"
-          variant="outlined"
-          size="small"
-          autoComplete="off"
-          fullWidth
-          type={showConfirmPassword ? 'text' : 'password'}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton edge="end" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <Iconify icon={showConfirmPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-          value={allInfo.confirmPassword}
-          onChange={(event) => { setAllInfo({ ...allInfo, confirmPassword: event.target.value }) }}
-        />
+        <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+          <Typography color={'text.secondary'}>Change Password</Typography>
+          <Switch
+            checked={changePassword}
+            onChange={() => { setChangePassword(!changePassword) }}
+            inputProps={{ 'aria-label': 'controlled' }}
+          />
+        </Stack>
+        {changePassword &&
+          <>
+            <TextField
+              name="oldPassword"
+              label="Old Password"
+              variant="outlined"
+              size="small"
+              autoComplete="off"
+              fullWidth
+              type={showOldPassword ? 'text' : 'password'}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton edge="end" onClick={() => setShowOldPassword(!showOldPassword)}>
+                      <Iconify icon={showOldPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              value={allInfo.oldPassword}
+              onChange={(event) => { setAllInfo({ ...allInfo, oldPassword: event.target.value }) }}
+            />
+            <TextField
+              name="newPassword"
+              label="New password"
+              variant="outlined"
+              size="small"
+              autoComplete="off"
+              fullWidth
+              type={showNewPassword ? 'text' : 'password'}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton edge="end" onClick={() => setShowNewPassword(!showNewPassword)}>
+                      <Iconify icon={showNewPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              value={allInfo.newPassword}
+              onChange={(event) => { setAllInfo({ ...allInfo, newPassword: event.target.value }) }}
+            />
+            <TextField
+              name="confirmPassword"
+              label="Confirm password"
+              variant="outlined"
+              size="small"
+              autoComplete="off"
+              fullWidth
+              type={showConfirmPassword ? 'text' : 'password'}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton edge="end" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      <Iconify icon={showConfirmPassword ? 'eva:eye-fill' : 'eva:eye-off-fill'} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              value={allInfo.confirmPassword}
+              onChange={(event) => { setAllInfo({ ...allInfo, confirmPassword: event.target.value }) }}
+            />
+          </>
+        }
 
         <Button
           variant="contained"
