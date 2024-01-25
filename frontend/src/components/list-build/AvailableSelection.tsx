@@ -196,6 +196,8 @@ export function getItemTitle(item: Unit | Attachment | NCU, type: 'unit' | 'atta
             const total_attachment_points = (item as Unit).attachments.reduce((total, attachment) => total + attachment.points_cost, 0);
             item_title += ` (${item.points_cost}+${total_attachment_points})`;
         };
+    } else if (type === 'unit' && (item as Unit).status === 'commander') {
+        item_title = '(C) ' + item_title + ` (${item.points_cost})`;
     } else {
         item_title += ` (${item.points_cost})`;
     };

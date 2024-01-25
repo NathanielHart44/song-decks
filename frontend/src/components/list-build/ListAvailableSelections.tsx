@@ -81,6 +81,10 @@ export function ListAvailableSelections({
                     } else {
                         return false;
                     }
+                } else if (unit.status === 'commander') {
+                    if (listState.selectedCommander?.name !== unit.name) {
+                        return false;
+                    }
                 }
 
                 const unit_name = unit.name.toLowerCase();
@@ -299,15 +303,15 @@ function FilterComp({ filtersOpen, setFiltersOpen, filterSort, setFilterSort }: 
 export function sortItems(type: 'unit' | 'ncu' | 'attachment', items: Unit[] | NCU[] | Attachment[], filterSort: FilterSortType): Unit[] | NCU[] | Attachment[] {
     items.sort((a, b) => {
         // Check if items are of type 'Unit'
-        const isUnitA = 'attachments' in a;
-        const isUnitB = 'attachments' in b;
+        const isUnitA = 'unit_type' in a;
+        const isUnitB = 'unit_type' in b;
         const isAttachmentA = 'attachment_type' in a;
         const isAttachmentB = 'attachment_type' in b;
 
         let a_cost, b_cost, a_priority, b_priority;
 
-        const a_is_commander = isAttachmentA && (a as Attachment).attachment_type === 'commander';
-        const b_is_commander = isAttachmentB && (b as Attachment).attachment_type === 'commander';
+        const a_is_commander = (isAttachmentA && (a as Attachment).attachment_type === 'commander') || (isUnitA && (a as Unit).status === 'commander');
+        const b_is_commander = (isAttachmentB && (b as Attachment).attachment_type === 'commander') || (isUnitB && (b as Unit).status === 'commander');
 
         if (a_is_commander && !b_is_commander) return -1;
         if (!a_is_commander && b_is_commander) return 1;
