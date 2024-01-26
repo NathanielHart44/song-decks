@@ -19,7 +19,7 @@ export default function GameStartRouter() {
                         <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                             <NavButton
                                 title={'Classic Game'}
-                                text={"Select a your Faction and Commander, and you're ready to go!"}
+                                text={"Select a Faction and Commander, and you're ready to go!"}
                                 onClick={() => { navigate(PATH_PAGE.select_deck + '/classic') }}
                                 image={`${MAIN_API.asset_url_base}additional-assets/example_6.png`}
                             />
