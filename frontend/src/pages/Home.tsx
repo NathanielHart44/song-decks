@@ -93,7 +93,7 @@ export default function Home() {
                         <NavButton
                             title={'Site Proposals'}
                             text={'Ideas on how to improve the platform? Submit and favorite proposals to help us prioritize.'}
-                            image={`${MAIN_API.asset_url_base}additional-assets/example_8.png`}
+                            image={`${MAIN_API.asset_url_base}additional-assets/example_16.png`}
                             onClick={() => { navigate(PATH_PAGE.proposals) }}
                             isDisabled={awaitingResponse}
                         />
