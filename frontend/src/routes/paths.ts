@@ -26,6 +26,7 @@ export const PATH_PAGE = {
   admin: '/admin',
   tester: '/tester',
   profile: '/profile',
+  proposals: '/proposals',
   select_deck: '/select-deck',
   list_builder: '/list-builder',
   list_manager: '/list-manager',

@@ -14,6 +14,11 @@ export default function TesterPage() {
 
     const items = [
         {
+            title: "Website App",
+            description: "Looking to figure out all bugs and issues with the website app.",
+            link: `${PATH_PAGE.home}`
+        },
+        {
             title: "List Builder",
             description: "Looking to figure out all bugs and issues with the list builder.",
             link: `${PATH_PAGE.list_builder}`
@@ -22,11 +27,6 @@ export default function TesterPage() {
             title: "List Manager",
             description: "Trying to figure out what additional functionality should be included on this page. What would you guys like to see?",
             link: `${PATH_PAGE.list_manager}`
-        },
-        {
-            title: "Website App",
-            description: "Looking to figure out all bugs and issues with the website app.",
-            link: `${PATH_PAGE.home}`
         }
     ]
 
@@ -73,22 +73,24 @@ function ListItemCont({ title, description, link, text_color }: ListItemContProp
                 <Typography variant={'subtitle2'} color={text_color} paragraph sx={{ textAlign: 'center', mb: 0 }}>
                     {description}
                 </Typography>
-                {link !== "" &&
+                <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'} width={'100%'}>
+                    {link !== "" &&
+                        <Button
+                            variant={'contained'}
+                            onClick={() => { navigate(link) }}
+                            fullWidth
+                        >
+                            Try Out
+                        </Button>
+                    }
                     <Button
-                        variant={'contained'}
-                        onClick={() => { navigate(link) }}
+                        variant={'outlined'}
+                        onClick={handleFeedback}
                         fullWidth
                     >
-                        Try Out
+                        Feedback
                     </Button>
-                }
-                <Button
-                    variant={'outlined'}
-                    onClick={handleFeedback}
-                    fullWidth
-                >
-                    Feedback
-                </Button>
+                </Stack>
             </Stack>
             <ContactPop
                 popOpen={feedbackOpen}

@@ -54,8 +54,9 @@ export default function Router() {
         { path: 'manage', element: withModeratorGuard(<ManageContent />) },
         { path: 'admin', element: withAdminGuard(<AdminPage />) },
         { path: 'tester', element: withTesterGuard(<TesterPage />) },
-
+        
         { path: 'profile', element: withAuthGuard(<ProfilePage />) },
+        { path: 'proposals', element: withAuthGuard(<ProposalsAndTasksPage />) },
         {
           path: 'list-builder',
           element: withAuthGuard(<ListBuilder />),
@@ -92,3 +93,4 @@ const ListBuilder = Loadable(lazy(() => import('src/pages/ListBuilder')));
 const ListManager = Loadable(lazy(() => import('src/pages/ListManager')));
 const GameStartRouter = Loadable(lazy(() => import('src/pages/GameStartRouter')));
 const TesterPage = Loadable(lazy(() => import('src/pages/TesterPage')));
+const ProposalsAndTasksPage = Loadable(lazy(() => import('src/pages/ProposalsAndTasksPage')));
