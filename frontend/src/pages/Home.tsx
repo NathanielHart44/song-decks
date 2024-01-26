@@ -125,22 +125,22 @@ export default function Home() {
                                 text={
                                     isIOS ?
                                     'Want to install the app? Just tap the share button, then "Add to Home Screen".' :
-                                    'Install the app to your device for a better experience.'
+                                    installPrompt ? 'Install the app to your device for a better experience.' : 'Unable to install app. Please try again now.'
                                 }
                                 image={`${MAIN_API.asset_url_base}additional-assets/example_14.png`}
                                 onClick={isIOS ? () => { } : handleInstallClick}
-                                isDisabled={awaitingResponse || (isIOS && !isPWA)}
+                                isDisabled={awaitingResponse || (isIOS && !isPWA) || !installPrompt}
                             />
                         </Grid>
                     }
-                    {is_tester && (isPWA || appInstalled) && 
+                    {is_tester && (isPWA || appInstalled || !installPrompt) &&
                         <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                             <NavButton
                                 title={'App Installed'}
                                 text={'The app has been installed.'}
                                 image={`${MAIN_API.asset_url_base}additional-assets/example_14.png`}
                                 onClick={() => { }}
-                                isDisabled={awaitingResponse || appInstalled}
+                                isDisabled={awaitingResponse || appInstalled || isPWA}
                             />
                         </Grid>
                     }
