@@ -47,7 +47,7 @@ export default function NavButton({ title, text, image, onClick, isDisabled }: P
                                 zIndex: 9,
                                 textAlign: 'left',
                                 position: 'absolute',
-                                backgroundColor: (theme) => alpha(theme.palette.grey[900], 0.85),
+                                backgroundColor: (theme) => alpha(theme.palette.grey[900], 0.9),
                             }}
                         >
                             <ContentDiv
