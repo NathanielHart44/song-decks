@@ -24,6 +24,14 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
     const { lc } = useParams();
     const is_edit = (lc !== undefined && lc !== null);
 
+    let icon_sizing = 'normal';
+    if (isMobile) {
+        const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        if (vw < 380) {
+            icon_sizing = 'small';
+        };
+    };
+
     const theme = useTheme();
     const text_color = theme.palette.grey[500];
     const point_error_color = theme.palette.secondary.main;
@@ -109,21 +117,26 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
                             icon={
                                 <Stack justifyContent={'center'} alignItems={'center'}>
                                     <Stack direction={'row'} justifyContent={'center'} alignItems={'center'} spacing={0.5}>
-                                        <Typography variant={'subtitle1'} color={usedPoints > maxPoints ? point_error_color : text_color}>{usedPoints}</Typography>
-                                        <Typography variant={'subtitle1'} color={text_color}>/</Typography>
-                                        <Typography variant={'subtitle1'} color={text_color}>{maxPoints}</Typography>
+                                        <Typography variant={icon_sizing === 'small' ? 'subtitle2' : 'subtitle1'} color={usedPoints > maxPoints ? point_error_color : text_color}>{usedPoints}</Typography>
+                                        <Typography variant={icon_sizing === 'small' ? 'subtitle2' : 'subtitle1'} color={text_color}>/</Typography>
+                                        <Typography variant={icon_sizing === 'small' ? 'subtitle2' : 'subtitle1'} color={text_color}>{maxPoints}</Typography>
                                     </Stack>
                                 </Stack>
                             }
+                            sx={{ minWidth: "60px" }}
                         />
                         {middleItems.map(item => (
                             <BottomNavigationAction
                                 key={item.value}
                                 value={item.value}
                                 label={item.label}
-                                icon={<Iconify icon={item.icon} width={'55%'} height={'55%'} />}
+                                icon={
+                                    <Iconify icon={item.icon} width={'55%'} height={'55%'} />
+                                }
                                 sx={{
+                                    minWidth: "60px",
                                     ...(shouldFlash && { animation: `${getPulse()} 1s ease-in-out infinite` }),
+                                    whiteSpace: 'nowrap',
                                 }}
                             />
                         ))}
@@ -140,6 +153,7 @@ export function SelectView({ usedPoints, maxPoints, selectedFaction, selectedCom
                                     <SaveIcon />
                                 </Badge>
                             }
+                            sx={{ minWidth: "60px" }}
                         />
                     </BottomNavigation>
                 </Paper>
