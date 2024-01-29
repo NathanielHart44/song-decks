@@ -31,7 +31,8 @@ export function NCUDisplay({ isMobile, ncu, ncus, setNCUs, factions }: CardDispl
                 }}
             >
                 <img
-                    src={ncu.main_url}
+                    // TODO: Remove the query string when the image is updated
+                    src={ncu.main_url + '?s04'}
                     alt={ncu.name}
                     loading="eager"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}

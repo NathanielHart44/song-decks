@@ -31,7 +31,8 @@ export function AttachmentDisplay({ isMobile, attachment, attachments, setAttach
                 }}
             >
                 <img
-                    src={attachment.main_url}
+                    // TODO: Remove the query string when the image is updated
+                    src={attachment.main_url + '?s04'}
                     alt={attachment.name}
                     loading="eager"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}

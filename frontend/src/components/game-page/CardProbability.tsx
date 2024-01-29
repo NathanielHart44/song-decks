@@ -225,7 +225,8 @@ export function TacticCardImg({ isMobile, img_url, card_name, onClick }: TacticC
             onClick={onClick}
         >
             <img
-                src={img_url}
+                // TODO: Remove the query string when the image is updated
+                src={img_url + '?s04'}
                 alt={card_name}
                 loading="eager"
                 style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}

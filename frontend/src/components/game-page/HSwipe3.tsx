@@ -149,7 +149,8 @@ function CardContents({ scale, card_width, card_height, hide, card, position}: C
         {/* Card Image */}
         {!hide && card && card.card_template &&
             <img
-                src={card.card_template.img_url}
+                // TODO: Remove the query string when the image is updated
+                src={card.card_template.img_url + '?s04'}
                 alt="Overlay SVG"
                 loading="eager"
                 style={{

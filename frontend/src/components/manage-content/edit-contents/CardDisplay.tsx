@@ -33,7 +33,8 @@ export function CardDisplay({ isMobile, card, cards, defaultCards, factions, com
                 }}
             >
                 <img
-                    src={card.img_url}
+                    // TODO: Remove the query string when the image is updated
+                    src={card.img_url + '?s04'}
                     alt={card.card_name}
                     loading="eager"
                     style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}

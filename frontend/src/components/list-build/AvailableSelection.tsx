@@ -121,7 +121,8 @@ export function AvailableSelection({ type, index, item, disabledItems, in_list, 
                         }
                         <Box sx={getImgSizing(isMobile)} onClick={event => event.stopPropagation()}>
                             <img
-                                src={viewedItem.main_url}
+                                // TODO: Remove the query string when the image is updated
+                                src={viewedItem.main_url + '?s04'}
                                 alt={viewedItem.name + ' main image'}
                                 loading="eager"
                                 style={{ borderRadius: '6px', width: '100%', height: '100%', objectFit: 'contain' }}
