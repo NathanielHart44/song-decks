@@ -17,7 +17,7 @@ type SelectableAvatarProps = {
 export function SelectableAvatar({ altText, handleClick, item, isMobile, attachments, defaultIcon, disabled, sxOverrides }: SelectableAvatarProps) {
 
     const theme = useTheme();
-    const avatar_size = isMobile ? 100 : 80;
+    const avatar_size = 80;
     const is_iconify = defaultIcon && defaultIcon.includes(':');
 
     const avatarStyles = {
