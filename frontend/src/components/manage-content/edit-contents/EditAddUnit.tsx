@@ -100,7 +100,7 @@ export default function EditAddUnit({
     }
 
     const formValid = () => {
-        if (!mainUnit.name || !mainUnit.img_url || !mainUnit.faction || !mainUnit.main_url || !mainUnit.points_cost) {
+        if (!mainUnit.name || !mainUnit.img_url || !mainUnit.faction || !mainUnit.main_url) {
             return false;
         }
         return true;

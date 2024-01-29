@@ -75,7 +75,7 @@ export default function EditAddNCU({
     };
 
     const formValid = () => {
-        if (!mainNCU.name || !mainNCU.img_url || !mainNCU.faction || !mainNCU.main_url || !mainNCU.points_cost) {
+        if (!mainNCU.name || !mainNCU.img_url || !mainNCU.faction || !mainNCU.main_url) {
             return false;
         }
         return true;
