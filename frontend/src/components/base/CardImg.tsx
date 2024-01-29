@@ -30,6 +30,7 @@ export default function CardImg({ img_url, card_name, has_text, onClickFunc }: P
         >
             <Stack spacing={hide ? 0 : 1} justifyContent={'center'} alignItems={'center'} sx={{ width: '100%' }}>
                 <img
+                    // TODO: Remove the query string when the image is updated
                     src={img_url + '?s04'}
                     alt={card_name}
                     style={{
