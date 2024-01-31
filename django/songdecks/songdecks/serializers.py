@@ -23,6 +23,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name')
 
+class StatsUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 'last_login')
+
 class ShortProfileSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField(read_only=True)
     full_name = serializers.SerializerMethodField(read_only=True)
@@ -57,8 +63,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Only admins can change the moderator status.")
         return value
 
-class TopProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+class StatsProfileSerializer(serializers.ModelSerializer):
+    user = StatsUserSerializer(read_only=True)
     total_game_count = serializers.IntegerField(read_only=True)
     total_list_count = serializers.IntegerField(read_only=True)
 

@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from songdecks.serializers import (ProfileSerializer, TopProfileSerializer)
+from songdecks.serializers import (StatsProfileSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Game, List)
 from songdecks.views.helpers import get_last_acceptable_date, calculate_avg_last_login
@@ -103,7 +103,7 @@ def get_all_users(request):
         info = {
             "average_last_login": calculate_avg_last_login(profiles),
             "total": profiles.count(),
-            "profiles": ProfileSerializer(profiles, many=True).data
+            "profiles": StatsProfileSerializer(profiles, many=True).data
         }
         return JsonResponse({"success": True, "response": info})
     except Exception as e:
@@ -116,7 +116,7 @@ def get_all_admins(request):
         if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         profiles = Profile.objects.filter(admin=True)
-        serializer = ProfileSerializer(profiles, many=True)
+        serializer = StatsProfileSerializer(profiles, many=True)
 
         res = {
             "average_last_login": calculate_avg_last_login(profiles),
@@ -134,7 +134,7 @@ def get_all_testers(request):
         if profile.admin == False:
             return JsonResponse({"success": False, "response": "You do not have permission to perform this action."})
         profiles = Profile.objects.filter(tester=True)
-        serializer = ProfileSerializer(profiles, many=True)
+        serializer = StatsProfileSerializer(profiles, many=True)
 
         res = {
             "average_last_login": calculate_avg_last_login(profiles),
@@ -362,9 +362,9 @@ def get_top_users(request, count):
         most_lists = anno_profiles.order_by('-total_list_count')[:count]
         most_sessions = anno_profiles.order_by('-session_count')[:count]
 
-        most_games_serializer = TopProfileSerializer(most_games, many=True)
-        most_lists_serializer = TopProfileSerializer(most_lists, many=True)
-        most_sessions_serializer = TopProfileSerializer(most_sessions, many=True)
+        most_games_serializer = StatsProfileSerializer(most_games, many=True)
+        most_lists_serializer = StatsProfileSerializer(most_lists, many=True)
+        most_sessions_serializer = StatsProfileSerializer(most_sessions, many=True)
 
         response_data = {
             'most_games': {
