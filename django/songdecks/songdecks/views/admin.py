@@ -301,11 +301,11 @@ def get_list_daily_stats(request, accepted_days, is_cumulative):
                 total_lists_count = lists.filter(created_at__date__lte=current_date).count()
                 users_with_lists_count = lists.filter(created_at__date__lte=current_date).values('owner').distinct().count()
             else:
-                profiles_with_first_list_date = profiles.annotate(first_list_date=Min('owned_lists__created_at__date'))
-                first_list_count = profiles_with_first_list_date.filter(
-                    first_list_date=current_date,
-                    owned_lists__created_at__date__gte=current_date
-                ).distinct().count()
+                profiles_with_lists_today = profiles.filter(owned_lists__created_at__date=current_date).distinct()
+                profiles_with_only_first_list_today = profiles_with_lists_today.exclude(
+                    owned_lists__created_at__date__lt=current_date
+                )
+                first_list_count = profiles_with_only_first_list_today.count()
 
             for type in types:
                 if type not in all_results:
