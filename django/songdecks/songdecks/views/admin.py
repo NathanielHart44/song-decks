@@ -286,10 +286,12 @@ def get_list_daily_stats(request, accepted_days, is_cumulative):
         profiles = Profile.objects.exclude(user__username='admin', admin=False)
 
         all_results = {}
-        types = ['users_with_lists', 'new_lists', 'first_list']
+        types = ['new_lists']
         if is_cumulative == 'true':
             types.append('total_lists')
-            types.remove('first_list')
+            types.append('users_with_lists')
+        else:
+            types.append('first_list')
         for i in range(accepted_days):
             current_date = get_last_acceptable_date(i)
 
@@ -299,7 +301,6 @@ def get_list_daily_stats(request, accepted_days, is_cumulative):
                 total_lists_count = lists.filter(created_at__date__lte=current_date).count()
                 users_with_lists_count = lists.filter(created_at__date__lte=current_date).values('owner').distinct().count()
             else:
-                users_with_lists_count = lists.filter(created_at__date=current_date).values('owner').distinct().count()
                 first_list_count = profiles.annotate(first_list_date=Min('owned_lists__created_at__date')).filter(first_list_date=current_date).count()
 
             for type in types:
