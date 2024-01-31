@@ -348,22 +348,6 @@ def get_top_users(request, count):
 
         profiles = Profile.objects.exclude(user__username='admin', admin=False)
 
-        # most_games = profiles.annotate(total_game_count=Count('game', distinct=True)).order_by('-total_game_count')[:count]
-        # most_lists = profiles.annotate(total_list_count=Count('owned_lists', distinct=True)).order_by('-total_list_count')[:count]
-        # most_sessions = profiles.order_by('-session_count')[:count]
-
-        # # Serializing data with the new serializer
-        # most_games_serializer = TopProfileSerializer(most_games, many=True)
-        # most_lists_serializer = TopProfileSerializer(most_lists, many=True)
-        # most_sessions_serializer = TopProfileSerializer(most_sessions, many=True)
-
-        # # Constructing response
-        # response_data = {
-        #     'most_games': most_games_serializer.data,
-        #     'most_lists': most_lists_serializer.data,
-        #     'most_sessions': most_sessions_serializer.data
-        # }
-
         anno_profiles = profiles.annotate(
             total_game_count=Count('game', distinct=True),
             total_list_count=Count('owned_lists', distinct=True),
@@ -378,9 +362,18 @@ def get_top_users(request, count):
         most_sessions_serializer = TopProfileSerializer(most_sessions, many=True)
 
         response_data = {
-            'most_games': most_games_serializer.data,
-            'most_lists': most_lists_serializer.data,
-            'most_sessions': most_sessions_serializer.data
+            'most_games': {
+                'count': f"{most_games.count()}/{count}",
+                'profiles': most_games_serializer.data
+            },
+            'most_lists': {
+                'count': f"{most_lists.count()}/{count}",
+                'profiles': most_lists_serializer.data
+            },
+            'most_sessions': {
+                'count': f"{most_sessions.count()}/{count}",
+                'profiles': most_sessions_serializer.data
+            }
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
