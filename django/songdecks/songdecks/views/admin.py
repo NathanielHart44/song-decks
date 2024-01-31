@@ -363,15 +363,15 @@ def get_top_users(request, count):
 
         response_data = {
             'most_games': {
-                'count': f"{most_games.count()}/{count}",
+                'count': most_games.count(),
                 'profiles': most_games_serializer.data
             },
             'most_lists': {
-                'count': f"{most_lists.count()}/{count}",
+                'count': most_lists.count(),
                 'profiles': most_lists_serializer.data
             },
             'most_sessions': {
-                'count': f"{most_sessions.count()}/{count}",
+                'count': most_sessions.count(),
                 'profiles': most_sessions_serializer.data
             }
         }
