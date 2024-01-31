@@ -350,7 +350,7 @@ def get_top_users(request, count):
 
         most_games = profiles.annotate(total_game_count=Count('game', distinct=True)).order_by('-total_game_count')[:count]
         most_lists = profiles.annotate(total_list_count=Count('owned_lists', distinct=True)).order_by('-total_list_count')[:count]
-        most_sessions = profiles.annotate(total_session_count=Count('session_count', distinct=True)).order_by('-total_session_count')[:count]
+        most_sessions = profiles.order_by('-session_count')[:count]
 
         # Serializing data with the new serializer
         most_games_serializer = TopProfileSerializer(most_games, many=True)
