@@ -291,7 +291,7 @@ def get_list_daily_stats(request, accepted_days, is_cumulative):
             types.append('total_lists')
             types.append('users_with_lists')
         else:
-            types.append('first_list')
+            types.append('created_first_list')
         for i in range(accepted_days):
             current_date = get_last_acceptable_date(i)
 
