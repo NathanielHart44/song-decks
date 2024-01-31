@@ -1,4 +1,4 @@
-from django.db.models import Count, Q, Sum, QuerySet, Min
+from django.db.models import Count, Q, Sum, QuerySet, Min, F
 from typing import Tuple
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -346,18 +346,37 @@ def get_top_users(request, count):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        profiles = Profile.objects.exclude(user__username='admin', admin=False)
+        # profiles = Profile.objects.exclude(user__username='admin', admin=False)
 
-        most_games = profiles.annotate(total_game_count=Count('game', distinct=True)).order_by('-total_game_count')[:count]
-        most_lists = profiles.annotate(total_list_count=Count('owned_lists', distinct=True)).order_by('-total_list_count')[:count]
+        # most_games = profiles.annotate(total_game_count=Count('game', distinct=True)).order_by('-total_game_count')[:count]
+        # most_lists = profiles.annotate(total_list_count=Count('owned_lists', distinct=True)).order_by('-total_list_count')[:count]
+        # most_sessions = profiles.order_by('-session_count')[:count]
+
+        # # Serializing data with the new serializer
+        # most_games_serializer = TopProfileSerializer(most_games, many=True)
+        # most_lists_serializer = TopProfileSerializer(most_lists, many=True)
+        # most_sessions_serializer = TopProfileSerializer(most_sessions, many=True)
+
+        # # Constructing response
+        # response_data = {
+        #     'most_games': most_games_serializer.data,
+        #     'most_lists': most_lists_serializer.data,
+        #     'most_sessions': most_sessions_serializer.data
+        # }
+
+        profiles = profiles.annotate(
+            total_game_count=Count('game', distinct=True),
+            total_list_count=Count('owned_lists', distinct=True),
+        )
+
+        most_games = profiles.order_by('-total_game_count')[:count]
+        most_lists = profiles.order_by('-total_list_count')[:count]
         most_sessions = profiles.order_by('-session_count')[:count]
 
-        # Serializing data with the new serializer
         most_games_serializer = TopProfileSerializer(most_games, many=True)
         most_lists_serializer = TopProfileSerializer(most_lists, many=True)
         most_sessions_serializer = TopProfileSerializer(most_sessions, many=True)
 
-        # Constructing response
         response_data = {
             'most_games': most_games_serializer.data,
             'most_lists': most_lists_serializer.data,
