@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -5,6 +6,7 @@ from songdecks.serializers import ListSerializer
 from songdecks.models import (
     Profile, List, ListUnit, Unit, ListNCU, NCU, Faction, Commander, Attachment
 )
+from songdecks.views.helpers import valid_for_neutrals
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.core.exceptions import ValidationError
@@ -95,6 +97,10 @@ def add_edit_list(request, list_id=None):
 
             if info['units']:
                 ListUnit.objects.filter(list=list_instance).delete()
+                if valid_for_neutrals(faction):
+                    neutral_faction = Faction.objects.get(name='Neutral')
+                else:
+                    neutral_faction = None
                 attached_commander = None
                 for unit_info in info['units']:
                     unit_instance = get_object_or_404(Unit, id=unit_info['id'])
@@ -107,7 +113,13 @@ def add_edit_list(request, list_id=None):
                             raise ValidationError(f"Multiple commanders assigned to the list: {attached_commander.name} and {unit_instance.name}")
                         attached_commander = unit_instance
                     if unit_info['attachments']:
-                        attachments = Attachment.objects.filter(id__in=unit_info['attachments'], faction=faction.id)
+                        if neutral_faction:
+                            attachments = Attachment.objects.filter(
+                                Q(faction=faction.id) | Q(faction=neutral_faction.id),
+                                id__in=unit_info['attachments']
+                            )
+                        else:
+                            attachments = Attachment.objects.filter(faction=faction.id, id__in=unit_info['attachments'])
                         if 'commander' in [attachment.attachment_type for attachment in attachments]:
                             if attached_commander:
                                 raise ValidationError("Multiple commanders assigned to the list.")
@@ -116,12 +128,25 @@ def add_edit_list(request, list_id=None):
                     list_unit.save()
 
                 if attached_commander is None:
-                    raise ValidationError(f"Commander is not attached. {attached_commander}")
+                    raise ValidationError(f"Commander is not attached.")
                 
                 if commander.commander_type == 'attachment':
-                    commander_attachment = Attachment.objects.filter(attachment_type='commander', name=attached_commander.name, faction=faction.id).first()
+                    if neutral_faction:
+                        commander_attachment = Attachment.objects.filter(
+                            Q(faction=faction.id) | Q(faction=neutral_faction.id),
+                            attachment_type='commander',
+                            name=attached_commander.name,
+                        ).first()
+                    else:
+                        commander_attachment = Attachment.objects.filter(attachment_type='commander', name=attached_commander.name, faction=faction.id).first()
                     if commander_attachment is None:
-                        all_attachments = Attachment.objects.filter(attachment_type='commander', faction=faction.id)
+                        if neutral_faction:
+                            all_attachments = Attachment.objects.filter(
+                                Q(faction=faction.id) | Q(faction=neutral_faction.id),
+                                attachment_type='commander'
+                            )
+                        else:
+                            all_attachments = Attachment.objects.filter(attachment_type='commander', faction=faction.id)
                         all_attachments_names = [attachment.name for attachment in all_attachments]
 
                         raise ValidationError(f"Commander's Attachment not found. ({attached_commander.name}) - ({all_attachments_names})")
