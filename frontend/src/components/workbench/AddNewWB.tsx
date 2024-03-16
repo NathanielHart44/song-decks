@@ -40,5 +40,4 @@ export default function AddNewWB({ isMobile, handleClick }: AddNewProps) {
             />
         </Card>
     );
-}
-;
+};
