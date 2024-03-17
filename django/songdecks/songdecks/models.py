@@ -131,6 +131,7 @@ class Unit(ExportModelOperationsMixin('unit'), models.Model):
     status = models.CharField(max_length=20, choices=UNIT_STATUS_CHOICES, default='generic')
     attached_commander = models.ForeignKey(Commander, null=True, blank=True, on_delete=models.SET_NULL)
     max_in_list = models.PositiveIntegerField(null=True, blank=True)
+    is_adaptive = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.name} - {self.unit_type} - {self.faction.name}'

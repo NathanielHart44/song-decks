@@ -48,6 +48,7 @@ def add_edit_unit(request, unit_id=None):
             'unit_type': request.data.get('unit_type'),
             'img_url': request.data.get('img_url'),
             'main_url': request.data.get('main_url'),
+            'is_adaptive': request.data.get('is_adaptive') == 'true',
             'faction_id': request.data.get('faction_id'),
         }
 
@@ -88,6 +89,7 @@ def add_edit_unit(request, unit_id=None):
                 unit_type=info['unit_type'],
                 img_url=info['img_url'],
                 main_url=info['main_url'],
+                is_adaptive=info['is_adaptive'],
                 faction=faction
             )
             if info['max_in_list'] is not None:
@@ -111,6 +113,7 @@ def add_edit_unit(request, unit_id=None):
             unit.unit_type = info['unit_type']
             unit.img_url = info['img_url']
             unit.main_url = info['main_url']
+            unit.is_adaptive = info['is_adaptive']
             unit.faction = faction
         unit.save()
 

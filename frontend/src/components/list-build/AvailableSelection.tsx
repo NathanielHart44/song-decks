@@ -189,13 +189,18 @@ export function getItemTitle(item: Unit | Attachment | NCU, type: 'unit' | 'atta
         item_title += ` (${(item as Attachment).attachment_type === 'commander' ? 'C' : item.points_cost})`;
     } else if (contains_attachments) {
         const includes_commander = (item as Unit).attachments.some(attachment => attachment.attachment_type === 'commander');
-        if (includes_commander) {
+        if (includes_commander && (item as Unit).attachments.length === 1) {
             item_title = '(C) ' + item_title + ` (${item.points_cost})`;
         };
         const non_commander_attachments = (item as Unit).attachments.filter(attachment => attachment.attachment_type !== 'commander');
         if (non_commander_attachments.length > 0) {
+            if (includes_commander) { item_title = '(C) ' + item_title };
             const total_attachment_points = (item as Unit).attachments.reduce((total, attachment) => total + attachment.points_cost, 0);
-            item_title += ` (${item.points_cost}+${total_attachment_points})`;
+            if ((item as Unit).is_adaptive && total_attachment_points > 0) {
+                item_title += ` (${item.points_cost}+${total_attachment_points - 1})`;
+            } else if (total_attachment_points > 0) {
+                item_title += ` (${item.points_cost}+${total_attachment_points})`;
+            };
         };
     } else if (type === 'unit' && (item as Unit).status === 'commander') {
         item_title = '(C) ' + item_title + ` (${item.points_cost})`;

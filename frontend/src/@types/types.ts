@@ -102,6 +102,7 @@ export type Unit = {
     status: 'commander' | 'commander_unit' | 'generic';
     attached_commander: Commander | null;
     max_in_list: number | null;
+    is_adaptive: boolean;
 };
 
 export type FakeUnit = {
@@ -117,6 +118,7 @@ export type FakeUnit = {
     status: 'commander' | 'commander_unit' | 'generic';
     attached_commander: Commander | null;
     max_in_list: number | null;
+    is_adaptive: boolean;
 };
 
 export type List = {

@@ -3,9 +3,11 @@ import {
     Button,
     Dialog,
     Stack,
+    Switch,
     TextField,
     ToggleButton,
     ToggleButtonGroup,
+    Typography,
     useTheme
 } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -144,6 +146,7 @@ export default function EditAddUnit({
         formData.append('img_url', mainUnit.img_url);
         formData.append('main_url', mainUnit.main_url);
         formData.append('faction_id', mainUnit.faction.id.toString());
+        formData.append('is_adaptive', mainUnit.is_adaptive.toString());
         formData.append('status', mainUnit.status);
         if (mainUnit.attached_commander && mainUnit.status !== 'generic') {
             formData.append('attached_commander', mainUnit.attached_commander.id.toString());
@@ -290,6 +293,13 @@ export default function EditAddUnit({
                             onChange={handlePointsCostChange}
                             label="Points Cost"
                         />
+                        <Stack direction={'row'} spacing={1} justifyContent={'center'} alignItems={'center'}>
+                            <Typography>Is Adaptive</Typography>
+                            <Switch
+                                checked={mainUnit.is_adaptive}
+                                onChange={() => setMainUnit({ ...mainUnit, is_adaptive: !mainUnit.is_adaptive })}
+                            />
+                        </Stack>
                         <ToggleButtonGroup
                             color="primary"
                             value={mainUnit.status}

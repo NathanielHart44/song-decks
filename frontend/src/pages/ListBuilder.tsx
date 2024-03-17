@@ -21,6 +21,7 @@ import { ListAvailableSelections } from "../components/list-build/ListAvailableS
 import Page from "src/components/base/Page";
 import { useParams } from "react-router-dom";
 import { SavePage } from "../components/list-build/SavePage";
+import { unitContainsNonCommanderAttachment } from "src/components/list-manage/ListDisplay";
 
 // ----------------------------------------------------------------------
 
@@ -146,7 +147,10 @@ export default function ListBuilder() {
         let newUsedPoints = 0;
         listState.selectedUnits.forEach((unit) => {
             newUsedPoints += unit.points_cost;
-            unit.attachments.forEach((attachment) => { newUsedPoints += attachment.points_cost });
+            unit.attachments.forEach((attachment) => {
+                newUsedPoints += attachment.points_cost;
+                if (unit.is_adaptive && unitContainsNonCommanderAttachment(unit)) { newUsedPoints -= 1 };
+            });
         });
         listState.selectedNCUs.forEach((ncu) => { newUsedPoints += ncu.points_cost });
         listDispatch({ type: 'SET_USED_POINTS', payload: newUsedPoints });

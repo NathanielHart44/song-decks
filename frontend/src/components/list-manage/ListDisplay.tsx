@@ -1,6 +1,6 @@
 import { Autocomplete, Box, Button, Container, Dialog, Divider, Grid, IconButton, Paper, Skeleton, Stack, SxProps, TextField, Theme, Tooltip, Typography, createFilterOptions, useTheme } from "@mui/material";
 import { useContext, useState } from "react";
-import { List, ShortProfile } from "src/@types/types";
+import { List, ShortProfile, Unit } from "src/@types/types";
 import Iconify from "src/components/base/Iconify";
 import { useNavigate } from "react-router-dom";
 import { PATH_PAGE } from "src/routes/paths";
@@ -435,12 +435,17 @@ function ListSender({ selectedList, allShortProfiles, dialogOpen, setDialogOpen 
 
 // ----------------------------------------------------------------------
 
+export function unitContainsNonCommanderAttachment(unit: Unit) {
+    return unit.attachments.some((attachment) => attachment.attachment_type === 'generic' || attachment.attachment_type === 'character');
+};
+
 export function calcTotalPoints(list: List) {
     let total = 0;
     list.units.forEach((unit) => {
         total += unit.points_cost;
         unit.attachments.forEach((attachment) => {
             total += attachment.points_cost;
+            if (unit.is_adaptive && unitContainsNonCommanderAttachment(unit)) { total -= 1 };
         });
     });
     list.ncus.forEach((ncu) => {
@@ -457,6 +462,7 @@ export function calcNeutralPoints(list: List) {
             unit.attachments.forEach((attachment) => {
                 if (attachment.faction.neutral) {
                     total += attachment.points_cost;
+                    if (unit.is_adaptive && unitContainsNonCommanderAttachment(unit)) { total -= 1 };
                 }
             });
         }
