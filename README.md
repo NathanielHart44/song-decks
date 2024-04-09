@@ -35,21 +35,21 @@ docker compose run web python3 /songdecks/manage.py createsuperuser
 
 Run the following command locally to upload the build to Docker Hub:
 ```
-docker build --platform=linux/amd64 -t cmajorb/asoiaf-decks:latest-amd64 .
+docker build --platform=linux/amd64 -t nhart4141/asoiaf-decks:latest-amd64 .
 ```
 ```
 docker images
 ```
 (Use this to get the id for the next step)
 ```
-docker tag <ID> cmajorb/asoiaf-decks:latest-amd64
-docker push cmajorb/asoiaf-decks:latest-amd64
+docker tag <ID> nhart4141/asoiaf-decks:latest-amd64
+docker push nhart4141/asoiaf-decks:latest-amd64
 ```
 (replace the `<ID>` with your own image id)
 
 After logging into the server, run the following commands:
 ```
-docker pull cmajorb/asoiaf-decks:latest-amd64
+docker pull nhart4141/asoiaf-decks:latest-amd64
 ```
 ```
 docker compose up -d

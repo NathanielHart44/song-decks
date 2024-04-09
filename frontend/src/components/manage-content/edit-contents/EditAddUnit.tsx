@@ -146,6 +146,7 @@ export default function EditAddUnit({
         formData.append('img_url', mainUnit.img_url);
         formData.append('main_url', mainUnit.main_url);
         formData.append('faction_id', mainUnit.faction.id.toString());
+        
         if (mainUnit.is_adaptive) {
             formData.append('is_adaptive', 'true');
         } else {
