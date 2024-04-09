@@ -146,7 +146,11 @@ export default function EditAddUnit({
         formData.append('img_url', mainUnit.img_url);
         formData.append('main_url', mainUnit.main_url);
         formData.append('faction_id', mainUnit.faction.id.toString());
-        formData.append('is_adaptive', mainUnit.is_adaptive.toString());
+        if (mainUnit.is_adaptive) {
+            formData.append('is_adaptive', 'true');
+        } else {
+            formData.append('is_adaptive', 'false');
+        }
         formData.append('status', mainUnit.status);
         if (mainUnit.attached_commander && mainUnit.status !== 'generic') {
             formData.append('attached_commander', mainUnit.attached_commander.id.toString());
