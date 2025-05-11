@@ -9,7 +9,6 @@ COPY ./requirements.txt /tmp/requirements.txt
 RUN set -ex && \
     echo "Running base stage" && \
     apt-get update && \
-    apt-get install -y default-mysql-client default-libmysqlclient-dev pkg-config gcc curl && \
     pip install --upgrade pip && \
     pip install --upgrade setuptools && \
     pip install -r /tmp/requirements.txt && \

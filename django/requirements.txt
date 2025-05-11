@@ -9,7 +9,7 @@ djangorestframework
 djangorestframework-simplejwt
 drf-jwt~=1.19.2
 google-auth
-mysqlclient
 pandas
+psycopg2-binary
 requests
 uwsgi
