@@ -97,6 +97,7 @@ CORS_ALLOWED_ORIGINS = [
      env('BASE_URL') + ':8080',
      env('BASE_URL') + ':3000',
      env('BASE_URL'),
+     env('BE_URL'),
 ]
 
 ROOT_URLCONF = 'songdecks.urls'
