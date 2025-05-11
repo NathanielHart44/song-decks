@@ -30,14 +30,13 @@ CMD ["python", "songdecks/manage.py", "runserver", "0.0.0.0:80"]
 FROM base AS flyio
 
 RUN echo "Running Fly.io stage" && \
-    pip install gunicorn && \
-    python songdecks/manage.py collectstatic --noinput
+    pip install gunicorn
 
 EXPOSE 8000
 
 WORKDIR /songdecks
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "songdecks.wsgi"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn --bind :8000 --workers 2 songdecks.wsgi"]
 
 # ----------------Final Stage Selection-------------------
 FROM ${TARGET_ENV} AS final
