@@ -9,7 +9,8 @@ export const HOST_API = '';
 export const MAIN_API = {
   // base_url: "http://localhost:8080/",
   // base_url: "http://192.168.1.226:8080/",
-  base_url: "https://asoiaf-decks.com:8080/",
+  // base_url: "https://asoiaf-decks.com:8080/",
+  base_url: "https://song-decks.fly.dev/",
   asset_url_base: "https://assets.asoiaf-decks.com/",
 };
 
