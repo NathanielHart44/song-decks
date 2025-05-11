@@ -94,9 +94,9 @@ def get_jwt_token(request):
             {"detail": "No active account found with the given credentials."},
             status=status.HTTP_401_UNAUTHORIZED
         )
-    except:
+    except Exception as e:
         return Response(
-            {"detail": "An error occured. Please try again later."},
+            {"detail": f"An error occured. Please try again later.\nError: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
