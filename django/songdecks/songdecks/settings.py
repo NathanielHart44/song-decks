@@ -125,13 +125,13 @@ WSGI_APPLICATION = 'songdecks.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django_prometheus.db.backends.mysql',
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'songdecks',
-        'USER': 'root',
-        'PASSWORD': env('MYSQL_PASSWORD'),
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
         'HOST': env('DATABASE_HOST'),
-        'PORT': 3306,
+        'PORT': 5432,
     }
 }
 

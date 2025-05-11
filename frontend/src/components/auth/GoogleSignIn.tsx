@@ -10,7 +10,7 @@ export function GoogleSignIn() {
 
     return (
         <Button
-            disabled={false}
+            disabled={true}
             onClick={google_login}
             variant={"contained"}
             sx={{
