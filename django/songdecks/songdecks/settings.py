@@ -100,6 +100,10 @@ CORS_ALLOWED_ORIGINS = [
      env('BE_URL'),
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    env('BE_URL'),
+]
+
 ROOT_URLCONF = 'songdecks.urls'
 
 TEMPLATES = [
