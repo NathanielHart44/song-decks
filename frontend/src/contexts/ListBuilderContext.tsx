@@ -24,6 +24,8 @@ const initialState = {
     listTitle: '',
     usedPoints: 0,
     maxPoints: DEFAULT_LIST_POINTS,
+    freeAttachmentPoints: DEFAULT_LIST_POINTS / 10,
+    freeAttachmentPointsUsed: 0,
     selectedUnits: [],
     selectedUnitTempID: null,
     selectedNCUs: [],
@@ -79,6 +81,8 @@ export default function ListBuilderProvider({ children }: Props) {
                 return { ...state, selectedUnitTempID: action.payload };
             case 'SET_SELECTED_NCUs':
                 return { ...state, selectedNCUs: action.payload };
+            case 'SET_FREE_ATTACHMENT_POINTS_USED':
+                return { ...state, freeAttachmentPointsUsed: action.payload };
             case 'LOAD_LIST':
                 if (state.listTitle !== '') { return state };
                 const loaded_list = decodeList(action.payload);
@@ -196,4 +200,5 @@ export type ListAction =
     | { type: 'SET_SELECTED_UNITS'; payload: Unit[] }
     | { type: 'SET_SELECTED_UNIT_TEMP_ID'; payload: string | null }
     | { type: 'SET_SELECTED_NCUs'; payload: NCU[] }
+    | { type: 'SET_FREE_ATTACHMENT_POINTS_USED'; payload: number }
     | { type: 'LOAD_LIST'; payload: string };
