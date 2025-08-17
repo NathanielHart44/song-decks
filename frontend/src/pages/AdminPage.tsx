@@ -16,7 +16,6 @@ import { MAIN_API } from 'src/config';
 // sections
 import AdminTask from '../components/admin/AdminTask';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { AccordianGraphContents } from '../components/admin/AccordianGraphContents';
 
 // ----------------------------------------------------------------------
 
@@ -95,20 +94,13 @@ function AccordianDiv({ title, tasks, is_graph }: AccordianType) {
                 >
                     <Typography sx={{ transition: text_transition, ...(open && { color: theme.palette.primary.main }) }}>{title}</Typography>
                 </AccordionSummary>
-                { is_graph ?
-                    <AccordianGraphContents
-                        base_url={tasks[0].url}
-                        chartDataGroups={chartDataGroups}
-                        setChartDataGroups={setChartDataGroups}
-                    /> :
-                    <AccordionDetails sx={{ pt: 3 }}>
-                        <Stack spacing={3}>
-                            { tasks.map((task) => (
-                                <AdminTask key={task.title} title={task.title} url={task.url} placeholder={task.placeholder} open={open}/>
-                            ))}
-                        </Stack>
-                    </AccordionDetails>
-                }
+                <AccordionDetails sx={{ pt: 3 }}>
+                    <Stack spacing={3}>
+                        { tasks.map((task) => (
+                            <AdminTask key={task.title} title={task.title} url={task.url} placeholder={task.placeholder} open={open}/>
+                        ))}
+                    </Stack>
+                </AccordionDetails>
             </Accordion>
         </Stack>
     )
