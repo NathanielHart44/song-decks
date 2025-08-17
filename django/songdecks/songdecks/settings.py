@@ -130,13 +130,17 @@ WSGI_APPLICATION = 'songdecks.wsgi.application'
 
 DATABASES = {
     'default': {
+        # Use Prometheus-wrapped PostgreSQL backend for DB metrics
         'ENGINE': 'django_prometheus.db.backends.postgresql',
-        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': env('DATABASE_USER'),
         'PASSWORD': env('DATABASE_PASSWORD'),
         'HOST': env('DATABASE_HOST'),
         'PORT': 5432,
+        # Supabase requires SSL; ensure connections use SSL.
+        # 'OPTIONS': {
+        #     'sslmode': 'require'
+        # },
     }
 }
 

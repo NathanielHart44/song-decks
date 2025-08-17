@@ -27,11 +27,13 @@ def handle_card_updates(game):
     for card in in_hand_cards:
         if not card.drawn_this_round:
             continue
-        user_card_stats, created = UserCardStats.objects.get_or_create(
-            user=card.owner, card_template=card.card_template
-        )
-        user_card_stats.times_drawn += 1
-        user_card_stats.save()
+        # Skip per-user stats for guest sessions
+        if card.owner.user.username.lower() != 'guest':
+            user_card_stats, created = UserCardStats.objects.get_or_create(
+                user=card.owner, card_template=card.card_template
+            )
+            user_card_stats.times_drawn += 1
+            user_card_stats.save()
 
         card.card_template.play_count += 1
         card.card_template.save()
@@ -42,11 +44,13 @@ def handle_card_updates(game):
     for card in discarded_cards:
         if not card.discarded_this_round:
             continue
-        user_card_stats, created = UserCardStats.objects.get_or_create(
-            user=card.owner, card_template=card.card_template
-        )
-        user_card_stats.times_discarded += 1
-        user_card_stats.save()
+        # Skip per-user stats for guest sessions
+        if card.owner.user.username.lower() != 'guest':
+            user_card_stats, created = UserCardStats.objects.get_or_create(
+                user=card.owner, card_template=card.card_template
+            )
+            user_card_stats.times_discarded += 1
+            user_card_stats.save()
 
         card.card_template.discard_count += 1
         card.card_template.save()
@@ -84,6 +88,23 @@ def get_boto3_session():
         region_name=AWS_S3_REGION
     )
     return session
+
+def get_guest_profile():
+    """Fetch or create the shared guest user profile for anonymous gameplay."""
+    try:
+        user = User.objects.get(username='guest')
+    except User.DoesNotExist:
+        user = User.objects.create(
+            username='guest',
+            first_name='Guest',
+            last_name='User',
+            email='',
+            is_superuser=False,
+            is_staff=False,
+        )
+        user.set_unusable_password()
+        user.save()
+    return user.profile
 
 def upload_file_to_s3(file, bucket_name, file_name):
     # file_name should include the path to the file as well.

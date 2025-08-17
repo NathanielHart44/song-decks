@@ -74,18 +74,9 @@ export default function Home() {
                     <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
                         <NavButton
                             title={'New Game'}
-                            text={'Play a game in either "Classic" or "With List" mode.'}
+                            text={'Select a Faction and Commander to start.'}
                             image={`${MAIN_API.asset_url_base}additional-assets/example_6.png`}
                             onClick={() => { navigate(PATH_PAGE.game_start_router) }}
-                            isDisabled={awaitingResponse}
-                        />
-                    </Grid>
-                    <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
-                        <NavButton
-                            title={'Manage Lists'}
-                            text={'Create, edit, and share your Lists.'}
-                            image={`${MAIN_API.asset_url_base}additional-assets/example_11.png`}
-                            onClick={() => { navigate(PATH_PAGE.list_manager) }}
                             isDisabled={awaitingResponse}
                         />
                     </Grid>

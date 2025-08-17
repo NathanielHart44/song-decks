@@ -24,14 +24,7 @@ export default function GameStartRouter() {
                                 image={`${MAIN_API.asset_url_base}additional-assets/example_6.png`}
                             />
                         </Grid>
-                        <Grid item xs={8} sm={6} md={4} lg={3} xl={3}>
-                            <NavButton
-                                title={'Game With List'}
-                                text={"Select a List you've built using the List Builder. You'll have all your the Unit, Attachment, and NCU cards as you play."}
-                                onClick={() => { navigate(PATH_PAGE.select_deck + '/with_list') }}
-                                image={`${MAIN_API.asset_url_base}additional-assets/example_15.png`}
-                            />
-                        </Grid>
+                        
                     </Grid>
                 </Stack>
             </Container>

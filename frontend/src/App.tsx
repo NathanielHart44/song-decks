@@ -6,18 +6,16 @@ import HotJar from './components/user-tracking/HotJar';
 import Pendo from './components/user-tracking/Pendo';
 import AppInstallProvider from './contexts/AppInstallContext';
 import GameProvider from './contexts/GameContext';
-import ListBuilderProvider from './contexts/ListBuilderContext';
 import MetadataProvider from './contexts/MetadataContext';
 import Router from './routes';
 import ThemeProvider from './theme';
 
-import { initializeBrotli } from './utils/convertList';
 
 // ----------------------------------------------------------------------
 
 function App() {
 
-  initializeBrotli();
+  // List-builder removed. No initialization needed.
 
   return (
     <ThemeProvider>
@@ -25,7 +23,6 @@ function App() {
         <MetadataProvider>
           <AppInstallProvider>
             <GameProvider>
-              <ListBuilderProvider>
                 <NotistackProvider>
                   <Pendo />
                   <HotJar />
@@ -34,7 +31,6 @@ function App() {
                     <Router />
                   </MainStyle>
                 </NotistackProvider>
-              </ListBuilderProvider>
             </GameProvider>
           </AppInstallProvider>
         </MetadataProvider>

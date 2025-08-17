@@ -5,7 +5,7 @@ import {
     Theme
 } from "@mui/material";
 import { useEffect, useReducer } from "react";
-import { Commander, Faction, CardTemplate, Attachment, NCU } from "src/@types/types";
+import { Commander, Faction, CardTemplate } from "src/@types/types";
 import { processTokens } from "src/utils/jwt";
 import { ContentTop } from "./ContentTop";
 
@@ -13,9 +13,6 @@ import { ContentTop } from "./ContentTop";
 import { useApiCall } from "src/hooks/useApiCall";
 import useFactions from "src/hooks/useFactions";
 import useCommanders from "src/hooks/useCommanders";
-import useAttachments from "src/hooks/useAttachments";
-import useNCUs from "src/hooks/useNCUs";
-import useUnits from "src/hooks/useUnits";
 import ContentBottom from "./ContentBottom";
 
 // ----------------------------------------------------------------------
@@ -32,21 +29,6 @@ export type State = {
     addNewFaction: boolean;
     addNewCommander: boolean;
     addNewCard: boolean;
-    
-    allAttachments: Attachment[];
-    factionAttachments: Attachment[] | null;
-    selectedAttachment: Attachment | null;
-    addNewAttachment: boolean;
-
-    allNCUs: NCU[];
-    factionNCUs: NCU[] | null;
-    selectedNCU: NCU | null;
-    addNewNCU: boolean;
-
-    allUnits: any[];
-    factionUnits: any[] | null;
-    selectedUnit: any | null;
-    addNewUnit: boolean;
 };
 
 export type Action =
@@ -61,22 +43,7 @@ export type Action =
     | { type: 'TOGGLE_ADD_NEW_COMMANDER' }
     | { type: 'TOGGLE_ADD_NEW_CARD' }
 
-    | { type: 'SET_MODE'; payload: 'faction_select' | 'type_select' | 'commander_select' | 'commander' | 'attachments' | 'ncus' | 'units' }
-    
-    | { type: 'SET_ALL_ATTACHMENTS'; payload: Attachment[] }
-    | { type: 'SET_FACTION_ATTACHMENTS'; payload: Attachment[] | null }
-    | { type: 'SET_SELECTED_ATTACHMENT'; payload: Attachment | null }
-    | { type: 'TOGGLE_ADD_NEW_ATTACHMENT' }
-    
-    | { type: 'SET_ALL_NCUs'; payload: NCU[] }
-    | { type: 'SET_FACTION_NCUs'; payload: NCU[] | null }
-    | { type: 'SET_SELECTED_NCU'; payload: NCU | null }
-    | { type: 'TOGGLE_ADD_NEW_NCU' }
-    
-    | { type: 'SET_ALL_UNITS'; payload: any[] }
-    | { type: 'SET_FACTION_UNITS'; payload: any[] | null }
-    | { type: 'SET_SELECTED_UNIT'; payload: any | null }
-    | { type: 'TOGGLE_ADD_NEW_UNIT' };
+    | { type: 'SET_MODE'; payload: 'faction_select' | 'type_select' | 'commander_select' | 'commander' };
 
 const initialState = {
     mode: 'faction',
@@ -90,21 +57,6 @@ const initialState = {
     addNewFaction: false,
     addNewCommander: false,
     addNewCard: false,
-    
-    allAttachments: [],
-    factionAttachments: null,
-    selectedAttachment: null,
-    addNewAttachment: false,
-
-    allNCUs: [],
-    factionNCUs: null,
-    selectedNCU: null,
-    addNewNCU: false,
-
-    allUnits: [],
-    factionUnits: null,
-    selectedUnit: null,
-    addNewUnit: false,
 };
 
 // ----------------------------------------------------------------------
@@ -120,9 +72,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
     const { apiCall } = useApiCall();
     const { allFactions } = useFactions();
     const { allCommanders, fetchAllCommanders } = useCommanders();
-    const { allAttachments, fetchAllAttachments } = useAttachments();
-    const { allNCUs, fetchAllNCUs } = useNCUs();
-    const { allUnits, fetchAllUnits } = useUnits();
 
     function contentReducer(state: State, action: Action) {
         switch (action.type) {
@@ -149,32 +98,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
             case 'TOGGLE_ADD_NEW_CARD':
                 return { ...state, addNewCard: !state.addNewCard };
 
-            case 'SET_ALL_ATTACHMENTS':
-                return { ...state, allAttachments: action.payload };
-            case 'SET_FACTION_ATTACHMENTS':
-                return { ...state, factionAttachments: action.payload };
-            case 'SET_SELECTED_ATTACHMENT':
-                return { ...state, selectedAttachment: action.payload };
-            case 'TOGGLE_ADD_NEW_ATTACHMENT':
-                return { ...state, addNewAttachment: !state.addNewAttachment };
-
-            case 'SET_ALL_NCUs':
-                return { ...state, allNCUs: action.payload };
-            case 'SET_FACTION_NCUs':
-                return { ...state, factionNCUs: action.payload };
-            case 'SET_SELECTED_NCU':
-                return { ...state, selectedNCU: action.payload };
-            case 'TOGGLE_ADD_NEW_NCU':
-                return { ...state, addNewNCU: !state.addNewNCU };
-
-            case 'SET_ALL_UNITS':
-                return { ...state, allUnits: action.payload };
-            case 'SET_FACTION_UNITS':
-                return { ...state, factionUnits: action.payload };
-            case 'SET_SELECTED_UNIT':
-                return { ...state, selectedUnit: action.payload };
-            case 'TOGGLE_ADD_NEW_UNIT':
-                return { ...state, addNewUnit: !state.addNewUnit };
             default:
                 throw new Error('Unhandled action type!');
         }
@@ -185,12 +108,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
     useEffect(() => {
         if (contentState.mode === 'commander_select') {
             fetchAllCommanders();
-        } else if (contentState.mode === 'attachments') {
-            fetchAllAttachments();
-        } else if (contentState.mode === 'ncus') {
-            fetchAllNCUs();
-        } else if (contentState.mode === 'units') {
-            fetchAllUnits();
         }
     }, [contentState.mode]);
 
@@ -227,28 +144,13 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
             contentDispatch({ type: 'SET_VIEWED_COMMANDERS', payload: filteredCommanders });
             processTokens(() => { getContent('faction_cards') });
         }
-        if (contentState.allAttachments) {
-            const filteredAttachments = contentState.allAttachments?.filter((attachment) => attachment.faction.id === contentState.selectedFaction?.id);
-            contentDispatch({ type: 'SET_FACTION_ATTACHMENTS', payload: filteredAttachments });
-        }
-        if (contentState.allNCUs) {
-            const filteredNCUs = contentState.allNCUs?.filter((ncu) => ncu.faction.id === contentState.selectedFaction?.id);
-            contentDispatch({ type: 'SET_FACTION_NCUs', payload: filteredNCUs });
-        }
-        if (contentState.allUnits) {
-            const filteredUnits = contentState.allUnits?.filter((unit) => unit.faction.id === contentState.selectedFaction?.id);
-            contentDispatch({ type: 'SET_FACTION_UNITS', payload: filteredUnits });
-        }
     }, [contentState.selectedFaction]);
 
     useEffect(() => {
         if (allFactions) { contentDispatch({ type: 'SET_FACTIONS', payload: allFactions }); }
         if (allCommanders) { contentDispatch({ type: 'SET_ALL_COMMANDERS', payload: allCommanders }); }
-        if (allAttachments) { contentDispatch({ type: 'SET_ALL_ATTACHMENTS', payload: allAttachments }); }
-        if (allNCUs) { contentDispatch({ type: 'SET_ALL_NCUs', payload: allNCUs }); }
-        if (allUnits) { contentDispatch({ type: 'SET_ALL_UNITS', payload: allUnits }); }
-        if (allFactions && allCommanders && allAttachments && allNCUs && allUnits) { setAwaitingResponse(false) };
-    }, [allFactions, allCommanders, allAttachments, allNCUs, allUnits]);
+        if (allFactions && allCommanders) { setAwaitingResponse(false) };
+    }, [allFactions, allCommanders]);
 
     useEffect(() => {
         if (!contentState.selectedFaction) return;
@@ -272,12 +174,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
             contentDispatch({ type: 'SET_FACTION_CARDS', payload: null });
             contentDispatch({ type: 'SET_SELECTED_COMMANDER', payload: null });
             contentDispatch({ type: 'SET_COMMANDER_CARDS', payload: null });
-            contentDispatch({ type: 'SET_FACTION_ATTACHMENTS', payload: null });
-            contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: null });
-            contentDispatch({ type: 'SET_FACTION_NCUs', payload: null });
-            contentDispatch({ type: 'SET_SELECTED_NCU', payload: null });
-            contentDispatch({ type: 'SET_FACTION_UNITS', payload: null });
-            contentDispatch({ type: 'SET_SELECTED_UNIT', payload: null });
         } else {
             contentDispatch({ type: 'SET_SELECTED_FACTION', payload: faction });
         }    
@@ -292,50 +188,19 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
         }
     }
 
-    function handleAttachmentClick(attachment: Attachment) {
-        if (contentState.selectedAttachment && (contentState.selectedAttachment?.id === attachment.id)) {
-            contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: null });
-        } else {
-            contentDispatch({ type: 'SET_SELECTED_ATTACHMENT', payload: attachment });
-        }
-    }
-
-    function handleNcuClick(ncu: NCU) {
-        if (contentState.selectedNCU && (contentState.selectedNCU?.id === ncu.id)) {
-            contentDispatch({ type: 'SET_SELECTED_NCU', payload: null });
-        } else {
-            contentDispatch({ type: 'SET_SELECTED_NCU', payload: ncu });
-        }
-    }
-
-    function handleUnitClick(unit: any) {
-        if (contentState.selectedUnit && (contentState.selectedUnit?.id === unit.id)) {
-            contentDispatch({ type: 'SET_SELECTED_UNIT', payload: null });
-        } else {
-            contentDispatch({ type: 'SET_SELECTED_UNIT', payload: unit });
-        }
-    }
+    // Attachments/NCUs/Units removed from management UI
 
     useEffect(() => {
         if (!contentState.selectedFaction) {
             contentDispatch({ type: 'SET_MODE', payload: 'faction_select' });
-        } else if (contentState.selectedFaction && !contentState.selectedCommander && !contentState.selectedAttachment && !contentState.selectedNCU && !contentState.selectedUnit) {
+        } else if (contentState.selectedFaction && !contentState.selectedCommander) {
             contentDispatch({ type: 'SET_MODE', payload: 'type_select' });
         } else if (contentState.selectedFaction && contentState.selectedCommander) {
             contentDispatch({ type: 'SET_MODE', payload: 'commander' });
-        } else if (contentState.selectedFaction && contentState.selectedAttachment) {
-            contentDispatch({ type: 'SET_MODE', payload: 'attachments' });
-        } else if (contentState.selectedFaction && contentState.selectedNCU) {
-            contentDispatch({ type: 'SET_MODE', payload: 'ncus' });
-        } else if (contentState.selectedFaction && contentState.selectedUnit) {
-            contentDispatch({ type: 'SET_MODE', payload: 'units' });
         }
     }, [
         contentState.selectedFaction,
-        contentState.selectedCommander,
-        contentState.selectedAttachment,
-        contentState.selectedNCU,
-        contentState.selectedUnit
+        contentState.selectedCommander
     ]);
 
     const gridContainerStyles: SxProps<Theme> = {
@@ -369,9 +234,6 @@ export default function ManageCardContent({ isMobile, awaitingResponse, setAwait
                         isMobile={isMobile}
                         handleFactionClick={handleFactionClick}
                         handleCommanderClick={handleCommanderClick}
-                        handleAttachmentClick={handleAttachmentClick}
-                        handleNcuClick={handleNcuClick}
-                        handleUnitClick={handleUnitClick}
                         gridContainerStyles={gridContainerStyles}
                         gridItemStyles={gridItemStyles}
                     />

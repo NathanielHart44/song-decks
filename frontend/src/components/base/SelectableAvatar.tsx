@@ -1,6 +1,5 @@
 import { Avatar, Badge, Box, Stack, SxProps, Theme, Typography, useTheme } from "@mui/material";
 import { capWordsLower } from "src/utils/capWords";
-import { Attachment } from "src/@types/types";
 import Iconify from "./Iconify";
 
 // ----------------------------------------------------------------------
@@ -9,7 +8,7 @@ type SelectableAvatarProps = {
     handleClick: (arg0: any) => void;
     item: any;
     isMobile: boolean;
-    attachments?: Attachment[];
+    attachments?: { img_url: string }[];
     defaultIcon?: string;
     disabled?: boolean;
     sxOverrides?: SxProps<Theme>;

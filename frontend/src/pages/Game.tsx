@@ -9,45 +9,26 @@ import { ActionButtons } from "src/components/game-page/ActionButtons";
 import { useParams } from "react-router-dom";
 import CardProbability from "src/components/game-page/CardProbability";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
-import KeywordSearch from "src/components/KeywordSearch";
 import SpeedDialDiv, { SpeedDialOptions } from "src/components/SpeedDialDiv";
-import { decodeList } from "src/utils/convertList";
-import { List } from "src/@types/types";
-import { ListOverviewDiv } from "src/components/list-manage/ListOverview";
 
 // ----------------------------------------------------------------------
 
-export type GameModalOptions = 'probability' | 'word_search' | 'game' | 'list';
+export type GameModalOptions = 'probability' | 'game';
 
 // ----------------------------------------------------------------------
 
 export default function Game() {
 
-    const { gameID = '', lc } = useParams();
+    const { gameID = '' } = useParams();
     const { allCards } = useContext(GameContext);
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(false);
     const [openModal, setOpenModal] = useState<GameModalOptions>('game');
-    const [gameList, setGameList] = useState<List>();
     const [speedDialOptions, setSpeedDialOptions] = useState<SpeedDialOptions[]>(defaultSpeedDialOptions);
 
     // TODO: Preload images here, but running into issues with allCards containing cards not partaining to the current game.
 
-    const using_list = (lc !== undefined && lc !== null);
-    useEffect(() => {
-        if (using_list && !gameList) {
-            const loaded_list = decodeList(lc);
-            setGameList(loaded_list);
-            const new_speed_dial_options = [...speedDialOptions];
-            new_speed_dial_options.push({
-                name: 'List',
-                source: 'list',
-                icon: 'game-icons:swords-emblem'
-            });
-            setSpeedDialOptions(new_speed_dial_options);
-
-        };
-    }, [gameList, lc]);
+    useEffect(() => {}, []);
 
     return (
         <Page title="Play">
@@ -63,19 +44,7 @@ export default function Game() {
             { openModal === 'game' &&
                 <GameContentDiv setAwaitingResponse={setAwaitingResponse} />
             }
-            { openModal === 'word_search' &&
-                <KeywordSearch
-                    is_game={true}
-                    awaitingResponse={awaitingResponse}
-                    setAwaitingResponse={setAwaitingResponse}
-                />
-            }
-            { openModal === 'list' &&
-                <ListOverviewDiv
-                    isMobile={false}
-                    currentList={gameList as List}
-                />
-            }
+            
                 <SpeedDialDiv
                     setOpenModal={setOpenModal}
                     options={speedDialOptions}
@@ -134,10 +103,5 @@ const defaultSpeedDialOptions: SpeedDialOptions[] = [
         name: 'Cards In Deck',
         source: 'probability',
         icon: 'icon-park-solid:layers'
-    },
-    {
-        name: 'Keyword Search',
-        source: 'word_search',
-        icon: 'eva:search-outline'
     },
 ];

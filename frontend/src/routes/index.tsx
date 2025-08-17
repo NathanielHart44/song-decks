@@ -41,30 +41,22 @@ export default function Router() {
         { path: 'workbench', element: withAuthGuard(<Workbench />) },
         { path: 'landing', element: withGuestGuard(<LandingPage />) },
         { path: 'home', element: withAuthGuard(<Home />) },
-        { path: 'game-start', element: withAuthGuard(<GameStartRouter />) },
+        { path: 'game-start', element: (<GameStartRouter />) },
         {
           path: 'game',
-          element: withAuthGuard(<Game />),
+          element: (<Game />),
           children: [
-            { path: ':gameID', element: withAuthGuard(<Game />) },
-            { path: ':gameID/:lc', element: withAuthGuard(<Game />) }
+            { path: ':gameID', element: (<Game />) },
           ],
         },
-        { path: 'select-deck/:type', element: withAuthGuard(<SelectDeck />) },
+        { path: 'select-deck/:type', element: (<SelectDeck />) },
         { path: 'manage', element: withModeratorGuard(<ManageContent />) },
         { path: 'admin', element: withAdminGuard(<AdminPage />) },
         { path: 'tester', element: withTesterGuard(<TesterPage />) },
         
         { path: 'profile', element: withAuthGuard(<ProfilePage />) },
         { path: 'proposals', element: withAuthGuard(<ProposalsAndTasksPage />) },
-        {
-          path: 'list-builder',
-          element: withAuthGuard(<ListBuilder />),
-          children: [
-            { path: ':lc', element: withAuthGuard(<ListBuilder />) },
-          ],
-        },
-        { path: 'list-manager', element: withAuthGuard(<ListManager />) },
+        
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" replace /> },
       ],
@@ -89,8 +81,6 @@ const ManageContent = Loadable(lazy(() => import('src/pages/ManageContent')));
 const AdminPage = Loadable(lazy(() => import('src/pages/AdminPage')));
 const Workbench = Loadable(lazy(() => import('src/pages/Workbench')));
 const ProfilePage = Loadable(lazy(() => import('src/pages/ProfilePage')));
-const ListBuilder = Loadable(lazy(() => import('src/pages/ListBuilder')));
-const ListManager = Loadable(lazy(() => import('src/pages/ListManager')));
 const GameStartRouter = Loadable(lazy(() => import('src/pages/GameStartRouter')));
 const TesterPage = Loadable(lazy(() => import('src/pages/TesterPage')));
 const ProposalsAndTasksPage = Loadable(lazy(() => import('src/pages/ProposalsAndTasksPage')));

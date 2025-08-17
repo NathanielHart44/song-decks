@@ -6,12 +6,12 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from songdecks.serializers import (PlayerCardSerializer, ProfileSerializer,
     UserSerializer, UserCardStatsSerializer, GameSerializer, ShortProfileSerializer,
-    ChangePasswordSerializer, KeywordPairSerializer, KeywordTypeSerializer)
+    ChangePasswordSerializer)
 from django.contrib.auth.models import User
 from songdecks.models import (Profile, Faction, Commander, CardTemplate,
-    Game, PlayerCard, UserCardStats, KeywordPair, KeywordType)
+    Game, PlayerCard, UserCardStats)
 from songdecks.views.helpers import (handle_card_updates, send_email_notification,
-    update_last_login, gen_jwt_tokens_for_user, create_user_from_google)
+    update_last_login, gen_jwt_tokens_for_user, create_user_from_google, get_guest_profile)
 import requests
 from django.utils import timezone
 from rest_framework import status
@@ -202,9 +202,18 @@ def update_user(request, user_id):
 # Game Actions
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def start_game(request, faction_id, commander_id):
     try:
-        user_profile = Profile.objects.get(user=request.user)
+        # Use authenticated profile when available; otherwise use shared guest profile
+        user_profile = None
+        try:
+            if request.user and request.user.is_authenticated:
+                user_profile = Profile.objects.get(user=request.user)
+        except Exception:
+            user_profile = None
+        if user_profile is None:
+            user_profile = get_guest_profile()
         new_game = Game.objects.create(
             owner=user_profile,
             faction=Faction.objects.get(id=faction_id),
@@ -230,13 +239,15 @@ def start_game(request, faction_id, commander_id):
                     status='in-deck'
                 ))
 
-        for card in all_cards:
-            user_card_stats, created = UserCardStats.objects.get_or_create(
-                user=user_profile,
-                card_template=card.card_template
-            )
-            user_card_stats.times_included += 1
-            user_card_stats.save()
+        # Only track per-user stats for authenticated users
+        if request.user and request.user.is_authenticated:
+            for card in all_cards:
+                user_card_stats, created = UserCardStats.objects.get_or_create(
+                    user=user_profile,
+                    card_template=card.card_template
+                )
+                user_card_stats.times_included += 1
+                user_card_stats.save()
 
         serializer = PlayerCardSerializer(all_cards, many=True)
 
@@ -245,9 +256,13 @@ def start_game(request, faction_id, commander_id):
         return JsonResponse({"success": False, "response": str(e)})
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def end_round(request, game_id):
     try:
-        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if request.user and request.user.is_authenticated:
+            game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        else:
+            game_search = Game.objects.filter(id=game_id)
         if game_search.count() == 0:
             return JsonResponse({"success": False, "response": "Game not found."})
         game = game_search.first()
@@ -265,9 +280,13 @@ def end_round(request, game_id):
         return JsonResponse({"success": False, "response": str(e)})
     
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def end_game(request, game_id):
     try:
-        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if request.user and request.user.is_authenticated:
+            game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        else:
+            game_search = Game.objects.filter(id=game_id)
         if game_search.count() == 0:
             return JsonResponse({"success": False, "response": "Game not found."})
         game = game_search.first()
@@ -345,175 +364,7 @@ def download_img(request):
         return JsonResponse({"success": False, "response": str(e)})
     
 # ----------------------------------------------------------------------
-# Keyword Search
-    
-@api_view(['GET'])
-def get_keyword_pairs(request):
-    try:
-        keyword_pairs = KeywordPair.objects.all()
-        serializer = KeywordPairSerializer(keyword_pairs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['POST'])
-def create_keyword_pair(request):
-    try:
-        if request.user.profile.moderator == False:
-            return Response(
-                {"detail": "You do not have permission to create keywords."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        post_data = request.data
-        serializer = KeywordPairSerializer(data=post_data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-    
-@api_view(['POST'])
-def edit_keyword_pair(request, keyword_pair_id):
-    try:
-        if request.user.profile.moderator == False:
-            return Response(
-                {"detail": "You do not have permission to edit keywords."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        try:
-            keyword_pair = KeywordPair.objects.get(id=keyword_pair_id)
-        except KeywordPair.DoesNotExist:
-            return Response(
-                {"detail": "Keyword pair not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        post_data = request.data
-        serializer = KeywordPairSerializer(keyword_pair, data=post_data, context={'request': request}, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['DELETE'])
-def delete_keyword_pair(request, keyword_pair_id):
-    try:
-        if request.user.profile.moderator == False:
-            return Response(
-                {"detail": "You do not have permission to delete keywords."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        try:
-            keyword_pair = KeywordPair.objects.get(id=keyword_pair_id)
-        except KeywordPair.DoesNotExist:
-            return Response(
-                {"detail": "Keyword pair not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        keyword_pair.delete()
-        return Response(
-            {"detail": "Keyword pair deleted."},
-            status=status.HTTP_200_OK
-        )
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-    
-@api_view(['GET'])
-def get_keyword_types(request):
-    try:
-        keyword_types = KeywordType.objects.all()
-        serializer = KeywordTypeSerializer(keyword_types, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-    
-@api_view(['POST'])
-def create_keyword_type(request):
-    try:
-        if request.user.profile.moderator == False:
-            return Response(
-                {"detail": "You do not have permission to create keywords."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        post_data = request.data
-        serializer = KeywordTypeSerializer(data=post_data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-    
-@api_view(['POST'])
-def edit_keyword_type(request, keyword_type_id):
-    try:
-        if request.user.profile.moderator == False:
-            return Response(
-                {"detail": "You do not have permission to edit keywords."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        try:
-            keyword_type = KeywordType.objects.get(id=keyword_type_id)
-        except KeywordType.DoesNotExist:
-            return Response(
-                {"detail": "Keyword type not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        post_data = request.data
-        serializer = KeywordTypeSerializer(keyword_type, data=post_data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@api_view(['DELETE'])
-def delete_keyword_type(request, keyword_type_id):
-    try:
-        if request.user.profile.moderator == False:
-            return Response(
-                {"detail": "You do not have permission to delete keywords."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        try:
-            keyword_type = KeywordType.objects.get(id=keyword_type_id)
-        except KeywordType.DoesNotExist:
-            return Response(
-                {"detail": "Keyword type not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        keyword_type.delete()
-        return Response(
-            {"detail": "Keyword type deleted."},
-            status=status.HTTP_200_OK
-        )
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-    
-# ----------------------------------------------------------------------
+# Keyword Search endpoints removed.
     
 @api_view(['GET'])
 def request_tester(request):

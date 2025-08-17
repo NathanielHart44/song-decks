@@ -66,11 +66,10 @@ class ProfileSerializer(serializers.ModelSerializer):
 class StatsProfileSerializer(serializers.ModelSerializer):
     user = StatsUserSerializer(read_only=True)
     total_game_count = serializers.IntegerField(read_only=True)
-    total_list_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'tester', 'moderator', 'admin', 'session_count', 'total_list_count', 'total_game_count')
+        fields = ('id', 'user', 'tester', 'moderator', 'admin', 'session_count', 'total_game_count')
         depth = 2
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -110,54 +109,6 @@ class CommanderSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'img_url', 'faction', 'commander_type')
         depth = 1
 
-class NcuSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NCU
-        fields = '__all__'
-        depth = 1
-
-class AttachmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Attachment
-        fields = '__all__'
-        depth = 1
-
-class UnitSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Unit
-        fields = '__all__'
-        depth = 1
-
-class ListUnitSerializer(serializers.ModelSerializer):
-    unit = UnitSerializer(read_only=True)
-    attachments = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ListUnit
-        fields = ['unit', 'attachments']
-
-    def get_attachments(self, obj):
-        # Serialize the attachments for each ListUnit
-        return AttachmentSerializer(obj.attachments.all(), many=True).data
-
-class ListNcuSerializer(serializers.ModelSerializer):
-    ncu = NcuSerializer(read_only=True)
-
-    class Meta:
-        model = ListNCU
-        fields = ['ncu']
-
-class ListSerializer(serializers.ModelSerializer):
-    faction = FactionSerializer(read_only=True)
-    commander = CommanderSerializer(read_only=True)
-    units = ListUnitSerializer(many=True, read_only=True, source='unit_list')
-    ncus = ListNcuSerializer(many=True, read_only=True, source='ncu_list')
-    shared_from = ProfileSerializer(read_only=True)
-
-    class Meta:
-        model = List
-        fields = '__all__'
 
 class CardTemplateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -166,11 +117,10 @@ class CardTemplateSerializer(serializers.ModelSerializer):
         depth = 1
 
 class GameSerializer(serializers.ModelSerializer):
-    owner_list = ListSerializer(read_only=True)
 
     class Meta:
         model = Game
-        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round', 'owner_list')
+        fields = ('id', 'owner', 'faction', 'commander', 'status', 'created_at', 'updated_at', 'round')
         depth = 1
 
 class PlayerCardSerializer(serializers.ModelSerializer):
@@ -388,55 +338,4 @@ class TaskSerializer(serializers.ModelSerializer):
         return task
     
 # ----------------------------------------------------------------------
-# Keyword Search
-    
-class KeywordTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = KeywordType
-        fields = '__all__'
-
-class KeywordPairSerializer(serializers.ModelSerializer):
-    keyword_types = KeywordTypeSerializer(many=True, read_only=True)
-    keyword_type_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=KeywordType.objects.all(),
-        required=False
-    )
-
-    class Meta:
-        model = KeywordPair
-        fields = '__all__'
-
-    def validate(self, data):
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-        return self._save_pair(validated_data)
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        return self._save_pair(validated_data, instance)
-
-    def _set_m2m_fields(self, pair, m2m_field_data):
-        for field_name, objs in m2m_field_data.items():
-            if objs is not None:
-                getattr(pair, field_name).set(objs)
-
-    def _save_pair(self, validated_data, instance=None):
-        m2m_fields = {
-            'keyword_types': validated_data.pop('keyword_type_ids', [])
-        }
-
-        if instance:
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-            pair = instance
-        else:
-            pair = KeywordPair.objects.create(**validated_data)
-
-        self._set_m2m_fields(pair, m2m_fields)
-        
-        return pair
+# Keyword Search serializers removed.

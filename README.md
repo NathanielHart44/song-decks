@@ -15,11 +15,12 @@ python3 manage.py makemigrations
 ## Setup Guide
 
 1. Place all .env files
-2. Create a virtual environment and pip install everything from the requirements.txt
-  - If you get an error regarding mysql, you will need to install it separately via:
-```
-sudo apt-get install mysql-server
-```
+2. Create a virtual environment and pip install everything from `django/requirements.txt`.
+  - The backend uses PostgreSQL (Supabase). Ensure these env vars are set for Django:
+    - `DATABASE_HOST` (e.g., your Supabase pooler host)
+    - `DATABASE_USER` (Supabase user)
+    - `DATABASE_PASSWORD` (Supabase password)
+    - SSL is required; the app sets `sslmode=require` automatically.
 3. While the Docker app is running, run:
 ```
 docker compose up --build
@@ -67,6 +68,10 @@ To migrate, navigate inside of the main directory (song-decks) and run the follo
 ```
 docker compose run web python3 /songdecks/manage.py migrate
 ```
+
+Notes:
+- The compose file no longer runs a local MySQL/MariaDB container. The Django app connects directly to Supabase Postgres using the `.env` values under `django/songdecks/songdecks/.env` (or your own overrides).
+- If you prefer local Postgres instead of Supabase, run a `postgres` container separately and set `DATABASE_HOST`, `DATABASE_USER`, and `DATABASE_PASSWORD` accordingly.
 
 ## Updating .env files in Production
 

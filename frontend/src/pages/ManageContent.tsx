@@ -7,11 +7,9 @@ import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import Page from "src/components/base/Page";
 import { MetadataContext } from "src/contexts/MetadataContext";
 import ManageCardContent from "src/components/manage-content/ManageCardContent"
-import KeywordSearch from "src/components/KeywordSearch";
-
 // ----------------------------------------------------------------------
-
-const contentOptions = ['cards', 'keywords'];
+// Keyword management removed
+const contentOptions = ['cards'] as const;
 type ContentOptionType = typeof contentOptions[number];
 
 // ----------------------------------------------------------------------
@@ -28,13 +26,6 @@ export default function ManageContent() {
             { selectedContent === 'cards' &&
                 <ManageCardContent
                     isMobile={isMobile}
-                    awaitingResponse={awaitingResponse}
-                    setAwaitingResponse={setAwaitingResponse}
-                />
-            }
-            { selectedContent === 'keywords' &&
-                <KeywordSearch
-                    is_game={false}
                     awaitingResponse={awaitingResponse}
                     setAwaitingResponse={setAwaitingResponse}
                 />

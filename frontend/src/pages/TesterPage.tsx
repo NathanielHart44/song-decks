@@ -18,16 +18,6 @@ export default function TesterPage() {
             description: "Looking to figure out all bugs and issues with the website app.",
             link: `${PATH_PAGE.home}`
         },
-        {
-            title: "List Builder",
-            description: "Looking to figure out all bugs and issues with the list builder.",
-            link: `${PATH_PAGE.list_builder}`
-        },
-        {
-            title: "List Manager",
-            description: "Trying to figure out what additional functionality should be included on this page. What would you guys like to see?",
-            link: `${PATH_PAGE.list_manager}`
-        }
     ]
 
     return (

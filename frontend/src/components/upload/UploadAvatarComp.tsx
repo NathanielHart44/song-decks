@@ -7,7 +7,7 @@ import { useDropzone } from 'react-dropzone';
 import Iconify from '../base/Iconify';
 import RejectionFiles from './RejectionFiles';
 import LazyImage from '../base/MainImage';
-import { Attachment, Commander, Faction, Unit, NCU } from "src/@types/types";
+import { Commander, Faction } from "src/@types/types";
 import createImageURL from 'src/utils/createImgURL';
 import isValidHttpUrl from 'src/utils/isValidHttpUrl';
 import { processTokens } from 'src/utils/jwt';
@@ -17,7 +17,7 @@ import { MetadataContext } from 'src/contexts/MetadataContext';
 
 // ----------------------------------------------------------------------
 
-export type AvatarUploadType = 'card' | 'faction' | 'commander' | 'attachment' | 'ncu' | 'unit' | 'attachment_card' | 'ncu_card' | 'unit_card';
+export type AvatarUploadType = 'card' | 'faction' | 'commander';
 
 // ----------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ type UploadProps = {
     type: AvatarUploadType;
     name: string;
     faction: Faction | null;
-    item: Commander | Attachment | NCU | Unit | null;
+    item: Commander | null;
     uploadFile: FileWithPreview | null;
     setUploadFile: (arg0: FileWithPreview | null) => void;
     imgURL: string;

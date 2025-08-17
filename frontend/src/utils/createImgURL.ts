@@ -1,4 +1,4 @@
-import { Attachment, Commander, Faction, NCU, Unit } from "src/@types/types";
+import { Commander, Faction } from "src/@types/types";
 import { AvatarUploadType, FileWithPreview } from "src/components/upload/UploadAvatarComp";
 import { MAIN_API } from "src/config";
 
@@ -8,7 +8,7 @@ type Props = {
     type: AvatarUploadType;
     name: string;
     faction: Faction | null;
-    item: Commander | Attachment | NCU |  Unit | null;
+    item: Commander | null;
     uploadFile: FileWithPreview | null;
 };
 
@@ -25,18 +25,6 @@ export default function createImageURL({ type, name, faction, item, uploadFile }
         url += 'factions/';
     } else if (type === 'commander') {
         url += 'commanders/';
-    } else if (type === 'attachment' || type === 'attachment_card') {
-        url += 'attachments/';
-        if (type === 'attachment_card') { url += 'cards/' }
-        else { url += 'previews/' };
-    } else if (type === 'ncu' || type === 'ncu_card') {
-        url += 'ncus/';
-        if (type === 'ncu_card') { url += 'cards/' }
-        else { url += 'previews/' };
-    } else if (type === 'unit' || type === 'unit_card') {
-        url += 'units/';
-        if (type === 'unit_card') { url += 'cards/' }
-        else { url += 'previews/' };
     };
 
     if (faction) {

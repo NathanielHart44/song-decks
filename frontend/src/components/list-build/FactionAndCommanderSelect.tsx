@@ -10,12 +10,12 @@ import {
 } from "@mui/material";
 import { CardTemplate, Commander, Faction } from "src/@types/types";
 import { SelectableAvatar } from "src/components/base/SelectableAvatar";
-import { gridContainerStyles, gridItemStyles } from "../../pages/ListBuilder";
+// Local grid styles (decoupled from old ListBuilder)
 import { useEffect, useState } from "react";
 import LoadingBackdrop from "../base/LoadingBackdrop";
 import { TacticCardImg } from "../game-page/CardProbability";
 import { useApiCall } from "src/hooks/useApiCall";
-import { processTokens } from "src/utils/jwt";
+// import { processTokens } from "src/utils/jwt";
 
 // ----------------------------------------------------------------------
 type FactionAndCommanderSelectProps = {
@@ -102,10 +102,16 @@ export function FactionAndCommanderSelect(
                         container
                         rowSpacing={2}
                         columnSpacing={2}
-                        sx={gridContainerStyles}
+                        sx={{
+                            justifyContent: 'space-around',
+                            alignItems: 'center',
+                            display: 'grid',
+                            width: '100%',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'
+                        }}
                     >
                         {allFactions.map((faction) => (
-                            <Grid item key={faction.id + 'faction'} sx={gridItemStyles}>
+                            <Grid item key={faction.id + 'faction'} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
                                 <SelectableAvatar
                                     item={faction}
                                     altText={faction.name}
@@ -124,10 +130,16 @@ export function FactionAndCommanderSelect(
                         container
                         rowSpacing={2}
                         columnSpacing={2}
-                        sx={gridContainerStyles}
+                        sx={{
+                            justifyContent: 'space-around',
+                            alignItems: 'center',
+                            display: 'grid',
+                            width: '100%',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'
+                        }}
                     >
                         {factionCommanders?.map((commander) => (
-                            <Grid item key={commander.id + 'commander'} sx={gridItemStyles}>
+                            <Grid item key={commander.id + 'commander'} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
                                 <SelectableAvatar
                                     item={commander}
                                     altText={commander.name}
@@ -190,22 +202,14 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
 
     useEffect(() => {
         if (dialogOpen) {
-            if (selectedFaction) { processTokens(() => { getContent('faction_cards') }) }
-            if (selectedCommander) { processTokens(() => { getContent('commander_cards') }) }
+            if (selectedFaction) { getContent('faction_cards') }
+            if (selectedCommander) { getContent('commander_cards') }
         } else {
             if (!selectedFaction) { setFactionCards([]) }
             if (!selectedCommander) { setCommanderCards([]) }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dialogOpen, selectedFaction, selectedCommander]);
-
-    const gridContainerStyles: SxProps<Theme> = {
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        display: 'grid',
-        width: '100%',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'
-    };
 
     const gridItemStyles: SxProps<Theme> = {
         display: 'flex',
@@ -240,7 +244,13 @@ function TacticsCardDisplay({ isMobile, dialogOpen, setDialogOpen, selectedFacti
                     container
                     rowSpacing={2}
                     columnSpacing={2}
-                    sx={gridContainerStyles}
+                    sx={{
+                        justifyContent: 'space-around',
+                        alignItems: 'center',
+                        display: 'grid',
+                        width: '100%',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))'
+                    }}
                 >
                     {commanderCards.map((card) => (
                         <Grid

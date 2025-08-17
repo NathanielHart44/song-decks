@@ -45,115 +45,6 @@ export type FakeCommander = {
     commander_type: 'attachment' | 'unit';
 };
 
-export type NCU = {
-    id: number;
-    temp_id?: string;
-    name: string;
-    faction: Faction;
-    points_cost: number;
-    img_url: string;
-    main_url: string;
-};
-
-export type FakeNCU = {
-    id: number;
-    temp_id?: string;
-    name: string;
-    faction: Faction | null;
-    points_cost: number;
-    img_url: string;
-    main_url: string;
-};
-
-export type Attachment = {
-    temp_id?: string
-    id: number;
-    name: string;
-    faction: Faction;
-    points_cost: number;
-    img_url: string;
-    main_url: string;
-    type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
-    attachment_type: 'generic' | 'character' | 'commander';
-};
-
-export type FakeAttachment = {
-    temp_id?: string
-    id: number;
-    name: string;
-    faction: Faction | null;
-    points_cost: number;
-    img_url: string;
-    main_url: string;
-    type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
-    attachment_type: 'generic' | 'character' | 'commander';
-};
-
-export type Unit = {
-    temp_id?: string;
-    id: number;
-    name: string;
-    faction: Faction;
-    points_cost: number;
-    unit_type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
-    attachments: Attachment[];
-    img_url: string;
-    main_url: string;
-    status: 'commander' | 'commander_unit' | 'generic';
-    attached_commander: Commander | null;
-    max_in_list: number | null;
-    is_adaptive: boolean;
-};
-
-export type FakeUnit = {
-    temp_id?: string;
-    id: number;
-    name: string;
-    faction: Faction | null;
-    points_cost: number;
-    unit_type: 'infantry' | 'cavalry' | 'monster' | 'war_machine';
-    attachments: FakeAttachment[];
-    img_url: string;
-    main_url: string;
-    status: 'commander' | 'commander_unit' | 'generic';
-    attached_commander: Commander | null;
-    max_in_list: number | null;
-    is_adaptive: boolean;
-};
-
-export type List = {
-    id: number;
-    name: string;
-    owner: Profile;
-    points_allowed: number;
-    faction: Faction;
-    commander: Commander;
-    units: Unit[];
-    ncus: NCU[];
-    created_at: string;
-    updated_at: string;
-    is_draft: boolean;
-    is_public: boolean;
-    is_valid: boolean;
-    shared_from: Profile | null;
-};
-
-export type FakeList = {
-    id: number;
-    name: string;
-    owner: Profile;
-    points_allowed: number;
-    faction: Faction | null;
-    commander: FakeCommander | null;
-    units: { unit: Unit, attachments: Attachment[] }[];
-    ncus: { ncu: NCU }[];
-    created_at: string;
-    updated_at: string;
-    is_draft: boolean;
-    is_public: boolean;
-    is_valid: boolean;
-    shared_from: Profile | null;
-};
 
 // ----------------------------------------------------------------------
 
@@ -280,18 +171,7 @@ export type Subtask = {
     created_at: string;
 };
 
-export type KeywordType = {
-    id: number;
-    name: string;
-    description: string;
-};
-
-export type KeywordPairType = {
-    id: number;
-    keyword: string;
-    keyword_types: KeywordType[];
-    description: string;
-};
+// Keyword and List/Unit types removed
 
 export type ACTION_TYPE =  'draw' | 'place_in_deck' | 'place_in_hand' | 'discard' | 'play' | 'leave_note' | 'update_play_notes' ;
 export const allSteps = ['Deck', 'Hand', 'In Play', 'Discard'];

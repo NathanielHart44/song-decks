@@ -1,4 +1,5 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +13,7 @@ from songdecks.settings import AWS_S3_BUCKET_NAME
 # Card Actions
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def handle_card_action(request, action):
     try:
         game_id = request.data.get('game_id', None)
@@ -21,7 +23,10 @@ def handle_card_action(request, action):
         debug = {}
         debug['original_play_notes'] = play_notes
 
-        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if request.user and request.user.is_authenticated:
+            game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        else:
+            game_search = Game.objects.filter(id=game_id)
         if game_search.count() == 0:
             return JsonResponse({"success": False, "response": f"Game not found. {game_id}"})
         game = game_search.first()
@@ -94,14 +99,21 @@ def handle_card_action(request, action):
         return JsonResponse({"success": False, "response": str(e)})
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_game_cards(request, game_id):
     try:
-        game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        if request.user and request.user.is_authenticated:
+            game_search = Game.objects.filter(id=game_id, owner=request.user.profile)
+        else:
+            game_search = Game.objects.filter(id=game_id)
         if game_search.count() == 0:
             return JsonResponse({"success": False, "response": "Game not found."})
         game = game_search.first()
-
-        cards = get_profile_game_cards(game, request.user.profile)
+        # For anonymous users, return all cards for the game
+        if request.user and request.user.is_authenticated:
+            cards = get_profile_game_cards(game, request.user.profile)
+        else:
+            cards = PlayerCard.objects.filter(game=game)
         serializer = PlayerCardSerializer(cards, many=True)
         return JsonResponse({"success": True, "response": serializer.data})
     except Exception as e:
@@ -232,6 +244,7 @@ def delete_card(request, card_id):
         )
     
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_cards_of_commander(request, commander_id):
     try:
         cards = CardTemplate.objects.filter(commander__id=commander_id)
@@ -244,6 +257,7 @@ def get_cards_of_commander(request, commander_id):
         )
     
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_cards_of_faction(request, faction_id):
     try:
         cards = CardTemplate.objects.filter(faction__id=faction_id).exclude(commander__isnull=False)

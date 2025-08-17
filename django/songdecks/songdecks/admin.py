@@ -1,7 +1,7 @@
 from django.contrib import admin
 from songdecks.models import (Profile, Game, Faction, Commander,
     CardTemplate, PlayerCard, UserCardStats, Tag, Proposal, ProposalImage,
-    Task, SubTask, KeywordPair, KeywordType, List, Unit, NCU, Attachment, ListNCU, ListUnit)
+    Task, SubTask)
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = [f.name for f in Profile._meta.fields]
@@ -39,29 +39,9 @@ class TaskAdmin(admin.ModelAdmin):
 class SubTaskAdmin(admin.ModelAdmin):
     list_display = [f.name for f in SubTask._meta.fields]
 
-class KeywordPairAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in KeywordPair._meta.fields]
-
-class KeywordTypeAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in KeywordType._meta.fields]
-
-class ListAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in List._meta.fields]
-
-class UnitAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in Unit._meta.fields]
-
-class ListUnitAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in ListUnit._meta.fields]
-
-class NCUAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in NCU._meta.fields]
-
-class ListNCUAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in ListNCU._meta.fields]
-
-class AttachmentAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in Attachment._meta.fields]
+"""
+Keyword admin removed with deprecation of keyword feature.
+"""
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Game, GameAdmin)
@@ -75,11 +55,4 @@ admin.site.register(Proposal, ProposalAdmin)
 admin.site.register(ProposalImage, ProposalImageAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(SubTask, SubTaskAdmin)
-admin.site.register(KeywordPair, KeywordPairAdmin)
-admin.site.register(KeywordType, KeywordTypeAdmin)
-admin.site.register(List, ListAdmin)
-admin.site.register(Unit, UnitAdmin)
-admin.site.register(ListUnit, ListUnitAdmin)
-admin.site.register(NCU, NCUAdmin)
-admin.site.register(ListNCU, ListNCUAdmin)
-admin.site.register(Attachment, AttachmentAdmin)
+# Keyword models no longer registered

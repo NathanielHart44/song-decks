@@ -135,5 +135,4 @@ const adminInfo = [
 
 const graphs = [
     { title: 'User Graphs', url: 'get_player_daily_stats', placeholder: '' },
-    { title: 'List Graphs', url: 'get_list_daily_stats', placeholder: '' },
 ];

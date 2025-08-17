@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from songdecks.serializers import (StatsProfileSerializer)
 from django.contrib.auth.models import User
-from songdecks.models import (Profile, Game, List)
+from songdecks.models import (Profile, Game)
 from songdecks.views.helpers import get_last_acceptable_date, calculate_avg_last_login
 import logging
 
@@ -271,66 +271,7 @@ def get_player_daily_stats(request, accepted_days, is_cumulative):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET'])
-def get_list_daily_stats(request, accepted_days, is_cumulative):
-    date_format = '%m-%d-%Y'
-    try:
-        profile = request.user.profile
-        if profile.admin == False:
-            return Response(
-                {"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        lists = List.objects.all().filter(is_draft=False)
-        profiles = Profile.objects.exclude(user__username='admin', admin=False)
-
-        all_results = {}
-        types = ['new_lists']
-        if is_cumulative == 'true':
-            types.append('total_lists')
-            types.append('users_with_lists')
-        else:
-            types.append('created_first_list')
-        for i in range(accepted_days):
-            current_date = get_last_acceptable_date(i)
-
-            new_lists_count = lists.filter(created_at__date=current_date).count()
-
-            if is_cumulative == 'true':
-                total_lists_count = lists.filter(created_at__date__lte=current_date).count()
-                users_with_lists_count = lists.filter(created_at__date__lte=current_date).values('owner').distinct().count()
-            else:
-                profiles_with_lists_today = profiles.filter(owned_lists__created_at__date=current_date).distinct()
-                profiles_with_only_first_list_today = profiles_with_lists_today.exclude(
-                    owned_lists__created_at__date__lt=current_date
-                )
-                first_list_count = profiles_with_only_first_list_today.count()
-
-            for type in types:
-                if type not in all_results:
-                    all_results[type] = []
-                if type == 'users_with_lists':
-                    count = users_with_lists_count
-                elif type == 'new_lists':
-                    count = new_lists_count
-                elif type == 'created_first_list':
-                    count = first_list_count
-                elif type == 'total_lists':
-                    count = total_lists_count
-
-                result = {
-                    "date": current_date.strftime(date_format),
-                    "value": count,
-                }
-                all_results[type].append(result)
-
-        return Response(all_results, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response(
-            {"detail": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+# List analytics removed
     
 @api_view(['GET'])
 def get_top_users(request, count):
@@ -355,25 +296,18 @@ def get_top_users(request, count):
 
         anno_profiles = profiles.annotate(
             total_game_count=Count('game', distinct=True),
-            total_list_count=Count('owned_lists', distinct=True),
         )
 
         most_games = anno_profiles.order_by('-total_game_count')[:count]
-        most_lists = anno_profiles.order_by('-total_list_count')[:count]
         most_sessions = anno_profiles.order_by('-session_count')[:count]
 
         most_games_serializer = StatsProfileSerializer(most_games, many=True)
-        most_lists_serializer = StatsProfileSerializer(most_lists, many=True)
         most_sessions_serializer = StatsProfileSerializer(most_sessions, many=True)
 
         response_data = {
             'most_games': {
                 'count': most_games.count(),
                 'profiles': most_games_serializer.data
-            },
-            'most_lists': {
-                'count': most_lists.count(),
-                'profiles': most_lists_serializer.data
             },
             'most_sessions': {
                 'count': most_sessions.count(),

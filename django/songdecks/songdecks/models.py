@@ -20,14 +20,7 @@ class Profile(ExportModelOperationsMixin('profile'), models.Model):
     def __str__(self) -> str:
         return self.user.first_name + ' ' + self.user.last_name
 
-    def get_owned_lists(self):
-        return self.owned_lists.all()
-
-    def get_active_lists(self):
-        return self.owned_lists.filter(is_draft=False)
-
-    def get_draft_lists(self):
-        return self.owned_lists.filter(is_draft=True)
+    # List-builder functionality removed; only card/game features remain.
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -72,111 +65,11 @@ class Commander(ExportModelOperationsMixin('commander'), models.Model):
         return self.name
 
 # ----------------------------------------------------------------------
-# List Builder
-
-class NCU(ExportModelOperationsMixin('ncu'), models.Model):
-    name = models.CharField(max_length=100)
-    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
-    points_cost = models.PositiveIntegerField()
-    img_url = models.URLField(max_length=500)
-    main_url = models.URLField(max_length=500)
-
-    def __str__(self):
-        return f'{self.name} - {self.faction.name}'
-
-class Attachment(ExportModelOperationsMixin('attachment'), models.Model):
-    UNIT_TYPE_CHOICES = [
-        ('infantry', 'Infantry'),
-        ('cavalry', 'Cavalry'),
-        ('monster', 'Monster'),
-        ('war_machine', 'War Machine'),
-    ]
-    ATTACHMENT_TYPE_CHOICES = [
-        ('generic', 'Generic'),
-        ('character', 'Character'),
-        ('commander', 'Commander'),
-    ]
-
-    name = models.CharField(max_length=100)
-    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
-    points_cost = models.PositiveIntegerField()
-    img_url = models.URLField(max_length=500)
-    main_url = models.URLField(max_length=500)
-    type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
-    attachment_type = models.CharField(max_length=20, choices=ATTACHMENT_TYPE_CHOICES, default='generic')
-
-    def __str__(self):
-        return f'{self.name} - {self.faction.name}'
-
-class Unit(ExportModelOperationsMixin('unit'), models.Model):
-    UNIT_TYPE_CHOICES = [
-        ('infantry', 'Infantry'),
-        ('cavalry', 'Cavalry'),
-        ('monster', 'Monster'),
-        ('war_machine', 'War Machine'),
-    ]
-
-    UNIT_STATUS_CHOICES = [
-        ('commander', 'Commander'),
-        ('commander_unit', 'Commander Unit'),
-        ('generic', 'Generic'),
-    ]
-
-    name = models.CharField(max_length=100)
-    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
-    points_cost = models.PositiveIntegerField()
-    unit_type = models.CharField(max_length=20, choices=UNIT_TYPE_CHOICES)
-    img_url = models.URLField(max_length=500)
-    main_url = models.URLField(max_length=500)
-    status = models.CharField(max_length=20, choices=UNIT_STATUS_CHOICES, default='generic')
-    attached_commander = models.ForeignKey(Commander, null=True, blank=True, on_delete=models.SET_NULL)
-    max_in_list = models.PositiveIntegerField(null=True, blank=True)
-    is_adaptive = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f'{self.name} - {self.unit_type} - {self.faction.name}'
-
-class ListUnit(models.Model):
-    list = models.ForeignKey('List', on_delete=models.CASCADE, related_name='unit_list')
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    attachments = models.ManyToManyField(Attachment, blank=True)
-    commander = models.ForeignKey(Commander, null=True, blank=True, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return f'{self.unit.name} in list: {self.list.id}'
-    
-class ListNCU(models.Model):
-    list = models.ForeignKey('List', on_delete=models.CASCADE, related_name='ncu_list')
-    ncu = models.ForeignKey(NCU, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.ncu.name} in list: {self.list.id}'
-    
-class List(models.Model):
-    name = models.CharField(max_length=100)
-    owner = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='owned_lists')
-    points_allowed = models.PositiveIntegerField()
-    faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
-    commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
-    units = models.ManyToManyField(ListUnit, blank=True, related_name='list_units')
-    ncus = models.ManyToManyField(ListNCU, blank=True, related_name='list_ncus')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    is_draft = models.BooleanField(default=False)
-    is_public = models.BooleanField(default=False)
-    is_valid = models.BooleanField(default=False)
-    shared_from = models.ForeignKey('Profile', null=True, blank=True, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return f'{self.faction.name} - {self.name}'
-
-# ----------------------------------------------------------------------
 
 class Game(ExportModelOperationsMixin('game'), models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
     faction = models.ForeignKey(Faction, on_delete=models.CASCADE)
     commander = models.ForeignKey(Commander, on_delete=models.CASCADE)
-    owner_list = models.ForeignKey(List, blank=True, null=True, on_delete=models.SET_NULL)
     status = models.CharField(max_length=15, choices=[('in-progress', 'In Progress'), ('completed', 'Completed'), ('abandoned', 'Abandoned')])
     updated_at = models.DateTimeField(auto_now=True)
     round = models.PositiveIntegerField(null=False, blank=False, default=1)
@@ -311,19 +204,4 @@ class SubTask(ExportModelOperationsMixin('sub_task'), models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 # ----------------------------------------------------------------------
-# Keyword Search
-
-class KeywordType(ExportModelOperationsMixin('keyword_type'), models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    description = models.TextField()
-
-    def __str__(self):
-        return f'{self.name}'
-
-class KeywordPair(ExportModelOperationsMixin('keyword_pair'), models.Model):
-    keyword = models.CharField(max_length=100, unique=True)
-    keyword_types = models.ManyToManyField(KeywordType, blank=True, related_name='keyword_pairs')
-    description = models.TextField()
-
-    def __str__(self):
-        return f'{self.keyword}'
+# Keyword Search models removed as part of deprecating list/keyword features.

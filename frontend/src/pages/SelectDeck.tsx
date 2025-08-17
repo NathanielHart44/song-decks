@@ -4,7 +4,7 @@ import axios from "axios";
 import { useSnackbar } from "notistack";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Commander, Faction, FakeList, List } from "src/@types/types";
+import { Commander, Faction } from "src/@types/types";
 import LoadingBackdrop from "src/components/base/LoadingBackdrop";
 import Page from "src/components/base/Page";
 import { MAIN_API } from "src/config";
@@ -13,10 +13,7 @@ import { PATH_PAGE } from "src/routes/paths";
 import { processTokens } from "src/utils/jwt";
 import { useApiCall } from "src/hooks/useApiCall";
 import { FactionAndCommanderSelect } from "src/components/list-build/FactionAndCommanderSelect";
-import { CurrentListsDisplay } from "../components/list-manage/CurrentListsDisplay";
-import { parseLists } from "./ListManager";
-import { encodeList } from "src/utils/convertList";
-import { Searchbar } from "src/components/Searchbar";
+// import { Searchbar } from "src/components/Searchbar";
 
 // ----------------------------------------------------------------------
 
@@ -25,8 +22,7 @@ export default function SelectDeck() {
     const { enqueueSnackbar } = useSnackbar();
     const { isMobile, currentUser } = useContext(MetadataContext);
     const { apiCall } = useApiCall();
-    const { type } = useParams();
-    const is_classic = type === 'classic';
+    // Classic-only flow (lists removed)
     const navigate = useNavigate();
 
     const [awaitingResponse, setAwaitingResponse] = useState<boolean>(true);
@@ -38,19 +34,7 @@ export default function SelectDeck() {
     const [viewedCommanders, setViewedCommanders] = useState<Commander[] | null>(null);
     const [selectedCommander, setSelectedCommander] = useState<Commander | null>(null);
 
-    const [allLists, setAllLists] = useState<List[]>();
-    const [selectedList, setSelectedList] = useState<List | null>(null);
-    const [viewedLists, setViewedLists] = useState<List[]>([]); // used for filters
     const [searchTerm, setSearchTerm] = useState<string>('');
-
-    const getUserLists = async () => {
-        const url = `lists/${currentUser?.id}`;
-        apiCall(url, 'GET', null, (data: FakeList[]) => {
-            const lists = parseLists(data);
-            const valid_lists = lists.filter((list) => !list.is_draft);
-            setAllLists(valid_lists);
-        });
-    };
 
     const getContent = async (type: 'factions' | 'commanders') => {
         apiCall(type, 'GET', null, (data) => {
@@ -70,16 +54,12 @@ export default function SelectDeck() {
         let token = localStorage.getItem('accessToken') ?? '';
         const factionId = selectedFaction?.id;
         const commanderId = selectedCommander?.id;
-        await axios.get(`${MAIN_API.base_url}start_game/${factionId}/${commanderId}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        const config = token ? { headers: { Authorization: `JWT ${token}` } } : undefined as any;
+        await axios.get(`${MAIN_API.base_url}start_game/${factionId}/${commanderId}/`, config).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setAwaitingResponse(false);
-                let redirect_url = `${PATH_PAGE.game}/${res[0].game.id}`;
-                if (selectedList) {
-                    const encoded_list = encodeList(selectedList);
-                    redirect_url += `/${encoded_list}`;
-                }
-                navigate(redirect_url);
+                navigate(`${PATH_PAGE.game}/${res[0].game.id}`);
             } else {
                 enqueueSnackbar(response.data.response);
                 setAwaitingResponse(false);
@@ -90,42 +70,16 @@ export default function SelectDeck() {
     };
 
     useEffect(() => {
-        processTokens(() => {
-            getContent('factions');
-            getContent('commanders');
-            getUserLists();
-        });
+        // No auth required to fetch factions/commanders
+        getContent('factions');
+        getContent('commanders');
     }, []);
 
     useEffect(() => {
-        if (searchTerm) {
-            const filteredLists = allLists?.filter((list) => {
-                return list.faction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    list.commander.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    list.name.toLowerCase().includes(searchTerm.toLowerCase());
-            }) ?? [];
-            setViewedLists(filteredLists);
-        } else {
-            setViewedLists(allLists ?? []);
-        };
-    }, [searchTerm]);
-
-    useEffect(() => {
-        if (selectedList) {
-            setSelectedFaction(selectedList.faction);
-            setSelectedCommander(selectedList.commander);
-        } else {
-            setSelectedFaction(null);
-            setSelectedCommander(null);
-        }
-    }, [selectedList]);
-
-    useEffect(() => {
-        if (factions && allCommanders && allLists) {
+        if (factions && allCommanders) {
             setAwaitingResponse(false);
-            setViewedLists(allLists);
         };
-    }, [factions, allCommanders && allLists]);
+    }, [factions, allCommanders]);
     
     useEffect(() => {
         if (selectedFaction && allCommanders) {
@@ -160,47 +114,27 @@ export default function SelectDeck() {
             { awaitingResponse && <LoadingBackdrop /> }
             <Container maxWidth={false}>
                 <Stack spacing={3} width={'100%'} justifyContent={'center'} alignItems={'center'}>
-                    {is_classic &&
-                        <>
-                            <Typography variant={'h3'}>Select Deck</Typography>
-                            {factions &&
-                                <FactionAndCommanderSelect
-                                    isMobile={isMobile}
-                                    allFactions={factions}
-                                    selectedFaction={selectedFaction}
-                                    selectedCommander={selectedCommander}
-                                    factionCommanders={viewedCommanders}
-                                    handleFactionClick={handleFactionClick as any}
-                                    handleCommanderClick={handleCommanderClick as any}
-                                />
-                            }
-                            {(!selectedFaction || !selectedCommander) &&
-                                <Divider sx={{ width: '65%' }} />
-                            }
-                            <ConfirmButton
-                                handleClick={beginGame}
-                                isDisabled={!selectedFaction || !selectedCommander}
-                            />
-                        </>
-                    }
-                    {!is_classic &&
-                        <>
-                            <Typography variant={'h3'}>Select List</Typography>
-                            {(!selectedFaction || !selectedCommander || !selectedList) &&
-                                <Searchbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} width={'80%'} />
-                            }
-                            <ConfirmButton
-                                handleClick={beginGame}
-                                isDisabled={!selectedFaction || !selectedCommander || !selectedList}
-                            />
-                            <CurrentListsDisplay
-                                type={'select'}
-                                currentLists={selectedList ? [selectedList] : (viewedLists ? viewedLists : [])}
-                                selectedList={selectedList}
-                                selectList={setSelectedList}
-                            />
-                        </>
-                    }
+            <>
+                <Typography variant={'h3'}>Select Deck</Typography>
+                {factions &&
+                    <FactionAndCommanderSelect
+                        isMobile={isMobile}
+                        allFactions={factions}
+                        selectedFaction={selectedFaction}
+                        selectedCommander={selectedCommander}
+                        factionCommanders={viewedCommanders}
+                        handleFactionClick={handleFactionClick as any}
+                        handleCommanderClick={handleCommanderClick as any}
+                    />
+                }
+                {(!selectedFaction || !selectedCommander) &&
+                    <Divider sx={{ width: '65%' }} />
+                }
+                <ConfirmButton
+                    handleClick={beginGame}
+                    isDisabled={!selectedFaction || !selectedCommander}
+                />
+            </>
                 </Stack>
             </Container>
         </Page>

@@ -1,35 +1,8 @@
-version: "3"
 services:
-  frontend:
-    image: nhart4141/asoiaf-decks:latest-amd64
-    ports:
-        - "80:80"
-    depends_on:
-      - db
   web:
     build: ./django
     ports:
         - "8080:80"
-    depends_on:
-      - db
-  db:
-    container_name: db
-    image: mariadb:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: songdecks
-    ports:
-      - '3306:3306'
-    expose:
-      - '3306'
-  prometheus:
-      build: ./prometheus
-      ports:
-        - 9090:9090
-  grafana:
-    build: ./grafana
-    restart: 'no'
-    ports:
-      - 3000:3000
-    depends_on:
-      - prometheus
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1

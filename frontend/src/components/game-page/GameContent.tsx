@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import axios from "axios";
 import { MAIN_API } from "src/config";
-import { processTokens } from "src/utils/jwt";
+// import { processTokens } from "src/utils/jwt";
 import LoadingBackdrop from "../base/LoadingBackdrop";
 import { Box } from "@mui/material";
 import { GameContext } from "src/contexts/GameContext";
@@ -46,7 +46,8 @@ export default function GameContent() {
     const getCards = async () => {
         setAwaitingResponse(true);
         let token = localStorage.getItem('accessToken') ?? '';
-        await axios.get(`${MAIN_API.base_url}get_game_cards/${gameID}/`, { headers: { Authorization: `JWT ${token}` } }).then((response) => {
+        const config = token ? { headers: { Authorization: `JWT ${token}` } } : undefined as any;
+        await axios.get(`${MAIN_API.base_url}get_game_cards/${gameID}/`, config).then((response) => {
             if (response?.data && response.data.success) {
                 const res = response.data.response;
                 setAllCards(res);
@@ -58,7 +59,7 @@ export default function GameContent() {
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { processTokens(getCards) }, []);
+    useEffect(() => { getCards() }, []);
 
     function getSectionCards(section: string | null) {
         if (section === "Deck" || section === null) { return inDeck }

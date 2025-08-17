@@ -11,10 +11,6 @@ from songdecks.views import admin as admin_views
 from songdecks.views import cards as cards_views
 from songdecks.views import commanders as commanders_views
 from songdecks.views import factions as factions_views
-from songdecks.views import attachments as attachments_views
-from songdecks.views import ncus as ncus_views
-from songdecks.views import units as units_views
-from songdecks.views import lists as lists_views
 from songdecks.views import workbench as workbench_views
 
 # ----------------------------------------------------------------------
@@ -36,15 +32,7 @@ urlpatterns = [
     path('download_img/', views.download_img),
     path('get_all_users_short/', views.get_all_users_short),
 
-    path('get_keyword_pairs/', views.get_keyword_pairs),
-    path('create_keyword_pair/', views.create_keyword_pair),
-    path('edit_keyword_pair/<int:keyword_pair_id>/', views.edit_keyword_pair),
-    path('delete_keyword_pair/<int:keyword_pair_id>/', views.delete_keyword_pair),
-
-    path('get_keyword_types/', views.get_keyword_types),
-    path('create_keyword_type/', views.create_keyword_type),
-    path('edit_keyword_type/<int:keyword_id>/', views.edit_keyword_type),
-    path('delete_keyword_type/<int:keyword_id>/', views.delete_keyword_type),
+    # Keyword routes removed
 
     # ----------------------------------------------------------------------
 
@@ -85,45 +73,6 @@ urlpatterns = [
     path('delete_faction/<int:faction_id>/', factions_views.delete_faction),
 
     # ----------------------------------------------------------------------
-
-    path('attachments/', attachments_views.get_attachments),
-    path('attachments/<int:faction_id>/', attachments_views.get_attachments),
-
-    path('add_edit_attachment/', attachments_views.add_edit_attachment),
-    path('add_edit_attachment/<int:attachment_id>/', attachments_views.add_edit_attachment),
-    path('delete_attachment/<int:attachment_id>/', attachments_views.delete_attachment),
-
-    # ----------------------------------------------------------------------
-
-    path('ncus/', ncus_views.get_ncus),
-    path('ncus/<int:faction_id>/', ncus_views.get_ncus),
-
-    path('add_edit_ncu/', ncus_views.add_edit_ncu),
-    path('add_edit_ncu/<int:ncu_id>/', ncus_views.add_edit_ncu),
-    path('delete_ncu/<int:ncu_id>/', ncus_views.delete_ncu),
-
-    # ----------------------------------------------------------------------
-
-    path('units/', units_views.get_units),
-    path('units/<int:faction_id>/', units_views.get_units),
-
-    path('add_edit_unit/', units_views.add_edit_unit),
-    path('add_edit_unit/<int:unit_id>/', units_views.add_edit_unit),
-    path('delete_unit/<int:unit_id>/', units_views.delete_unit),
-
-    # ----------------------------------------------------------------------
-
-    path('lists/', lists_views.get_lists),
-    path('lists/<int:user_id>/', lists_views.get_lists),
-
-    path('add_edit_list/', lists_views.add_edit_list),
-    path('add_edit_list/<int:list_id>/', lists_views.add_edit_list),
-    path('delete_list/<int:list_id>/', lists_views.delete_list),
-
-    path('share_list/<int:list_id>/<str:username>/', lists_views.share_list),
-    path('handle_shared_list/<int:list_id>/<str:action>/', lists_views.handle_shared_list),
-    
-    # ----------------------------------------------------------------------
     
     path('get_all_users/', admin_views.get_all_users),
     path('get_all_testers/', admin_views.get_all_testers),
@@ -138,7 +87,7 @@ urlpatterns = [
     path('reset_password/<str:username>/', admin_views.reset_password),
     path('games_played_info/', admin_views.games_played_info),
     path('get_player_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_player_daily_stats),
-    path('get_list_daily_stats/<int:accepted_days>/<str:is_cumulative>/', admin_views.get_list_daily_stats),
+    # List-related analytics removed
 
     # ----------------------------------------------------------------------
 
