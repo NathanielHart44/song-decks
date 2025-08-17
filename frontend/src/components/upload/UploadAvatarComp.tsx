@@ -290,7 +290,7 @@ function UploadAvatar({ file, newUrl, imgURL, setImgURL, maxSize, size, onDrop, 
 
                 { fileRejections.length > 0 &&
                     <Grid item xs={12}>
-                        <RejectionFiles fileRejections={fileRejections} />
+                        <RejectionFiles fileRejections={Array.from(fileRejections)} />
                     </Grid>
                 }
             </Grid>
